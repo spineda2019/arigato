@@ -1,8 +1,25 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const cppfiles = [_][]const u8{
-    "src/main.cpp",
+const CppFiles = struct {
+    const core = [_][]const u8{
+        "src/core/Game.cpp",
+    };
+    const display = [_][]const u8{
+        "src/display/Window.cpp",
+    };
+    const game = [_][]const u8{
+        "src/game/main.cpp",
+    };
+};
+
+const CppIncludeDirs = struct {
+    const core = [_][]const u8{
+        "src/core/include/",
+    };
+    const display = [_][]const u8{
+        "src/display/include/",
+    };
 };
 
 const cppflags = [_][]const u8{
@@ -44,6 +61,121 @@ fn allFlags(config: struct {
     }
 }
 
+const Modules = struct {
+    core: *std.Build.Module,
+    display: *std.Build.Module,
+    game: *std.Build.Module,
+
+    fn init(config: struct {
+        b: *std.Build,
+        target: std.Build.ResolvedTarget,
+        optimize: std.builtin.OptimizeMode,
+        create_compiledb: bool,
+    }) std.mem.Allocator.Error!Modules {
+        const mod_core = config.b.createModule(.{
+            .target = config.target,
+            .optimize = config.optimize,
+            .link_libc = true,
+            .link_libcpp = true,
+        });
+        for (CppFiles.core) |file| {
+            mod_core.addCSourceFile(.{
+                .file = config.b.path(file),
+                .language = .cpp,
+                .flags = try allFlags(.{
+                    .allocator = config.b.allocator,
+                    .for_file = file,
+                    .compiledb = config.create_compiledb,
+                }),
+            });
+        }
+
+        const mod_display = config.b.createModule(.{
+            .target = config.target,
+            .optimize = config.optimize,
+            .link_libc = true,
+            .link_libcpp = true,
+        });
+        for (CppFiles.display) |file| {
+            mod_display.addCSourceFile(.{
+                .file = config.b.path(file),
+                .language = .cpp,
+                .flags = try allFlags(.{
+                    .allocator = config.b.allocator,
+                    .for_file = file,
+                    .compiledb = config.create_compiledb,
+                }),
+            });
+        }
+        const raylib_dep = config.b.dependency("raylib", .{
+            .target = config.target,
+            .optimize = config.optimize,
+        });
+        const raylib_artifact = raylib_dep.artifact("raylib");
+        mod_display.linkLibrary(raylib_artifact);
+
+        const mod_game = config.b.createModule(.{
+            .target = config.target,
+            .optimize = config.optimize,
+            .link_libc = true,
+            .link_libcpp = true,
+        });
+        for (CppFiles.game) |file| {
+            mod_game.addCSourceFile(.{
+                .file = config.b.path(file),
+                .language = .cpp,
+                .flags = try allFlags(.{
+                    .allocator = config.b.allocator,
+                    .for_file = file,
+                    .compiledb = config.create_compiledb,
+                }),
+            });
+        }
+
+        for (CppIncludeDirs.core) |inc| {
+            mod_game.addSystemIncludePath(config.b.path(inc));
+        }
+        for (CppIncludeDirs.display) |inc| {
+            mod_game.addSystemIncludePath(config.b.path(inc));
+        }
+
+        return .{ .core = mod_core, .display = mod_display, .game = mod_game };
+    }
+
+    const Compilations = struct {
+        core: *std.Build.Step.Compile,
+        display: *std.Build.Step.Compile,
+        game: *std.Build.Step.Compile,
+
+        pub fn init(config: struct {
+            b: *std.Build,
+            modules: *const Modules,
+        }) Compilations {
+            const lib_core = config.b.addLibrary(.{
+                .linkage = .static,
+                .name = "core",
+                .root_module = config.modules.core,
+            });
+
+            const lib_display = config.b.addLibrary(.{
+                .linkage = .static,
+                .name = "display",
+                .root_module = config.modules.display,
+            });
+
+            config.modules.game.linkLibrary(lib_core);
+            config.modules.game.linkLibrary(lib_display);
+
+            const game = config.b.addExecutable(.{
+                .name = "arigato",
+                .root_module = config.modules.game,
+            });
+
+            return .{ .core = lib_core, .display = lib_display, .game = game };
+        }
+    };
+};
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -54,70 +186,43 @@ pub fn build(b: *std.Build) !void {
         "Generate the compilation database",
     ) orelse false;
 
-    const raylib_dep = b.dependency("raylib", .{
+    const mods: Modules = try .init(.{
+        .b = b,
         .target = target,
         .optimize = optimize,
-    });
-    const raylib_artifact = raylib_dep.artifact("raylib");
-
-    const mod = b.addModule("arigato", .{
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-        .link_libcpp = true,
-    });
-    for (cppfiles) |file| {
-        mod.addCSourceFile(.{
-            .file = b.path(file),
-            .language = .cpp,
-            .flags = try allFlags(.{
-                .allocator = b.allocator,
-                .for_file = file,
-                .compiledb = create_compiledb,
-            }),
-        });
-    }
-    mod.linkLibrary(raylib_artifact);
-
-    const exe = b.addExecutable(.{
-        .name = "arigato",
-        .root_module = mod,
+        .create_compiledb = create_compiledb,
     });
 
-    b.installArtifact(exe);
+    const compilations: Modules.Compilations = .init(.{
+        .b = b,
+        .modules = &mods,
+    });
+
+    b.installArtifact(compilations.game);
 
     const run_step = b.step("run", "Run the game");
 
-    const run_cmd = b.addRunArtifact(exe);
+    const run_cmd = b.addRunArtifact(compilations.game);
     run_step.dependOn(&run_cmd.step);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
     }
 
-    const mod_tests = b.addTest(.{
-        .root_module = mod,
-    });
-
-    // A run step that will run the test executable.
-    const run_mod_tests = b.addRunArtifact(mod_tests);
-
     // Creates an executable that will run `test` blocks from the executable's
     // root module. Note that test executables only test one module at a time,
     // hence why we have to create two separate ones.
-    const exe_tests = b.addTest(.{
-        .root_module = exe.root_module,
+    const mod_tests = b.addTest(.{
+        .root_module = mods.core,
     });
-
-    // A run step that will run the second test executable.
-    const run_exe_tests = b.addRunArtifact(exe_tests);
+    // A run step that will run the test executable.
+    const run_mod_tests = b.addRunArtifact(mod_tests);
 
     // A top level step for running all tests. dependOn can be called multiple
     // times and since the two run steps do not depend on one another, this will
     // make the two of them run in parallel.
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
-    test_step.dependOn(&run_exe_tests.step);
 
     const compiledb_step = b.step("compiledb", "Combine compiledb fragments");
     const compiledb_exe = b.addExecutable(.{
@@ -133,7 +238,7 @@ pub fn build(b: *std.Build) !void {
     });
     const compiledb_run = b.addRunArtifact(compiledb_exe);
     compiledb_run.addFileArg(b.path(""));
-    compiledb_run.step.dependOn(&exe.step);
+    compiledb_run.step.dependOn(&compilations.game.step);
     compiledb_step.dependOn(&compiledb_run.step);
     if (create_compiledb) {
         b.getInstallStep().dependOn(compiledb_step);

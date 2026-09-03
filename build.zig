@@ -44,7 +44,7 @@ fn allFlags(config: struct {
     }
 }
 
-pub fn build(b: *std.Build) std.mem.Allocator.Error!void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -54,9 +54,16 @@ pub fn build(b: *std.Build) std.mem.Allocator.Error!void {
         "Generate the compilation database",
     ) orelse false;
 
+    const raylib_dep = b.dependency("raylib", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const raylib_artifact = raylib_dep.artifact("raylib");
+
     const mod = b.addModule("arigato", .{
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
         .link_libcpp = true,
     });
     for (cppfiles) |file| {
@@ -70,23 +77,8 @@ pub fn build(b: *std.Build) std.mem.Allocator.Error!void {
             }),
         });
     }
+    mod.linkLibrary(raylib_artifact);
 
-    // Here we define an executable. An executable needs to have a root module
-    // which needs to expose a `main` function. While we could add a main function
-    // to the module defined above, it's sometimes preferable to split business
-    // logic and the CLI into two separate modules.
-    //
-    // If your goal is to create a Zig library for others to use, consider if
-    // it might benefit from also exposing a CLI tool. A parser library for a
-    // data serialization format could also bundle a CLI syntax checker, for example.
-    //
-    // If instead your goal is to create an executable, consider if users might
-    // be interested in also being able to embed the core functionality of your
-    // program in their own executable in order to avoid the overhead involved in
-    // subprocessing your CLI tool.
-    //
-    // If neither case applies to you, feel free to delete the declaration you
-    // don't need and to put everything under a single module.
     const exe = b.addExecutable(.{
         .name = "arigato",
         .root_module = mod,
@@ -103,9 +95,6 @@ pub fn build(b: *std.Build) std.mem.Allocator.Error!void {
         run_cmd.addArgs(args);
     }
 
-    // Creates an executable that will run `test` blocks from the provided module.
-    // Here `mod` needs to define a target, which is why earlier we made sure to
-    // set the releative field.
     const mod_tests = b.addTest(.{
         .root_module = mod,
     });

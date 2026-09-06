@@ -25,7 +25,7 @@ class Sprite final {
     float GetHeight() const noexcept;
 
  public:                 // rule of 5
-    ~Sprite() noexcept;  // in cpp for pimpl reasons so we can use the
+    ~Sprite() noexcept;  // in cpp file for pimpl reasons so we can use the
                          // unique_ptr
     Sprite(Sprite const&) = delete;
     Sprite& operator=(Sprite const&) = delete;

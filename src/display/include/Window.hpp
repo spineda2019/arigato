@@ -38,6 +38,12 @@ class Window final {
         friend class Window;
     };
 
+    struct Mouse final {
+        float x{};
+        float y{};
+        bool clicked{};
+    };
+
  public:  // APIS
     explicit Window(int width, int height, int fps, const char* title) noexcept;
 
@@ -50,6 +56,8 @@ class Window final {
     int GetFPS() const noexcept;
 
     Keys GetKeys() const noexcept;
+
+    Mouse GetMouse() const noexcept;
 
  public:  // Rule of 5
     ~Window() noexcept;

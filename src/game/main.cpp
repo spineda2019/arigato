@@ -25,6 +25,21 @@ inline constexpr bool debug_build{
 #endif
 };
 
+struct Button final {
+    /// Top left of button
+    float x{};
+    /// Top left of button
+    float y{};
+    float width{};
+    float height{};
+    const char* label;
+
+    bool Clicked(Window::Mouse const& mouse) const noexcept {
+        return mouse.clicked && mouse.x >= x && mouse.x < x + width &&
+               mouse.y >= y && mouse.y < y + height;
+    }
+};
+
 Character::Action Translate(Window::Keys keys) noexcept {
     constexpr auto help = [](bool neg,
                              bool pos) -> Character::Action::Direction {
@@ -83,14 +98,35 @@ GameState ProgressGame(Window const& game_window, Game& game,
 }
 
 GameState TitleScreen(Window const& window) noexcept {
-    const Window::Keys keys{window.GetKeys()};
+    constexpr Button new_game_button{
+        .x = 300.0f,
+        .y = 200.0f,
+        .width = 200.0f,
+        .height = 400.f,
+        .label = "New Game",
+    };
+    constexpr Button load_game_button{
+        .x = 300.0f,
+        .y = 260.0f,
+        .width = 200.0f,
+        .height = 400.f,
+        .label = "Load Game",
+    };
+
+    const auto mouse{window.GetMouse()};
 
     const Window::Frame frame{window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
-    frame.DrawText("Press Left-Arrow to start", 0, 0, 20,
+    frame.DrawText(new_game_button.label,
+                   static_cast<const int>(new_game_button.x),
+                   static_cast<const int>(new_game_button.y), 20,
+                   Window::BackgroundColor::LightGray);
+    frame.DrawText(load_game_button.label,
+                   static_cast<const int>(load_game_button.x),
+                   static_cast<const int>(load_game_button.y), 20,
                    Window::BackgroundColor::LightGray);
 
-    if (keys.left) {
+    if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;
     } else {
         return GameState::Title;

@@ -92,6 +92,15 @@ float Window::DeltaTime() const noexcept { return GetFrameTime(); }
 
 int Window::GetFPS() const noexcept { return ::GetFPS(); }
 
+Window::Mouse Window::GetMouse() const noexcept {
+    const auto mouse_pos{::GetMousePosition()};
+    return {
+        .x = mouse_pos.x,
+        .y = mouse_pos.y,
+        .clicked = ::IsMouseButtonPressed(MOUSE_BUTTON_LEFT),
+    };
+};
+
 Window::Frame::Frame() noexcept { ::BeginDrawing(); }
 Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {

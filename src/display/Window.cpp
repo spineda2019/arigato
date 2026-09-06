@@ -69,7 +69,7 @@ Window::operator bool() const noexcept { return !::WindowShouldClose(); }
 
 Window::~Window() noexcept { ::CloseWindow(); }
 
-Window::Keys Window::Frame::GetKeys() const noexcept {
+Window::Keys Window::GetKeys() const noexcept {
     return Window::Keys{
         .left = ::IsKeyDown(KEY_LEFT),
         .right = ::IsKeyDown(KEY_RIGHT),

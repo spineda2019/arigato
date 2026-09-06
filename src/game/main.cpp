@@ -3,7 +3,7 @@
 #include <Sprite.hpp>
 #include <Window.hpp>
 
-#include "assets.hpp"
+#include "./assets.hpp"
 
 namespace {
 using Window = arigato::display::Window;
@@ -41,15 +41,15 @@ int main() noexcept {
     arigato::display::Sprite player_stand{arigato::sprites::player_left};
     Character player{};
     while (game_window) {
-        const Frame frame{game_window.MakeFrame()};
-
-        const Window::Keys keys{frame.GetKeys()};
+        const Window::Keys keys{game_window.GetKeys()};
         const Action action{Translate(keys)};
         player.Apply(action, game_window.DeltaTime());
         const auto pos{player.GetPosition()};
 
+        const Frame frame{game_window.MakeFrame()};
         frame.SetBackground(Window::BackgroundColor::White);
         frame.DrawSprite(player_stand, static_cast<const int>(pos.x),
                          static_cast<const int>(pos.y));
+        frame.DrawText("Day 0", 0, 0, 20, Window::BackgroundColor::LightGray);
     }
 }

@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <format>
 //
 #include <Character.hpp>
@@ -47,40 +48,72 @@ Character::Action Translate(Window::Keys keys) noexcept {
         .move_y = help(keys.up, keys.down),
     };
 }
+
+enum class GameState : std::uint8_t {
+    Title,
+    Playing,
+};
+
+GameState ProgressGame(Window const& game_window, Game& game,
+                       Sprite& player_stand) noexcept {
+    const Window::Keys keys{game_window.GetKeys()};
+    const Character::Action action{Translate(keys)};
+    game.Update(action, game_window.DeltaTime());
+    const Vec2D pos{game.GetPlayerPosition()};
+
+    const Window::Frame frame{game_window.MakeFrame()};
+    frame.SetBackground(Window::BackgroundColor::White);
+    frame.DrawSprite(player_stand, pos.x, pos.y);
+    int hud_y{0};
+    constexpr int font_height{20};
+    if constexpr (debug_build) {
+        const int real_fps{game_window.GetFPS()};
+        const auto fmt{std::format("FPS: {}", real_fps)};
+        frame.DrawText(fmt.c_str(), 0, hud_y, font_height,
+                       Window::BackgroundColor::LightGray);
+        hud_y += font_height;
+    }
+    const auto day{game.GetCurrentDay()};
+    const auto day_fmt{std::format("Day {}", day)};
+    frame.DrawText(day_fmt.c_str(), 0, hud_y, font_height,
+                   Window::BackgroundColor::LightGray);
+    hud_y += font_height;
+
+    return GameState::Playing;
+}
+
+GameState TitleScreen(Window const& window) noexcept {
+    const Window::Keys keys{window.GetKeys()};
+
+    const Window::Frame frame{window.MakeFrame()};
+    frame.SetBackground(Window::BackgroundColor::White);
+    frame.DrawText("Press Left-Arrow to start", 0, 0, 20,
+                   Window::BackgroundColor::LightGray);
+
+    if (keys.left) {
+        return GameState::Playing;
+    } else {
+        return GameState::Title;
+    }
+}
 }  // namespace
 
 int main() noexcept {
     Game game{};
+    GameState state{GameState::Title};
 
     const Window game_window{800, 450, 60, "Arigato!"};
     Sprite player_stand{arigato::sprites::player_left};
 
     while (game_window) {
-        const Window::Keys keys{game_window.GetKeys()};
-        const Character::Action action{Translate(keys)};
-        game.Update(action, game_window.DeltaTime());
-        const Vec2D pos{game.GetPlayerPosition()};
-
-        const Window::Frame frame{game_window.MakeFrame()};
-        frame.SetBackground(Window::BackgroundColor::White);
-        frame.DrawSprite(player_stand, pos.x, pos.y);
-        int hud_y{0};
-        constexpr int font_height{20};
-        frame.DrawText("Day 0", 0, hud_y, font_height,
-                       Window::BackgroundColor::LightGray);
-        hud_y += font_height;
-        if constexpr (debug_build) {
-            const int real_fps{game_window.GetFPS()};
-            const auto fmt{std::format("FPS: {}", real_fps)};
-            frame.DrawText(fmt.c_str(), 0, hud_y, font_height,
-                           Window::BackgroundColor::LightGray);
-            hud_y += font_height;
+        switch (state) {
+            case GameState::Title:
+                state = TitleScreen(game_window);
+                break;
+            case GameState::Playing:
+                state = ProgressGame(game_window, game, player_stand);
+                break;
         }
-        const auto day{game.GetCurrentDay()};
-        const auto day_fmt{std::format("Day {}", day)};
-        frame.DrawText(day_fmt.c_str(), 0, hud_y, font_height,
-                       Window::BackgroundColor::LightGray);
-        hud_y += font_height;
     }
 
     (void)game.Save();

@@ -1,13 +1,23 @@
-#ifndef SRC_WINDOW_HPP_
-#define SRC_WINDOW_HPP_
+#ifndef SRC_DISPLAY_INCLUDE_WINDOW_HPP_
+#define SRC_DISPLAY_INCLUDE_WINDOW_HPP_
 
 #include <cstdint>
+
+#include "./Sprite.hpp"
+
 namespace arigato::display {
 class Window final {
  public:  // types
-    enum class Color : std::uint8_t {
+    enum class BackgroundColor : std::uint8_t {
         White,
         LightGray,
+    };
+
+    struct Keys final {
+        bool left{};
+        bool right{};
+        bool up{};
+        bool down{};
     };
 
     struct Frame final {
@@ -17,9 +27,11 @@ class Window final {
         Frame& operator=(Frame const&) = delete;
         Frame& operator=(Frame&&) = delete;
 
-        void SetBackground(Color) const noexcept;
+        void SetBackground(BackgroundColor) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
-                      Color color) const noexcept;
+                      BackgroundColor color) const noexcept;
+        void DrawSprite(Sprite const&, int x, int y) const noexcept;
+        Keys GetKeys() const noexcept;
 
      private:
         explicit Frame() noexcept;
@@ -34,6 +46,8 @@ class Window final {
 
     Frame MakeFrame() const noexcept;
 
+    double DeltaTime() const noexcept;
+
  public:  // Rule of 5
     ~Window() noexcept;
     explicit Window(Window const&) = delete;
@@ -43,4 +57,4 @@ class Window final {
 };
 }  // namespace arigato::display
 
-#endif  // SRC_WINDOW_HPP_
+#endif  // SRC_DISPLAY_INCLUDE_WINDOW_HPP_

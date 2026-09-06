@@ -1,20 +1,30 @@
-#ifndef SRC_DISPLAY_INCLUDE_TEXTURE_HPP_
-#define SRC_DISPLAY_INCLUDE_TEXTURE_HPP_
+#ifndef SRC_DISPLAY_INCLUDE_SPRITE_HPP_
+#define SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 
 #include <memory>
 #include <type_traits>
 
 namespace arigato::display {
 namespace detail {
-struct Impl;
+struct SpriteImpl;
 }  // namespace detail
 
 class Sprite final {
  public:
     explicit Sprite(const char* path) noexcept;
+    using ReadonlyImplRef_t = std::unique_ptr<detail::SpriteImpl> const&;
+    ReadonlyImplRef_t ReadonlyImplRef() const noexcept;
+
+ public:                 // rule of 5
+    ~Sprite() noexcept;  // in cpp for pimpl reasons so we can use the
+                         // unique_ptr
+    Sprite(Sprite const&) = delete;
+    Sprite& operator=(Sprite const&) = delete;
+    Sprite(Sprite&&) = default;
+    Sprite& operator=(Sprite&&) = default;
 
  private:
-    std::unique_ptr<detail::Impl> impl_{};
+    std::unique_ptr<detail::SpriteImpl> impl_{};
 };
 
 static_assert(!std::is_copy_assignable_v<Sprite>,
@@ -26,4 +36,4 @@ static_assert(std::is_move_constructible_v<Sprite>);
 static_assert(std::is_move_assignable_v<Sprite>);
 }  // namespace arigato::display
 
-#endif  // SRC_DISPLAY_INCLUDE_TEXTURE_HPP_
+#endif  // SRC_DISPLAY_INCLUDE_SPRITE_HPP_

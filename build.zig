@@ -4,10 +4,10 @@ const builtin = @import("builtin");
 const CppFiles = struct {
     const core = [_][]const u8{
         "src/core/Game.cpp",
+        "src/core/Character.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
-        "src/display/Sprite.cpp",
     };
     const game = [_][]const u8{
         "src/game/main.cpp",

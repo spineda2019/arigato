@@ -4,6 +4,7 @@ extern "C" {
 
 #include "include/Window.hpp"
 
+namespace arigato::display {
 namespace {
 constexpr bool debug{
 #ifdef ARIGATO_DEBUG
@@ -12,30 +13,36 @@ constexpr bool debug{
     false
 #endif
 };
-}  // namespace
 
-namespace arigato::display {
+constexpr decltype(RAYWHITE) ToRayColor(Window::Color color) {
+    switch (color) {
+        case Window::Color::White:
+            return RAYWHITE;
+        case Window::Color::LightGray:
+            return LIGHTGRAY;
+    }
+}
+}  // namespace
 
 Window::Window(int width, int height, int fps, const char* title) noexcept {
     if constexpr (!debug) {
-        SetTraceLogLevel(LOG_NONE);
+        ::SetTraceLogLevel(LOG_NONE);
     }
-    InitWindow(width, height, title);
-    SetTargetFPS(fps);
+    ::InitWindow(width, height, title);
+    ::SetTargetFPS(fps);
 }
 
-bool Window::IsRunning() const noexcept { return !WindowShouldClose(); }
+Window::operator bool() const noexcept { return !::WindowShouldClose(); }
 
-void Window::Draw() const noexcept {
-    BeginDrawing();
+Window::~Window() noexcept { ::CloseWindow(); }
 
-    ClearBackground(RAYWHITE);
-
-    DrawText("Congrats! You created your first window!", 190, 200, 20,
-             LIGHTGRAY);
-
-    EndDrawing();
+Window::Frame::Frame() noexcept { ::BeginDrawing(); }
+Window::Frame::~Frame() noexcept { ::EndDrawing(); };
+void Window::Frame::SetBackground(Color color) const noexcept {
+    ::ClearBackground(ToRayColor(color));
 }
-
-Window::~Window() noexcept { CloseWindow(); }
+void Window::Frame::DrawText(const char* text, int x, int y, int size,
+                             Color color) const noexcept {
+    ::DrawText(text, x, y, size, ToRayColor(color));
+}
 }  // namespace arigato::display

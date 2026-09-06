@@ -5,6 +5,7 @@ const CppFiles = struct {
     const core = [_][]const u8{
         "src/core/Game.cpp",
         "src/core/Character.cpp",
+        "src/core/Level.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",

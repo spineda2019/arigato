@@ -47,6 +47,8 @@ class Window final {
 
     float DeltaTime() const noexcept;
 
+    int GetFPS() const noexcept;
+
     Keys GetKeys() const noexcept;
 
  public:  // Rule of 5

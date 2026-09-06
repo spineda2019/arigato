@@ -90,6 +90,8 @@ Window::Keys Window::GetKeys() const noexcept {
 
 float Window::DeltaTime() const noexcept { return GetFrameTime(); }
 
+int Window::GetFPS() const noexcept { return ::GetFPS(); }
+
 Window::Frame::Frame() noexcept { ::BeginDrawing(); }
 Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {

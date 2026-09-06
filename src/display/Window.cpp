@@ -34,14 +34,24 @@ struct SpriteImpl {
 };
 }  // namespace detail
 
+Sprite::Sprite(const char* path, Sprite::Area area) noexcept
+    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
+      area_{std::move(area)} {}
+
 Sprite::Sprite(const char* path) noexcept
-    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))} {}
+    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
+      area_{.width = static_cast<float>(impl_->texture_.width),
+            .height = static_cast<float>(impl_->texture_.height)} {}
 
 Sprite::~Sprite() noexcept = default;
 
 Sprite::ReadonlyImplRef_t Sprite::ReadonlyImplRef() const noexcept {
     return impl_;
 }
+
+float Sprite::GetHeight() const noexcept { return area_.height; }
+
+float Sprite::GetWidth() const noexcept { return area_.width; }
 }  // namespace arigato::display
 
 namespace arigato::display {
@@ -78,7 +88,7 @@ Window::Keys Window::GetKeys() const noexcept {
     };
 };
 
-double Window::DeltaTime() const noexcept { return GetFrameTime(); }
+float Window::DeltaTime() const noexcept { return GetFrameTime(); }
 
 Window::Frame::Frame() noexcept { ::BeginDrawing(); }
 Window::Frame::~Frame() noexcept { ::EndDrawing(); };
@@ -90,7 +100,14 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
-void Window::Frame::DrawSprite(Sprite const& s, int x, int y) const noexcept {
-    ::DrawTexture(s.ReadonlyImplRef()->texture_, x, y, WHITE);
+void Window::Frame::DrawSprite(Sprite const& s, float x,
+                               float y) const noexcept {
+    ::DrawTexturePro(
+        s.ReadonlyImplRef()->texture_,
+        {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
+        {.x = x, .y = y, .width = s.GetWidth(), .height = s.GetHeight()},
+        {.x = 0.0f, .y = 0.0f},
+        0.0f,  // no rotation
+        WHITE);
 }
 }  // namespace arigato::display

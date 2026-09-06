@@ -30,7 +30,7 @@ class Window final {
         void SetBackground(BackgroundColor) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
-        void DrawSprite(Sprite const&, int x, int y) const noexcept;
+        void DrawSprite(Sprite const&, float x, float y) const noexcept;
 
      private:
         explicit Frame() noexcept;
@@ -45,7 +45,7 @@ class Window final {
 
     Frame MakeFrame() const noexcept;
 
-    double DeltaTime() const noexcept;
+    float DeltaTime() const noexcept;
 
     Keys GetKeys() const noexcept;
 

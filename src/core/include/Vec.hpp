@@ -3,14 +3,14 @@
 
 namespace arigato::core {
 struct Vec2D final {
-    double x;
-    double y;
+    float x;
+    float y;
 };
 
 struct Vec3D final {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
 }  // namespace arigato::core
 

@@ -10,10 +10,19 @@ struct SpriteImpl;
 }  // namespace detail
 
 class Sprite final {
+ public:  // types
+    struct Area final {
+        float width{};
+        float height{};
+    };
+
  public:
     explicit Sprite(const char* path) noexcept;
+    explicit Sprite(const char* path, Area sprite_area) noexcept;
     using ReadonlyImplRef_t = std::unique_ptr<detail::SpriteImpl> const&;
     ReadonlyImplRef_t ReadonlyImplRef() const noexcept;
+    float GetWidth() const noexcept;
+    float GetHeight() const noexcept;
 
  public:                 // rule of 5
     ~Sprite() noexcept;  // in cpp for pimpl reasons so we can use the
@@ -25,6 +34,7 @@ class Sprite final {
 
  private:
     std::unique_ptr<detail::SpriteImpl> impl_{};
+    Area area_{};
 };
 
 static_assert(!std::is_copy_assignable_v<Sprite>,

@@ -7,28 +7,28 @@
 
 namespace {
 using Window = arigato::display::Window;
-using Frame = Window::Frame;
 using Character = arigato::core::Character;
-using Action = Character::Action;
+using Sprite = arigato::display::Sprite;
 
-arigato::core::Character::Action Translate(Window::Keys keys) noexcept {
-    constexpr auto help = [](bool neg, bool pos) -> Action::Direction {
+Character::Action Translate(Window::Keys keys) noexcept {
+    constexpr auto help = [](bool neg,
+                             bool pos) -> Character::Action::Direction {
         if (neg) {
             if (pos) {
-                return Action::Direction::Zero;
+                return Character::Action::Direction::Zero;
             } else {
-                return Action::Direction::Negative;
+                return Character::Action::Direction::Negative;
             }
         } else {
             if (pos) {
-                return Action::Direction::Positive;
+                return Character::Action::Direction::Positive;
             } else {
-                return Action::Direction::Zero;
+                return Character::Action::Direction::Zero;
             }
         }
     };
 
-    return Action{
+    return Character::Action{
         .move_x = help(keys.left, keys.right),
         .move_y = help(keys.up, keys.down),
     };
@@ -38,18 +38,17 @@ arigato::core::Character::Action Translate(Window::Keys keys) noexcept {
 int main() noexcept {
     const arigato::display::Window game_window{800, 450, 60, "Arigato!"};
 
-    arigato::display::Sprite player_stand{arigato::sprites::player_left};
+    Sprite player_stand{arigato::sprites::player_left};
     Character player{};
     while (game_window) {
         const Window::Keys keys{game_window.GetKeys()};
-        const Action action{Translate(keys)};
+        const Character::Action action{Translate(keys)};
         player.Apply(action, game_window.DeltaTime());
         const auto pos{player.GetPosition()};
 
-        const Frame frame{game_window.MakeFrame()};
+        const Window::Frame frame{game_window.MakeFrame()};
         frame.SetBackground(Window::BackgroundColor::White);
-        frame.DrawSprite(player_stand, static_cast<const int>(pos.x),
-                         static_cast<const int>(pos.y));
+        frame.DrawSprite(player_stand, pos.x, pos.y);
         frame.DrawText("Day 0", 0, 0, 20, Window::BackgroundColor::LightGray);
     }
 }

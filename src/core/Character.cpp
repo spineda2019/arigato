@@ -6,9 +6,9 @@
 
 namespace arigato::core {
 namespace {
-constexpr double move_speed{120.0};
-constexpr double Direction(Character::Action::Direction dir) {
-    return static_cast<double>(std::to_underlying(dir));
+constexpr float move_speed{120.0};
+constexpr float Direction(Character::Action::Direction dir) {
+    return static_cast<float>(std::to_underlying(dir));
 }
 }  // namespace
 void Character::Apply(Character::Action action, Seconds dt) noexcept {

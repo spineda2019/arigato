@@ -207,6 +207,11 @@ pub fn build(b: *std.Build) !void {
     });
 
     b.installArtifact(compilations.game);
+    b.installDirectory(.{
+        .source_dir = b.path("assets/"),
+        .install_dir = .bin,
+        .install_subdir = "assets",
+    });
 
     const run_step = b.step("run", "Run the game");
 

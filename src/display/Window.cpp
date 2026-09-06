@@ -45,4 +45,5 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                              Color color) const noexcept {
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
+Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
 }  // namespace arigato::display

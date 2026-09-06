@@ -11,8 +11,6 @@ class Window final {
     };
 
     struct Frame final {
-        explicit Frame() noexcept;
-
         ~Frame() noexcept;
         explicit Frame(Frame const&) = delete;
         explicit Frame(Frame&&) = delete;
@@ -22,12 +20,19 @@ class Window final {
         void SetBackground(Color) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       Color color) const noexcept;
+
+     private:
+        explicit Frame() noexcept;
+
+        friend class Window;
     };
 
  public:  // APIS
     explicit Window(int width, int height, int fps, const char* title) noexcept;
 
     explicit operator bool() const noexcept;
+
+    Frame MakeFrame() const noexcept;
 
  public:  // Rule of 5
     ~Window() noexcept;

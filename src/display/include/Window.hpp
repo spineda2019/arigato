@@ -31,6 +31,9 @@ class Window final {
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
         void DrawSprite(Sprite const&, float x, float y) const noexcept;
+        void DrawRectangle(const char* text, int x, int y, int width,
+                           int height,
+                           BackgroundColor border_color) const noexcept;
 
      private:
         explicit Frame() noexcept;

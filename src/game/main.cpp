@@ -99,17 +99,17 @@ GameState ProgressGame(Window const& game_window, Game& game,
 
 GameState TitleScreen(Window const& window) noexcept {
     constexpr Button new_game_button{
-        .x = 300.0f,
-        .y = 200.0f,
-        .width = 200.0f,
-        .height = 400.f,
+        .x = 10.0f,
+        .y = 100.0f,
+        .width = 160.0f,
+        .height = 80.0f,
         .label = "New Game",
     };
     constexpr Button load_game_button{
-        .x = 300.0f,
-        .y = 260.0f,
-        .width = 200.0f,
-        .height = 400.f,
+        .x = 10.0f,
+        .y = new_game_button.y + new_game_button.height + 10.0f,
+        .width = 160.0f,
+        .height = 80.0f,
         .label = "Load Game",
     };
 
@@ -117,14 +117,18 @@ GameState TitleScreen(Window const& window) noexcept {
 
     const Window::Frame frame{window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
-    frame.DrawText(new_game_button.label,
-                   static_cast<const int>(new_game_button.x),
-                   static_cast<const int>(new_game_button.y), 20,
-                   Window::BackgroundColor::LightGray);
-    frame.DrawText(load_game_button.label,
-                   static_cast<const int>(load_game_button.x),
-                   static_cast<const int>(load_game_button.y), 20,
-                   Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(new_game_button.label,
+                        static_cast<const int>(new_game_button.x),
+                        static_cast<const int>(new_game_button.y),
+                        static_cast<const int>(new_game_button.width),
+                        static_cast<const int>(new_game_button.height),
+                        Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(load_game_button.label,
+                        static_cast<const int>(load_game_button.x),
+                        static_cast<const int>(load_game_button.y),
+                        static_cast<const int>(load_game_button.width),
+                        static_cast<const int>(load_game_button.height),
+                        Window::BackgroundColor::LightGray);
 
     if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;

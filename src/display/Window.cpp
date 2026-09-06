@@ -121,4 +121,13 @@ void Window::Frame::DrawSprite(Sprite const& s, float x,
         0.0f,  // no rotation
         WHITE);
 }
+
+void Window::Frame::DrawRectangle(const char* text, int x, int y, int width,
+                                  int height,
+                                  BackgroundColor border_color) const noexcept {
+    const auto color{ToRayColor(border_color)};
+    ::DrawRectangle(x, y, width, height, color);
+    // TODO(SEP): Use std::clamp
+    ::DrawText(text, x + 5, y + (height / 2), height / 4, WHITE);
+}
 }  // namespace arigato::display

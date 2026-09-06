@@ -7,6 +7,7 @@ const CppFiles = struct {
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
+        "src/display/Sprite.cpp",
     };
     const game = [_][]const u8{
         "src/game/main.cpp",
@@ -192,6 +193,13 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
         .create_compiledb = create_compiledb,
     });
+
+    if (optimize == .Debug) {
+        inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+            const mod: *std.Build.Module = @field(mods, field_name);
+            mod.addCMacro("ARIGATO_DEBUG", "");
+        }
+    }
 
     const compilations: Modules.Compilations = .init(.{
         .b = b,

@@ -4,9 +4,22 @@ extern "C" {
 
 #include "include/Window.hpp"
 
-namespace arigato {
+namespace {
+constexpr bool debug{
+#ifdef ARIGATO_DEBUG
+    true
+#else
+    false
+#endif
+};
+}  // namespace
+
+namespace arigato::display {
 
 Window::Window(int width, int height, int fps, const char* title) noexcept {
+    if constexpr (!debug) {
+        SetTraceLogLevel(LOG_NONE);
+    }
     InitWindow(width, height, title);
     SetTargetFPS(fps);
 }
@@ -25,4 +38,4 @@ void Window::Draw() const noexcept {
 }
 
 Window::~Window() noexcept { CloseWindow(); }
-}  // namespace arigato
+}  // namespace arigato::display

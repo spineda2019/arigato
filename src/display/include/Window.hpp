@@ -1,7 +1,7 @@
 #ifndef SRC_WINDOW_HPP_
 #define SRC_WINDOW_HPP_
 
-namespace arigato {
+namespace arigato::display {
 class Window final {
  public:
     explicit Window(int width, int height, int fps, const char* title) noexcept;
@@ -17,6 +17,6 @@ class Window final {
     Window& operator=(Window const&) = delete;
     Window& operator=(Window&&) = delete;
 };
-}  // namespace arigato
+}  // namespace arigato::display
 
 #endif  // SRC_WINDOW_HPP_

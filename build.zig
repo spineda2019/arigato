@@ -210,6 +210,7 @@ pub fn build(b: *std.Build) !void {
         .Debug => .none,
         else => switch (target.result.os.tag) {
             .macos => .none,
+            .windows => .thin,
             else => .full,
         },
     };

@@ -227,8 +227,18 @@ pub fn build(b: *std.Build) !void {
     // root module. Note that test executables only test one module at a time,
     // hence why we have to create two separate ones.
     const mod_tests = b.addTest(.{
-        .root_module = mods.core,
+        .name = "test",
+        .root_module = b.createModule(.{
+            .optimize = optimize,
+            .target = target,
+            .link_libcpp = true,
+            .link_libc = true,
+            .root_source_file = b.path("test/root.zig"),
+            .stack_protector = true,
+            .sanitize_c = .full,
+        }),
     });
+    mod_tests.root_module.linkLibrary(compilations.core);
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);
 

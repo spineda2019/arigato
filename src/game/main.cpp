@@ -6,7 +6,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include <cstdint>
 #include <format>
 //
 #include <Character.hpp>
@@ -17,15 +16,15 @@
 #include <Window.hpp>
 //
 #include "./assets.hpp"
+#include "./logical_components.hpp"
+#include "./ui_components.hpp"
 
+namespace arigato {
 namespace {
-using Window = arigato::display::Window;
-using Sprite = arigato::display::Sprite;
+using Window = display::Window;
 
-using Level = arigato::core::Level;
-using Character = arigato::core::Character;
-using Vec2D = arigato::core::Vec2D;
-using Game = arigato::core::Game;
+using Level = core::Level;
+using Character = core::Character;
 
 inline constexpr bool debug_build{
 #ifdef ARIGATO_DEBUG
@@ -33,45 +32,6 @@ inline constexpr bool debug_build{
 #else
     false
 #endif
-};
-
-struct Button final {
-    /// Top left of button
-    float x{};
-    /// Top left of button
-    float y{};
-    float width{};
-    float height{};
-    const char* label;
-
-    bool Clicked(Window::Mouse const& mouse) const noexcept {
-        return mouse.clicked && mouse.x >= x && mouse.x < x + width &&
-               mouse.y >= y && mouse.y < y + height;
-    }
-};
-
-struct SpriteSheetInfo final {
-    static inline constexpr Sprite::Area cafe_region{
-        .x = 200,
-        .y = 5,
-        .width = 186,
-        .height = 95,
-    };
-};
-
-enum class GameState : std::uint8_t {
-    Title,
-    Playing,
-    BetweenLevels,
-};
-
-struct Arigato final {
-    GameState state;
-    Window window;
-    Game game;
-    /// TODO(SEP): Replace with some type of asset manager
-    Sprite player;
-    Sprite cafe;
 };
 
 Level::Action Translate(Window::Keys keys) noexcept {
@@ -112,7 +72,7 @@ GameState ProgressLevel(Arigato& game) noexcept {
     const Character::Action action{Translate(keys, game.window.DeltaTime())};
     const Level::Action level_action{Translate(keys)};
     game.game.Update(action, level_action);
-    const Vec2D pos{game.game.GetPlayerPosition()};
+    const core::Vec2D pos{game.game.GetPlayerPosition()};
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
@@ -209,18 +169,16 @@ GameState TitleScreen(Arigato const& game) noexcept {
     const int screen_height{game.window.GetHeight()};
     const float screen_width_f{static_cast<const float>(screen_width)};
     const float screen_height_f{static_cast<const float>(screen_height)};
-    frame.DrawSpriteRegion(
-        game.cafe, SpriteSheetInfo::cafe_region,
-        (screen_width_f / 2) - (SpriteSheetInfo::cafe_region.width / 2),
-        (screen_height_f / 2) - (SpriteSheetInfo::cafe_region.height / 2));
+    frame.DrawSpriteRegion(game.cafe, regions::cafe,
+                           (screen_width_f / 2) - (regions::cafe.width / 2),
+                           (screen_height_f / 2) - (regions::cafe.height / 2));
 
     constexpr int title_size{30};
-    frame.DrawText(
-        "Arigato!", screen_width / 2,
-        (screen_height / 2) -
-            static_cast<const int>((SpriteSheetInfo::cafe_region.height) / 2) -
-            title_size - 5,
-        title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
+    frame.DrawText("Arigato!", screen_width / 2,
+                   (screen_height / 2) -
+                       static_cast<const int>((regions::cafe.height) / 2) -
+                       title_size - 5,
+                   title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;
@@ -229,10 +187,11 @@ GameState TitleScreen(Arigato const& game) noexcept {
     }
 }
 }  // namespace
+}  // namespace arigato
 
 int main() noexcept {
-    Arigato game{
-        .state = GameState::Title,
+    arigato::Arigato game{
+        .state = arigato::GameState::Title,
         .window{800, 450, 60, "Arigato!"},
         .game{},
         .player{arigato::sprites::player_left},
@@ -241,14 +200,14 @@ int main() noexcept {
 
     while (game.window) {
         switch (game.state) {
-            case GameState::Title:
-                game.state = TitleScreen(game);
+            case arigato::GameState::Title:
+                game.state = arigato::TitleScreen(game);
                 break;
-            case GameState::Playing:
-                game.state = ProgressLevel(game);
+            case arigato::GameState::Playing:
+                game.state = arigato::ProgressLevel(game);
                 break;
-            case GameState::BetweenLevels:
-                game.state = LevelTransition(game);
+            case arigato::GameState::BetweenLevels:
+                game.state = arigato::LevelTransition(game);
                 break;
         }
     }

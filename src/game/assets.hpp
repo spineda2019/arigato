@@ -9,6 +9,8 @@
 #ifndef SRC_GAME_ASSETS_HPP_
 #define SRC_GAME_ASSETS_HPP_
 
+#include <Sprite.hpp>
+
 namespace arigato {
 namespace sprites {
 inline static constexpr const char* player_left{
@@ -17,6 +19,15 @@ inline static constexpr const char* player_left{
 namespace spritesheets {
 inline static constexpr const char* cafe{
     "assets/spritesheets/areas/coffeeshop.png"};
+}
+
+namespace regions {
+static inline constexpr arigato::display::Sprite::Area cafe{
+    .x = 200,
+    .y = 5,
+    .width = 186,
+    .height = 95,
+};
 }
 }  // namespace arigato
 

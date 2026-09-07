@@ -13,7 +13,7 @@ class Level final {
     std::uint8_t GetCustomersLeft() const noexcept;
 
  private:
-    std::size_t day_{};
+    std::size_t day_{1};
     std::uint8_t customers_left_{};
 };
 }  // namespace arigato::core

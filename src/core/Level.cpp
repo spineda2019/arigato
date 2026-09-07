@@ -13,7 +13,7 @@ static_assert(min_cust_count < max_cust_count);
 }  // anonymous namespace
 
 Level::Level() noexcept
-    : day_{}, customers_left_{[]() -> std::uint8_t {
+    : day_{1}, customers_left_{[]() -> std::uint8_t {
           try {
               std::mt19937 twister{std::random_device{}()};
               std::uniform_int_distribution<std::uint8_t> dist{min_cust_count,
@@ -25,7 +25,7 @@ Level::Level() noexcept
       }()} {}
 
 Level::Level(std::uint8_t seed) noexcept
-    : day_{}, customers_left_{[](std::uint8_t seed) -> std::uint8_t {
+    : day_{1}, customers_left_{[](std::uint8_t seed) -> std::uint8_t {
           try {
               std::mt19937 seeded_twister{seed};
               std::uniform_int_distribution<std::uint8_t> dist{min_cust_count,

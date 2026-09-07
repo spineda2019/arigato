@@ -9,9 +9,14 @@ namespace detail {
 struct SpriteImpl;
 }  // namespace detail
 
+/// A 2D Texture. May represent a single sprite or an entire spritesheet
 class Sprite final {
  public:  // types
     struct Area final {
+        /// Left edge of sheet
+        float x{};
+        /// Top edge of sheet
+        float y{};
         float width{};
         float height{};
     };

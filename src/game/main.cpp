@@ -1,9 +1,9 @@
-#include <Level.hpp>
 #include <cstdint>
 #include <format>
 //
 #include <Character.hpp>
 #include <Game.hpp>
+#include <Level.hpp>
 #include <Sprite.hpp>
 #include <Vec.hpp>
 #include <Window.hpp>
@@ -42,6 +42,15 @@ struct Button final {
     }
 };
 
+struct SpriteSheetInfo final {
+    static inline constexpr Sprite::Area cafe_region{
+        .x = 200,
+        .y = 5,
+        .width = 186,
+        .height = 95,
+    };
+};
+
 enum class GameState : std::uint8_t {
     Title,
     Playing,
@@ -54,6 +63,7 @@ struct Arigato final {
     Game game;
     /// TODO(SEP): Replace with some type of asset manager
     Sprite player;
+    Sprite cafe;
 };
 
 Level::Action Translate(Window::Keys keys) noexcept {
@@ -98,7 +108,8 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
-    frame.DrawSprite(game.player, pos.x, pos.y);
+    frame.DrawFullSprite(game.player, pos.x, pos.y);
+    frame.DrawSpriteRegion(game.cafe, SpriteSheetInfo::cafe_region, 0, 0);
     int hud_y{0};
     constexpr int font_height{20};
     if constexpr (debug_build) {
@@ -201,6 +212,7 @@ int main() noexcept {
         .window{800, 450, 60, "Arigato!"},
         .game{},
         .player{arigato::sprites::player_left},
+        .cafe{arigato::spritesheets::cafe},
     };
 
     while (game.window) {

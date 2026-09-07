@@ -6,6 +6,10 @@ namespace sprites {
 inline static constexpr const char* player_left{
     "assets/sprites/player/stand.png"};
 }  // namespace sprites
+namespace spritesheets {
+inline static constexpr const char* cafe{
+    "assets/spritesheets/areas/coffeeshop.png"};
+}
 }  // namespace arigato
 
 #endif  // SRC_GAME_ASSETS_HPP_

@@ -112,13 +112,34 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
-void Window::Frame::DrawSprite(Sprite const& s, float x,
-                               float y) const noexcept {
+/// Draws the entire sprite in `s` to the destination x and y coordinate
+void Window::Frame::DrawFullSprite(Sprite const& s, float x,
+                                   float y) const noexcept {
+    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
     ::DrawTexturePro(
         s.ReadonlyImplRef()->texture_,
         {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
         {.x = x, .y = y, .width = s.GetWidth(), .height = s.GetHeight()},
-        {.x = 0.0f, .y = 0.0f},
+        abs_origin,
+        0.0f,  // no rotation
+        WHITE);
+}
+
+/// Like `DrawFullSprite` but can select a specific region of the source sprite
+/// to draw. Usefull for drawing a single sprite from a spritesheet, as the
+/// whole spritesheet can be stored in GPU memory once for many sprites in the
+/// sheet
+void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
+                                     float x, float y) const noexcept {
+    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
+    ::DrawTexturePro(
+        s.ReadonlyImplRef()->texture_,
+        {.x = region.x,
+         .y = region.y,
+         .width = region.width,
+         .height = region.height},
+        {.x = x, .y = y, .width = region.width, .height = region.height},
+        abs_origin,
         0.0f,  // no rotation
         WHITE);
 }

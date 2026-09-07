@@ -71,6 +71,7 @@ Window::Window(int width, int height, int fps, const char* title) noexcept {
     if constexpr (!debug) {
         ::SetTraceLogLevel(LOG_NONE);
     }
+    ::SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     ::InitWindow(width, height, title);
     ::SetTargetFPS(fps);
 }
@@ -102,6 +103,10 @@ Window::Mouse Window::GetMouse() const noexcept {
     };
 };
 
+int Window::GetWidth() const noexcept { return ::GetScreenWidth(); }
+
+int Window::GetHeight() const noexcept { return ::GetScreenHeight(); }
+
 Window::Frame::Frame() noexcept { ::BeginDrawing(); }
 Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
@@ -121,7 +126,6 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
-/// Draws the entire sprite in `s` to the destination x and y coordinate
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {
     constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
@@ -134,10 +138,6 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
         WHITE);
 }
 
-/// Like `DrawFullSprite` but can select a specific region of the source sprite
-/// to draw. Usefull for drawing a single sprite from a spritesheet, as the
-/// whole spritesheet can be stored in GPU memory once for many sprites in the
-/// sheet
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
     constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};

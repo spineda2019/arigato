@@ -43,7 +43,12 @@ class Window final {
         void SetBackgroundRGB(RGB) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
+        /// Draws the entire sprite to the destination x and y coordinate
         void DrawFullSprite(Sprite const&, float x, float y) const noexcept;
+        /// Like `DrawFullSprite` but can select a specific region of the source
+        /// sprite to draw. Usefull for drawing a single sprite from a
+        /// spritesheet, as the whole spritesheet can be stored in GPU memory
+        /// once for many sprites in the sheet
         void DrawSpriteRegion(Sprite const&, Sprite::Area region, float x,
                               float y) const noexcept;
         void DrawRectangle(const char* text, int x, int y, int width,
@@ -76,6 +81,10 @@ class Window final {
     Keys GetKeys() const noexcept;
 
     Mouse GetMouse() const noexcept;
+
+    int GetWidth() const noexcept;
+
+    int GetHeight() const noexcept;
 
  public:  // Rule of 5
     ~Window() noexcept;

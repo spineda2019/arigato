@@ -16,8 +16,18 @@
 #include <vector>
 
 #include "include/Sprite.hpp"
+#include "raylib.h"
 
 namespace arigato::display {
+namespace {
+inline constexpr bool debug_build{
+#ifdef ARIGATO_DEBUG
+    true
+#else
+    false
+#endif
+};
+}  // anonymous namespace
 SpriteManager::SpriteManager() noexcept : managed_sprites_{} {}
 SpriteManager::SpriteManager(std::span<char const* const> paths) noexcept
     : managed_sprites_{[](std::span<char const* const> asset_paths) noexcept
@@ -53,6 +63,9 @@ Sprite& SpriteManager::Get(std::filesystem::path const& path) noexcept {
         }
     }
 
+    if constexpr (debug_build) {
+        ::TraceLog(LOG_INFO, "SpriteManager cache miss");
+    }
     managed_sprites_.emplace_back(
         path, std::make_unique<Sprite>(path.string().c_str()), true);
     return *managed_sprites_.back().sprite;

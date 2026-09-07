@@ -22,7 +22,7 @@ class SpriteManager final {
  public:
     explicit SpriteManager() noexcept;
     explicit SpriteManager(std::span<char const* const> paths) noexcept;
-    Sprite& Get(std::filesystem::path const& path) noexcept;
+    Sprite& Get(char const* path) noexcept;
 
  public:  // rule of 5
     ~SpriteManager() noexcept = default;

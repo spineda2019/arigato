@@ -6,17 +6,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "include/SpriteManager.hpp"
-
+extern "C" {
+#include <raylib.h>
+}
 #include <filesystem>
 #include <memory>
 #include <span>
 #include <string>
 #include <unordered_set>
 #include <vector>
-
+//
 #include "include/Sprite.hpp"
-#include "raylib.h"
+#include "include/SpriteManager.hpp"
 
 namespace arigato::display {
 namespace {
@@ -56,7 +57,8 @@ SpriteManager::SpriteManager(std::span<char const* const> paths) noexcept
           }
       }(paths)} {}
 
-Sprite& SpriteManager::Get(std::filesystem::path const& path) noexcept {
+Sprite& SpriteManager::Get(char const* raw_path) noexcept {
+    const std::filesystem::path path{raw_path};
     for (SpriteManager::SpriteId const& s_id : managed_sprites_) {
         if (s_id.path == path) {
             return *s_id.sprite;
@@ -66,8 +68,8 @@ Sprite& SpriteManager::Get(std::filesystem::path const& path) noexcept {
     if constexpr (debug_build) {
         ::TraceLog(LOG_INFO, "SpriteManager cache miss");
     }
-    managed_sprites_.emplace_back(
-        path, std::make_unique<Sprite>(path.string().c_str()), true);
+    managed_sprites_.emplace_back(path, std::make_unique<Sprite>(raw_path),
+                                  true);
     return *managed_sprites_.back().sprite;
 }
 }  // namespace arigato::display

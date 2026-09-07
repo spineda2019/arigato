@@ -94,6 +94,12 @@ GameState ProgressGame(Window const& game_window, Game& game,
                    Window::BackgroundColor::LightGray);
     hud_y += font_height;
 
+    const auto customers_left{game.GetCustomersLeft()};
+    const auto cust_fmt{std::format("Customers left: {}", customers_left)};
+    frame.DrawText(cust_fmt.c_str(), 0, hud_y, font_height,
+                   Window::BackgroundColor::LightGray);
+    hud_y += font_height;
+
     return GameState::Playing;
 }
 

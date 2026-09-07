@@ -1,0 +1,59 @@
+name: CI Game Build On Multiple Platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all
+      # matrix combinations. Consider changing this to true when your workflow
+      # is stable.
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: mlugg/setup-zig@v2
+      with:
+        version: 0.16.0
+    - name: Unit Test
+      run: zig build test --summary all
+    - name: Build Game Release Artifacts
+      id: build
+      shell: bash
+      run: |
+        case "${{ runner.arch }}" in
+          X64) ARCH=x86_64 ;;
+          ARM64) ARCH=aarch64 ;;
+          X86) ARCH=x86 ;;
+          ARM) ARCH=arm ;;
+          *) ARCH="${{ runner.arch }}" ;;
+        esac
+        case "${{ runner.os }}" in
+          Linux) OS=linux ;;
+          Windows) OS=windows ;;
+          macOS) OS=macos ;;
+          *) OS="$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')" ;;
+        esac
+        PREFIX_FAST="arigato-ReleaseFast-${ARCH}-${OS}"
+        PREFIX_SMALL="arigato-ReleaseSmall-${ARCH}-${OS}"
+        zig build --release=fast -p "$PREFIX_FAST"
+        zig build --release=small -p "$PREFIX_SMALL"
+        echo "prefix_fast=$PREFIX_FAST" >> "$GITHUB_OUTPUT"
+        echo "prefix_small=$PREFIX_SMALL" >> "$GITHUB_OUTPUT"
+        echo "artifact_name=arigato-${ARCH}-${OS}" >> "$GITHUB_OUTPUT"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.build.outputs.artifact_name }}
+        path: |
+          ${{ steps.build.outputs.prefix_fast }}
+          ${{ steps.build.outputs.prefix_small }}

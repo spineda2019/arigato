@@ -22,6 +22,14 @@ class Window final {
         bool space{};
     };
 
+    struct RGB final {
+        std::uint8_t red;
+        std::uint8_t green;
+        std::uint8_t blue;
+    };
+
+    static_assert(sizeof(RGB) == 3, "RGB should be 3 8-bit numbers");
+
     struct Frame final {
         ~Frame() noexcept;
         explicit Frame(Frame const&) = delete;
@@ -29,7 +37,10 @@ class Window final {
         Frame& operator=(Frame const&) = delete;
         Frame& operator=(Frame&&) = delete;
 
+        /// Set the entire screen background to a preset color.
         void SetBackground(BackgroundColor) const noexcept;
+        /// Set the entire screen to a precise classic RGB value
+        void SetBackgroundRGB(RGB) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
         void DrawFullSprite(Sprite const&, float x, float y) const noexcept;

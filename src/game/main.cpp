@@ -107,9 +107,8 @@ GameState ProgressLevel(Arigato& game) noexcept {
     const Vec2D pos{game.game.GetPlayerPosition()};
 
     const Window::Frame frame{game.window.MakeFrame()};
-    frame.SetBackground(Window::BackgroundColor::White);
+    frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
     frame.DrawFullSprite(game.player, pos.x, pos.y);
-    frame.DrawSpriteRegion(game.cafe, SpriteSheetInfo::cafe_region, 0, 0);
     int hud_y{0};
     constexpr int font_height{20};
     if constexpr (debug_build) {
@@ -185,6 +184,7 @@ GameState TitleScreen(Arigato const& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
+    frame.DrawSpriteRegion(game.cafe, SpriteSheetInfo::cafe_region, 0.0f, 0.0f);
     frame.DrawRectangle(new_game_button.label,
                         static_cast<const int>(new_game_button.x),
                         static_cast<const int>(new_game_button.y),

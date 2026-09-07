@@ -107,6 +107,15 @@ Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
     ::ClearBackground(ToRayColor(color));
 }
+void Window::Frame::SetBackgroundRGB(Window::RGB rgb) const noexcept {
+    constexpr unsigned char full_opaque{255};
+    ::ClearBackground(::Color{
+        .r = rgb.red,
+        .g = rgb.green,
+        .b = rgb.blue,
+        .a = full_opaque,
+    });
+}
 void Window::Frame::DrawText(const char* text, int x, int y, int size,
                              BackgroundColor color) const noexcept {
     ::DrawText(text, x, y, size, ToRayColor(color));

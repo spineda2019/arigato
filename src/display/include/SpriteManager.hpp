@@ -21,7 +21,7 @@ namespace arigato::display {
 class SpriteManager final {
  public:
     explicit SpriteManager() noexcept;
-    explicit SpriteManager(std::span<std::filesystem::path> paths) noexcept;
+    explicit SpriteManager(std::span<char const* const> paths) noexcept;
     Sprite& Get(std::filesystem::path const& path) noexcept;
 
  public:  // rule of 5

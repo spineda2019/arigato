@@ -196,9 +196,9 @@ GameState TitleScreen(Arigato& game) noexcept {
 
 int main() noexcept {
     // If this gets too big, wrap in a std::unique_ptr to prevent stack-overflow
-    std::array<std::filesystem::path, 2> texture_files{
-        std::filesystem::path{arigato::sprites::player_left},
-        std::filesystem::path{arigato::spritesheets::cafe},
+    constexpr std::array<char const*, 2> texture_files{
+        arigato::sprites::player_left,
+        arigato::spritesheets::cafe,
     };
     arigato::Arigato game{
         .state = arigato::GameState::Title,

@@ -11,29 +11,32 @@
 #include <filesystem>
 #include <memory>
 #include <span>
+#include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "include/Sprite.hpp"
 
 namespace arigato::display {
 SpriteManager::SpriteManager() noexcept : managed_sprites_{} {}
-SpriteManager::SpriteManager(std::span<std::filesystem::path> paths) noexcept
-    : managed_sprites_{[](std::span<std::filesystem::path> asset_paths) noexcept
+SpriteManager::SpriteManager(std::span<char const* const> paths) noexcept
+    : managed_sprites_{[](std::span<char const* const> asset_paths) noexcept
                            -> std::vector<SpriteManager::SpriteId> {
           try {
-              std::vector<SpriteManager::SpriteId> ids(asset_paths.size());
-              std::unordered_set<const char*> encountered_paths(
+              std::vector<SpriteManager::SpriteId> ids{};
+              ids.reserve(asset_paths.size());
+
+              std::unordered_set<std::filesystem::path> encountered_paths(
                   asset_paths.size());
-              for (std::filesystem::path p : asset_paths) {
-                  // enforce uniqueness of paths to prevent double GPU loading
-                  if (const char* native_path{p.c_str()};
-                      !encountered_paths.contains(native_path)) {
-                      ids.emplace_back(std::move(p),
-                                       std::make_unique<Sprite>(native_path),
+
+              for (char const* native_path : asset_paths) {
+                  // enforce uniqueness of paths to prevent double GPU
+                  // loading
+                  if (std::filesystem::path p{native_path};
+                      !encountered_paths.contains(p)) {
+                      ids.emplace_back(p, std::make_unique<Sprite>(native_path),
                                        true);
-                      encountered_paths.emplace(native_path);
+                      encountered_paths.emplace(p);
                   }
               }
               return ids;
@@ -50,8 +53,8 @@ Sprite& SpriteManager::Get(std::filesystem::path const& path) noexcept {
         }
     }
 
-    managed_sprites_.emplace_back(path, std::make_unique<Sprite>(path.c_str()),
-                                  true);
+    managed_sprites_.emplace_back(
+        path, std::make_unique<Sprite>(path.string().c_str()), true);
     return *managed_sprites_.back().sprite;
 }
 }  // namespace arigato::display

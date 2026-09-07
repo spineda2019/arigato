@@ -19,6 +19,8 @@ class Game final {
 
     void Update(Character::Action, float dt) noexcept;
 
+    void NextLevel() noexcept;
+
     [[nodiscard("Save operations may fail and must be reported")]]
     bool Save() const noexcept;
 

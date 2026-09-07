@@ -1,5 +1,6 @@
 #include "include/Game.hpp"
 
+#include "include/Level.hpp"
 #include "include/Vec.hpp"
 
 namespace arigato::core {
@@ -16,6 +17,8 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 void Game::Update(Character::Action action, float dt) noexcept {
     character_.Apply(action, dt);
 }
+
+void Game::NextLevel() noexcept { level_ = Level{}; }
 
 bool Game::Save() const noexcept { return false; }
 }  // namespace arigato::core

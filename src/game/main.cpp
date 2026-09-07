@@ -40,6 +40,20 @@ struct Button final {
     }
 };
 
+enum class GameState : std::uint8_t {
+    Title,
+    Playing,
+    BetweenLevels,
+};
+
+struct Arigato final {
+    GameState state;
+    Window window;
+    Game game;
+    /// TODO(SEP): Replace with some type of asset manager
+    Sprite player;
+};
+
 Character::Action Translate(Window::Keys keys) noexcept {
     constexpr auto help = [](bool neg,
                              bool pos) -> Character::Action::Direction {
@@ -64,46 +78,65 @@ Character::Action Translate(Window::Keys keys) noexcept {
     };
 }
 
-enum class GameState : std::uint8_t {
-    Title,
-    Playing,
-};
-
-GameState ProgressGame(Window const& game_window, Game& game,
-                       Sprite& player_stand) noexcept {
-    const Window::Keys keys{game_window.GetKeys()};
+GameState ProgressLevel(Arigato& game) noexcept {
+    const Window::Keys keys{game.window.GetKeys()};
     const Character::Action action{Translate(keys)};
-    game.Update(action, game_window.DeltaTime());
-    const Vec2D pos{game.GetPlayerPosition()};
+    game.game.Update(action, game.window.DeltaTime());
+    const Vec2D pos{game.game.GetPlayerPosition()};
 
-    const Window::Frame frame{game_window.MakeFrame()};
+    const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
-    frame.DrawSprite(player_stand, pos.x, pos.y);
+    frame.DrawSprite(game.player, pos.x, pos.y);
     int hud_y{0};
     constexpr int font_height{20};
     if constexpr (debug_build) {
-        const int real_fps{game_window.GetFPS()};
+        const int real_fps{game.window.GetFPS()};
         const auto fmt{std::format("FPS: {}", real_fps)};
         frame.DrawText(fmt.c_str(), 0, hud_y, font_height,
                        Window::BackgroundColor::LightGray);
         hud_y += font_height;
     }
-    const auto day{game.GetCurrentDay()};
+    const auto day{game.game.GetCurrentDay()};
     const auto day_fmt{std::format("Day {}", day)};
     frame.DrawText(day_fmt.c_str(), 0, hud_y, font_height,
                    Window::BackgroundColor::LightGray);
     hud_y += font_height;
 
-    const auto customers_left{game.GetCustomersLeft()};
+    const auto customers_left{game.game.GetCustomersLeft()};
     const auto cust_fmt{std::format("Customers left: {}", customers_left)};
     frame.DrawText(cust_fmt.c_str(), 0, hud_y, font_height,
                    Window::BackgroundColor::LightGray);
     hud_y += font_height;
 
-    return GameState::Playing;
+    if (customers_left == 0) {
+        return GameState::BetweenLevels;
+    } else {
+        return GameState::Playing;
+    }
 }
 
-GameState TitleScreen(Window const& window) noexcept {
+GameState LevelTransition(Arigato& game) noexcept {
+    constexpr Button next_level_button{
+        .x = 10.0f,
+        .y = 100.0f,
+        .width = 160.0f,
+        .height = 80.0f,
+        .label = "Next Level",
+    };
+    const auto frame{game.window.MakeFrame()};
+    frame.SetBackground(Window::BackgroundColor::White);
+    frame.DrawText("You beat the level!", 0, 0, 20,
+                   Window::BackgroundColor::LightGray);
+    const auto mouse{game.window.GetMouse()};
+    if (next_level_button.Clicked(mouse)) {
+        game.game.NextLevel();
+        return GameState::Playing;
+    } else {
+        return GameState::BetweenLevels;
+    }
+}
+
+GameState TitleScreen(Arigato const& game) noexcept {
     constexpr Button new_game_button{
         .x = 10.0f,
         .y = 100.0f,
@@ -119,9 +152,9 @@ GameState TitleScreen(Window const& window) noexcept {
         .label = "Load Game",
     };
 
-    const auto mouse{window.GetMouse()};
+    const auto mouse{game.window.GetMouse()};
 
-    const Window::Frame frame{window.MakeFrame()};
+    const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackground(Window::BackgroundColor::White);
     frame.DrawRectangle(new_game_button.label,
                         static_cast<const int>(new_game_button.x),
@@ -145,22 +178,26 @@ GameState TitleScreen(Window const& window) noexcept {
 }  // namespace
 
 int main() noexcept {
-    Game game{};
-    GameState state{GameState::Title};
+    Arigato game{
+        .state = GameState::Title,
+        .window{800, 450, 60, "Arigato!"},
+        .game{},
+        .player{arigato::sprites::player_left},
+    };
 
-    const Window game_window{800, 450, 60, "Arigato!"};
-    Sprite player_stand{arigato::sprites::player_left};
-
-    while (game_window) {
-        switch (state) {
+    while (game.window) {
+        switch (game.state) {
             case GameState::Title:
-                state = TitleScreen(game_window);
+                game.state = TitleScreen(game);
                 break;
             case GameState::Playing:
-                state = ProgressGame(game_window, game, player_stand);
+                game.state = ProgressLevel(game);
+                break;
+            case GameState::BetweenLevels:
+                game.state = LevelTransition(game);
                 break;
         }
     }
 
-    (void)game.Save();
+    (void)game.game.Save();
 }

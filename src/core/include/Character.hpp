@@ -3,7 +3,6 @@
 
 #include <cstdint>
 
-#include "Types.hpp"
 #include "Vec.hpp"
 
 namespace arigato::core {
@@ -17,10 +16,11 @@ class Character final {
         };
         Direction move_x;
         Direction move_y;
+        float dt;
     };
 
  public:
-    void Apply(Action, Seconds) noexcept;
+    void Apply(Action) noexcept;
     Vec2D GetPosition() const noexcept;
 
  private:

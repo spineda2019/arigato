@@ -10,6 +10,11 @@
 
 namespace arigato::core {
 class Game final {
+ public:  // types
+    struct Action final {
+        Character::Action character_action{};
+    };
+
  public:
     explicit Game() noexcept;
 
@@ -17,7 +22,7 @@ class Game final {
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
-    void Update(Character::Action, float dt) noexcept;
+    void Update(Character::Action) noexcept;
 
     void NextLevel() noexcept;
 

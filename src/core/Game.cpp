@@ -14,8 +14,8 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
     return level_.GetCustomersLeft();
 }
 
-void Game::Update(Character::Action action, float dt) noexcept {
-    character_.Apply(action, dt);
+void Game::Update(Character::Action action) noexcept {
+    character_.Apply(action);
 }
 
 void Game::NextLevel() noexcept { level_ = Level{}; }

@@ -54,7 +54,7 @@ struct Arigato final {
     Sprite player;
 };
 
-Character::Action Translate(Window::Keys keys) noexcept {
+Character::Action Translate(Window::Keys keys, float dt) noexcept {
     constexpr auto help = [](bool neg,
                              bool pos) -> Character::Action::Direction {
         if (neg) {
@@ -75,13 +75,14 @@ Character::Action Translate(Window::Keys keys) noexcept {
     return Character::Action{
         .move_x = help(keys.left, keys.right),
         .move_y = help(keys.up, keys.down),
+        .dt = dt,
     };
 }
 
 GameState ProgressLevel(Arigato& game) noexcept {
     const Window::Keys keys{game.window.GetKeys()};
-    const Character::Action action{Translate(keys)};
-    game.game.Update(action, game.window.DeltaTime());
+    const Character::Action action{Translate(keys, game.window.DeltaTime())};
+    game.game.Update(action);
     const Vec2D pos{game.game.GetPlayerPosition()};
 
     const Window::Frame frame{game.window.MakeFrame()};

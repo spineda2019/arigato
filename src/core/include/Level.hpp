@@ -6,11 +6,17 @@
 
 namespace arigato::core {
 class Level final {
+ public:  // types
+    struct Action final {
+        std::uint8_t amount_served{};
+    };
+
  public:
     explicit Level() noexcept;
     explicit Level(std::uint8_t seed) noexcept;
     std::size_t GetDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
+    void Update(Action) noexcept;
 
  private:
     std::size_t day_{1};

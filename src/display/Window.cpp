@@ -133,6 +133,17 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                              BackgroundColor color) const noexcept {
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
+void Window::Frame::DrawText(const char* text, int x, int y, int size,
+                             Window::RGB rgb) const noexcept {
+    constexpr unsigned char full_opaque{255};
+    ::DrawText(text, x, y, size,
+               ::Color{
+                   .r = rgb.red,
+                   .g = rgb.green,
+                   .b = rgb.blue,
+                   .a = full_opaque,
+               });
+}
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {

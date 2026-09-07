@@ -191,8 +191,7 @@ GameState TitleScreen(Arigato const& game) noexcept {
     const auto mouse{game.window.GetMouse()};
 
     const Window::Frame frame{game.window.MakeFrame()};
-    frame.SetBackground(Window::BackgroundColor::White);
-    frame.DrawSpriteRegion(game.cafe, SpriteSheetInfo::cafe_region, 0.0f, 0.0f);
+    frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawRectangle(new_game_button.label,
                         static_cast<const int>(new_game_button.x),
                         static_cast<const int>(new_game_button.y),
@@ -205,6 +204,23 @@ GameState TitleScreen(Arigato const& game) noexcept {
                         static_cast<const int>(load_game_button.width),
                         static_cast<const int>(load_game_button.height),
                         Window::BackgroundColor::LightGray);
+
+    const int screen_width{game.window.GetWidth()};
+    const int screen_height{game.window.GetHeight()};
+    const float screen_width_f{static_cast<const float>(screen_width)};
+    const float screen_height_f{static_cast<const float>(screen_height)};
+    frame.DrawSpriteRegion(
+        game.cafe, SpriteSheetInfo::cafe_region,
+        (screen_width_f / 2) - (SpriteSheetInfo::cafe_region.width / 2),
+        (screen_height_f / 2) - (SpriteSheetInfo::cafe_region.height / 2));
+
+    constexpr int title_size{30};
+    frame.DrawText(
+        "Arigato!", screen_width / 2,
+        (screen_height / 2) -
+            static_cast<const int>((SpriteSheetInfo::cafe_region.height) / 2) -
+            title_size - 5,
+        title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;

@@ -52,6 +52,8 @@ class Window final {
         void SetBackgroundRGB(RGB) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
+        void DrawText(const char* text, int x, int y, int size,
+                      RGB) const noexcept;
         /// Draws the entire sprite to the destination x and y coordinate
         void DrawFullSprite(Sprite const&, float x, float y) const noexcept;
         /// Like `DrawFullSprite` but can select a specific region of the source

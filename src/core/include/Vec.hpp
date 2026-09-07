@@ -11,14 +11,20 @@
 
 namespace arigato::core {
 struct Vec2D final {
-    float x;
-    float y;
+    float x{};
+    float y{};
+};
+
+struct Rectangle final {
+    Vec2D top_left{};
+    float width{};
+    float height{};
 };
 
 struct Vec3D final {
-    float x;
-    float y;
-    float z;
+    float x{};
+    float y{};
+    float z{};
 };
 }  // namespace arigato::core
 

@@ -77,6 +77,14 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
+
+    const int screen_width{game.window.GetWidth()};
+    const int screen_height{game.window.GetHeight()};
+    frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe_bar.asset_path),
+                           assets::cafe_bar.sub_area,
+                           static_cast<const float>(screen_width) / 2,
+                           static_cast<const float>(screen_height) / 2);
+
     frame.DrawFullSprite(
         game.sprite_manager.Get(assets::player_right.asset_path), pos.x, pos.y);
     int hud_y{0};
@@ -195,9 +203,10 @@ GameState TitleScreen(Arigato& game) noexcept {
 
 int main() noexcept {
     // If this gets too big, wrap in a std::unique_ptr to prevent stack-overflow
-    constexpr std::array<char const*, 2> texture_files{
+    constexpr std::array<char const*, 3> texture_files{
         arigato::assets::player_right.asset_path,
         arigato::assets::cafe.asset_path,
+        arigato::assets::cafe_bar.asset_path,
     };
     arigato::Arigato game{
         .state = arigato::GameState::Title,

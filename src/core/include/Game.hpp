@@ -38,7 +38,7 @@ class Game final {
     bool Save() const noexcept;
 
  private:
-    Level level_{};
+    Level level_{Level::Layout{}};
     Character character_{};
 };
 }  // namespace arigato::core

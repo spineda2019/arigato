@@ -12,7 +12,7 @@
 #include "include/Vec.hpp"
 
 namespace arigato::core {
-Game::Game() noexcept : level_{}, character_{} {}
+Game::Game() noexcept : level_{Level::Layout{}}, character_{} {}
 
 Vec2D Game::GetPlayerPosition() const noexcept {
     return character_.GetPosition();

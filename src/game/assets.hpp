@@ -12,23 +12,37 @@
 #include <Sprite.hpp>
 
 namespace arigato {
-namespace sprites {
-inline static constexpr const char* player_left{
-    "assets/sprites/player/stand.png"};
-}  // namespace sprites
-namespace spritesheets {
-inline static constexpr const char* cafe{
-    "assets/spritesheets/areas/coffeeshop.png"};
-}
-
-namespace regions {
-static inline constexpr arigato::display::Sprite::Area cafe{
-    .x = 200,
-    .y = 5,
-    .width = 186,
-    .height = 95,
+namespace assets {
+struct SpriteInfo final {
+    /// Sub-region of the sprite associated with this object. For example,
+    /// Many sprites may come from the same sprite_sheet_ (same path as well)
+    /// and only differ by the region in the sheet they inhabit. Should match
+    /// the image size if this sprite represents an entire sprite on its own.
+    display::Sprite::Area sub_area{};
+    /// Path (relative to the deployed executable) to the asset on disk
+    char const* asset_path{};
 };
-}
+
+static inline constexpr SpriteInfo player_right{
+    .sub_area{
+        .x = 0,
+        .y = 0,
+        .width = 47,
+        .height = 62,
+    },
+    .asset_path = "assets/sprites/player/stand.png",
+};
+
+static inline constexpr SpriteInfo cafe{
+    .sub_area{
+        .x = 200,
+        .y = 5,
+        .width = 186,
+        .height = 95,
+    },
+    .asset_path = "assets/spritesheets/areas/coffeeshop.png",
+};
+}  // namespace assets
 }  // namespace arigato
 
 #endif  // SRC_GAME_ASSETS_HPP_

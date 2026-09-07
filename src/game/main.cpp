@@ -7,7 +7,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include <array>
-#include <filesystem>
 #include <format>
 //
 #include <Character.hpp>
@@ -16,7 +15,6 @@
 #include <Sprite.hpp>
 #include <Vec.hpp>
 #include <Window.hpp>
-#include <vector>
 //
 #include "./assets.hpp"
 #include "./logical_components.hpp"
@@ -79,8 +77,8 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
-    frame.DrawFullSprite(game.sprite_manager.Get(sprites::player_left), pos.x,
-                         pos.y);
+    frame.DrawFullSprite(
+        game.sprite_manager.Get(assets::player_right.asset_path), pos.x, pos.y);
     int hud_y{0};
     constexpr int font_height{20};
     if constexpr (debug_build) {
@@ -173,17 +171,18 @@ GameState TitleScreen(Arigato& game) noexcept {
     const int screen_height{game.window.GetHeight()};
     const float screen_width_f{static_cast<const float>(screen_width)};
     const float screen_height_f{static_cast<const float>(screen_height)};
-    frame.DrawSpriteRegion(game.sprite_manager.Get(spritesheets::cafe),
-                           regions::cafe,
-                           (screen_width_f / 2) - (regions::cafe.width / 2),
-                           (screen_height_f / 2) - (regions::cafe.height / 2));
+    frame.DrawSpriteRegion(
+        game.sprite_manager.Get(assets::cafe.asset_path), assets::cafe.sub_area,
+        (screen_width_f / 2) - (assets::cafe.sub_area.width / 2),
+        (screen_height_f / 2) - (assets::cafe.sub_area.height / 2));
 
     constexpr int title_size{30};
-    frame.DrawText("Arigato!", screen_width / 2,
-                   (screen_height / 2) -
-                       static_cast<const int>((regions::cafe.height) / 2) -
-                       title_size - 5,
-                   title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
+    frame.DrawText(
+        "Arigato!", screen_width / 2,
+        (screen_height / 2) -
+            static_cast<const int>((assets::cafe.sub_area.height) / 2) -
+            title_size - 5,
+        title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;
@@ -197,8 +196,8 @@ GameState TitleScreen(Arigato& game) noexcept {
 int main() noexcept {
     // If this gets too big, wrap in a std::unique_ptr to prevent stack-overflow
     constexpr std::array<char const*, 2> texture_files{
-        arigato::sprites::player_left,
-        arigato::spritesheets::cafe,
+        arigato::assets::player_right.asset_path,
+        arigato::assets::cafe.asset_path,
     };
     arigato::Arigato game{
         .state = arigato::GameState::Title,

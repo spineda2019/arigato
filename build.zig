@@ -206,6 +206,13 @@ pub fn build(b: *std.Build) !void {
         .b = b,
         .modules = &mods,
     });
+    compilations.game.lto = switch (optimize) {
+        .Debug => .none,
+        else => switch (target.result.os.tag) {
+            .macos => .none,
+            else => .full,
+        },
+    };
 
     b.installArtifact(compilations.game);
     b.installDirectory(.{
@@ -234,7 +241,6 @@ pub fn build(b: *std.Build) !void {
             .link_libcpp = true,
             .link_libc = true,
             .root_source_file = b.path("test/root.zig"),
-            .stack_protector = true,
             .sanitize_c = .full,
         }),
     });

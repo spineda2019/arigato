@@ -85,6 +85,7 @@ Window::Keys Window::GetKeys() const noexcept {
         .right = ::IsKeyDown(KEY_RIGHT),
         .up = ::IsKeyDown(KEY_UP),
         .down = ::IsKeyDown(KEY_DOWN),
+        .space = ::IsKeyPressed(KEY_SPACE),
     };
 };
 

@@ -22,7 +22,7 @@ class Game final {
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
-    void Update(Character::Action) noexcept;
+    void Update(Character::Action, Level::Action) noexcept;
 
     void NextLevel() noexcept;
 

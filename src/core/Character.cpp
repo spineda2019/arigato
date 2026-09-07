@@ -2,8 +2,6 @@
 
 #include <utility>
 
-#include "include/Types.hpp"
-
 namespace arigato::core {
 namespace {
 constexpr float move_speed{120.0};

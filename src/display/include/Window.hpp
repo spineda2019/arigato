@@ -18,6 +18,8 @@ class Window final {
         bool right{};
         bool up{};
         bool down{};
+
+        bool space{};
     };
 
     struct Frame final {

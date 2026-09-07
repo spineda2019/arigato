@@ -14,11 +14,13 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
     return level_.GetCustomersLeft();
 }
 
-void Game::Update(Character::Action action) noexcept {
-    character_.Apply(action);
+void Game::Update(Character::Action character_action,
+                  Level::Action level_action) noexcept {
+    character_.Apply(character_action);
+    level_.Apply(level_action);
 }
 
-void Game::NextLevel() noexcept { level_ = Level{}; }
+void Game::NextLevel() noexcept { level_.NextDay(); }
 
 bool Game::Save() const noexcept { return false; }
 }  // namespace arigato::core

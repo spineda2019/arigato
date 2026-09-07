@@ -14,9 +14,13 @@ class Level final {
  public:
     explicit Level() noexcept;
     explicit Level(std::uint8_t seed) noexcept;
+
     std::size_t GetDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
-    void Update(Action) noexcept;
+
+    void Apply(Action) noexcept;
+    void NextDay() noexcept;
+    void SeededNextDay(std::uint8_t seed) noexcept;
 
  private:
     std::size_t day_{1};

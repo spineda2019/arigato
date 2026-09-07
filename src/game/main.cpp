@@ -1,3 +1,4 @@
+#include <Level.hpp>
 #include <cstdint>
 #include <format>
 //
@@ -13,6 +14,7 @@ namespace {
 using Window = arigato::display::Window;
 using Sprite = arigato::display::Sprite;
 
+using Level = arigato::core::Level;
 using Character = arigato::core::Character;
 using Vec2D = arigato::core::Vec2D;
 using Game = arigato::core::Game;
@@ -54,6 +56,14 @@ struct Arigato final {
     Sprite player;
 };
 
+Level::Action Translate(Window::Keys keys) noexcept {
+    if (keys.space) {
+        return {.amount_served = 1};
+    } else {
+        return {.amount_served = 0};
+    }
+}
+
 Character::Action Translate(Window::Keys keys, float dt) noexcept {
     constexpr auto help = [](bool neg,
                              bool pos) -> Character::Action::Direction {
@@ -82,7 +92,8 @@ Character::Action Translate(Window::Keys keys, float dt) noexcept {
 GameState ProgressLevel(Arigato& game) noexcept {
     const Window::Keys keys{game.window.GetKeys()};
     const Character::Action action{Translate(keys, game.window.DeltaTime())};
-    game.game.Update(action);
+    const Level::Action level_action{Translate(keys)};
+    game.game.Update(action, level_action);
     const Vec2D pos{game.game.GetPlayerPosition()};
 
     const Window::Frame frame{game.window.MakeFrame()};
@@ -128,6 +139,12 @@ GameState LevelTransition(Arigato& game) noexcept {
     frame.SetBackground(Window::BackgroundColor::White);
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(next_level_button.label,
+                        static_cast<const int>(next_level_button.x),
+                        static_cast<const int>(next_level_button.y),
+                        static_cast<const int>(next_level_button.width),
+                        static_cast<const int>(next_level_button.height),
+                        Window::BackgroundColor::LightGray);
     const auto mouse{game.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
         game.game.NextLevel();

@@ -2,6 +2,7 @@
 #define SRC_DISPLAY_INCLUDE_WINDOW_HPP_
 
 #include <cstdint>
+#include <type_traits>
 
 #include "./Sprite.hpp"
 
@@ -60,6 +61,11 @@ class Window final {
 
         friend class Window;
     };
+
+    static_assert(!std::is_copy_assignable_v<Frame>);
+    static_assert(!std::is_copy_constructible_v<Frame>);
+    static_assert(!std::is_move_assignable_v<Frame>);
+    static_assert(!std::is_move_constructible_v<Frame>);
 
     struct Mouse final {
         float x{};

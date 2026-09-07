@@ -1,3 +1,11 @@
+// Copyright (c) 2026 Sebastian Pineda (spineda.wpi.alum@gmail.com)
+//
+// Window.hpp - Independent representation of the game windowing system
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 #ifndef SRC_DISPLAY_INCLUDE_WINDOW_HPP_
 #define SRC_DISPLAY_INCLUDE_WINDOW_HPP_
 

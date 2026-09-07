@@ -1,3 +1,11 @@
+// Copyright (c) 2026 Sebastian Pineda (spineda.wpi.alum@gmail.com)
+//
+// Character.hpp - Independent representation of the game character
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 #ifndef SRC_CORE_INCLUDE_CHARACTER_HPP_
 #define SRC_CORE_INCLUDE_CHARACTER_HPP_
 

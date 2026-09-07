@@ -6,6 +6,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#include <array>
+#include <filesystem>
 #include <format>
 //
 #include <Character.hpp>
@@ -14,6 +16,7 @@
 #include <Sprite.hpp>
 #include <Vec.hpp>
 #include <Window.hpp>
+#include <vector>
 //
 #include "./assets.hpp"
 #include "./logical_components.hpp"
@@ -76,7 +79,8 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
-    frame.DrawFullSprite(game.player, pos.x, pos.y);
+    frame.DrawFullSprite(game.sprite_manager.Get(sprites::player_left), pos.x,
+                         pos.y);
     int hud_y{0};
     constexpr int font_height{20};
     if constexpr (debug_build) {
@@ -132,7 +136,7 @@ GameState LevelTransition(Arigato& game) noexcept {
     }
 }
 
-GameState TitleScreen(Arigato const& game) noexcept {
+GameState TitleScreen(Arigato& game) noexcept {
     constexpr Button new_game_button{
         .x = 10.0f,
         .y = 100.0f,
@@ -169,7 +173,8 @@ GameState TitleScreen(Arigato const& game) noexcept {
     const int screen_height{game.window.GetHeight()};
     const float screen_width_f{static_cast<const float>(screen_width)};
     const float screen_height_f{static_cast<const float>(screen_height)};
-    frame.DrawSpriteRegion(game.cafe, regions::cafe,
+    frame.DrawSpriteRegion(game.sprite_manager.Get(spritesheets::cafe),
+                           regions::cafe,
                            (screen_width_f / 2) - (regions::cafe.width / 2),
                            (screen_height_f / 2) - (regions::cafe.height / 2));
 
@@ -190,12 +195,16 @@ GameState TitleScreen(Arigato const& game) noexcept {
 }  // namespace arigato
 
 int main() noexcept {
+    // If this gets too big, wrap in a std::unique_ptr to prevent stack-overflow
+    std::array<std::filesystem::path, 2> texture_files{
+        std::filesystem::path{arigato::sprites::player_left},
+        std::filesystem::path{arigato::spritesheets::cafe},
+    };
     arigato::Arigato game{
         .state = arigato::GameState::Title,
         .window{800, 450, 60, "Arigato!"},
         .game{},
-        .player{arigato::sprites::player_left},
-        .cafe{arigato::spritesheets::cafe},
+        .sprite_manager{texture_files},
     };
 
     while (game.window) {

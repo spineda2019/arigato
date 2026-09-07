@@ -16,6 +16,7 @@ const CppFiles = struct {
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
+        "src/display/SpriteManager.cpp",
     };
     const game = [_][]const u8{
         "src/game/main.cpp",

@@ -14,6 +14,7 @@
 //
 #include <Game.hpp>
 #include <Sprite.hpp>
+#include <SpriteManager.hpp>
 #include <Window.hpp>
 
 namespace arigato {
@@ -28,8 +29,7 @@ struct Arigato final {
     display::Window window;
     core::Game game;
     /// TODO(SEP): Replace with some type of asset manager
-    display::Sprite player;
-    display::Sprite cafe;
+    display::SpriteManager sprite_manager;
 };
 }  // namespace arigato
 

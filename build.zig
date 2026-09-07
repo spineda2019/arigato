@@ -209,8 +209,7 @@ pub fn build(b: *std.Build) !void {
     compilations.game.lto = switch (optimize) {
         .Debug => .none,
         else => switch (target.result.os.tag) {
-            .macos => .none,
-            .windows => .thin,
+            .windows, .macos => .none,
             else => .full,
         },
     };

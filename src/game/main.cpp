@@ -117,22 +117,25 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
 GameState LevelTransition(Arigato& game) noexcept {
     constexpr Button next_level_button{
-        .x = 10.0f,
-        .y = 100.0f,
-        .width = 160.0f,
-        .height = 80.0f,
+        .rectangle{
+            .x = 10.0f,
+            .y = 100.0f,
+            .width = 160.0f,
+            .height = 80.0f,
+        },
         .label = "Next Level",
     };
     const auto frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
-    frame.DrawRectangle(next_level_button.label,
-                        static_cast<const int>(next_level_button.x),
-                        static_cast<const int>(next_level_button.y),
-                        static_cast<const int>(next_level_button.width),
-                        static_cast<const int>(next_level_button.height),
-                        Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(
+        next_level_button.label,
+        static_cast<const int>(next_level_button.rectangle.x),
+        static_cast<const int>(next_level_button.rectangle.y),
+        static_cast<const int>(next_level_button.rectangle.width),
+        static_cast<const int>(next_level_button.rectangle.height),
+        Window::BackgroundColor::LightGray);
     const auto mouse{game.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
         game.game.NextLevel();
@@ -153,18 +156,20 @@ GameState TitleScreen(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
-    frame.DrawRectangle(new_game_button.label,
-                        static_cast<const int>(new_game_button.x),
-                        static_cast<const int>(new_game_button.y),
-                        static_cast<const int>(new_game_button.width),
-                        static_cast<const int>(new_game_button.height),
-                        Window::BackgroundColor::LightGray);
-    frame.DrawRectangle(load_game_button.label,
-                        static_cast<const int>(load_game_button.x),
-                        static_cast<const int>(load_game_button.y),
-                        static_cast<const int>(load_game_button.width),
-                        static_cast<const int>(load_game_button.height),
-                        Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(
+        new_game_button.label,
+        static_cast<const int>(new_game_button.rectangle.x),
+        static_cast<const int>(new_game_button.rectangle.y),
+        static_cast<const int>(new_game_button.rectangle.width),
+        static_cast<const int>(new_game_button.rectangle.height),
+        Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(
+        load_game_button.label,
+        static_cast<const int>(load_game_button.rectangle.x),
+        static_cast<const int>(load_game_button.rectangle.y),
+        static_cast<const int>(load_game_button.rectangle.width),
+        static_cast<const int>(load_game_button.rectangle.height),
+        Window::BackgroundColor::LightGray);
 
     const int screen_width{game.window.GetWidth()};
     const int screen_height{game.window.GetHeight()};

@@ -10,24 +10,37 @@
 #define SRC_GAME_UI_COMPONENTS_HPP_
 
 #include <cstddef>
+#include <type_traits>
 //
 #include <Window.hpp>
 
 namespace arigato {
-struct Button final {
-    /// Top left of button
+struct ScreenRectangle final {
+    /// Top left
     float x{};
-    /// Top left of button
+    /// Top left
     float y{};
     float width{};
     float height{};
-    const char* label;
+};
+
+static_assert(std::is_trivially_destructible_v<ScreenRectangle>);
+static_assert(std::is_nothrow_destructible_v<ScreenRectangle>);
+static_assert(std::is_trivially_constructible_v<ScreenRectangle, float, float,
+                                                float, float>);
+static_assert(std::is_nothrow_constructible_v<ScreenRectangle>);
+
+struct Button final {
+    ScreenRectangle rectangle{};
+    const char* label{};
 
     /// Defined here for convenience to avoid multiple TUs in the game-glue
     /// project. Should only be included once by main.cpp anyway
     inline bool Clicked(display::Window::Mouse const& mouse) const noexcept {
-        return mouse.clicked && mouse.x >= x && mouse.x < x + width &&
-               mouse.y >= y && mouse.y < y + height;
+        return mouse.clicked && mouse.x >= rectangle.x &&
+               mouse.x < rectangle.x + rectangle.width &&
+               mouse.y >= rectangle.y &&
+               mouse.y < rectangle.y + rectangle.height;
     }
 };
 
@@ -46,10 +59,10 @@ struct ScreenStrata final {
         const int row_height{screen_height_ / rows};
 
         return Button{
-            .x = static_cast<float>(target_col * col_width),
-            .y = static_cast<float>(target_row * row_height),
-            .width = static_cast<float>(col_width),
-            .height = static_cast<float>(row_height),
+            .rectangle{.x = static_cast<float>(target_col * col_width),
+                       .y = static_cast<float>(target_row * row_height),
+                       .width = static_cast<float>(col_width),
+                       .height = static_cast<float>(row_height)},
             .label = label,
         };
     }

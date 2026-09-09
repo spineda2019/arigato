@@ -16,9 +16,9 @@
 #include <Vec.hpp>
 #include <Window.hpp>
 //
-#include "./assets.hpp"
-#include "./logical_components.hpp"
-#include "./ui_components.hpp"
+#include "assets.hpp"
+#include "logical_components.hpp"
+#include "ui_components.hpp"
 
 namespace arigato {
 namespace {
@@ -124,7 +124,7 @@ GameState LevelTransition(Arigato& game) noexcept {
         .label = "Next Level",
     };
     const auto frame{game.window.MakeFrame()};
-    frame.SetBackground(Window::BackgroundColor::White);
+    frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
     frame.DrawRectangle(next_level_button.label,
@@ -143,20 +143,11 @@ GameState LevelTransition(Arigato& game) noexcept {
 }
 
 GameState TitleScreen(Arigato& game) noexcept {
-    constexpr Button new_game_button{
-        .x = 10.0f,
-        .y = 100.0f,
-        .width = 160.0f,
-        .height = 80.0f,
-        .label = "New Game",
-    };
-    constexpr Button load_game_button{
-        .x = 10.0f,
-        .y = new_game_button.y + new_game_button.height + 10.0f,
-        .width = 160.0f,
-        .height = 80.0f,
-        .label = "Load Game",
-    };
+    const arigato::ScreenStrata<9, 8> screen_layout{game.window.GetWidth(),
+                                                    game.window.GetHeight()};
+
+    const Button new_game_button{screen_layout.MakeButton<1, 2>("New Game")};
+    const Button load_game_button{screen_layout.MakeButton<1, 4>("Load Game")};
 
     const auto mouse{game.window.GetMouse()};
 

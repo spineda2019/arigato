@@ -118,10 +118,10 @@ GameState ProgressLevel(Arigato& game) noexcept {
 GameState LevelTransition(Arigato& game) noexcept {
     constexpr Button next_level_button{
         .rectangle{
-            .x = 10.0f,
-            .y = 100.0f,
-            .width = 160.0f,
-            .height = 80.0f,
+            .x = 10,
+            .y = 100,
+            .width = 160,
+            .height = 80,
         },
         .label = "Next Level",
     };
@@ -130,12 +130,9 @@ GameState LevelTransition(Arigato& game) noexcept {
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
     frame.DrawRectangle(
-        next_level_button.label,
-        static_cast<const int>(next_level_button.rectangle.x),
-        static_cast<const int>(next_level_button.rectangle.y),
-        static_cast<const int>(next_level_button.rectangle.width),
-        static_cast<const int>(next_level_button.rectangle.height),
-        Window::BackgroundColor::LightGray);
+        next_level_button.label, next_level_button.rectangle.x,
+        next_level_button.rectangle.y, next_level_button.rectangle.width,
+        next_level_button.rectangle.height, Window::BackgroundColor::LightGray);
     const auto mouse{game.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
         game.game.NextLevel();
@@ -149,8 +146,10 @@ GameState TitleScreen(Arigato& game) noexcept {
     const arigato::ScreenStrata<9, 8> screen_layout{game.window.GetWidth(),
                                                     game.window.GetHeight()};
 
-    const Button new_game_button{screen_layout.MakeButton<1, 2>("New Game")};
-    const Button load_game_button{screen_layout.MakeButton<1, 4>("Load Game")};
+    const Button new_game_button{
+        screen_layout.MakeButton<{.col = 1, .row = 2}>("New Game")};
+    const Button load_game_button{
+        screen_layout.MakeButton<{.col = 1, .row = 4}>("Load Game")};
 
     const auto mouse{game.window.GetMouse()};
 

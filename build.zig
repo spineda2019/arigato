@@ -13,6 +13,7 @@ const CppFiles = struct {
         "src/core/Game.cpp",
         "src/core/Character.cpp",
         "src/core/Level.cpp",
+        "src/core/Campaign.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",

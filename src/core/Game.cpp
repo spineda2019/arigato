@@ -12,12 +12,12 @@
 #include "include/Vec.hpp"
 
 namespace arigato::core {
-Game::Game() noexcept : level_{Level::Layout{}}, character_{} {}
+Game::Game() noexcept : character_{}, campaign_{}, level_{} {}
 
 Vec2D Game::GetPlayerPosition() const noexcept {
     return character_.GetPosition();
 }
-std::size_t Game::GetCurrentDay() const noexcept { return level_.GetDay(); }
+std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {
     return level_.GetCustomersLeft();
 }
@@ -28,7 +28,10 @@ void Game::Update(Character::Action character_action,
     level_.Apply(level_action);
 }
 
-void Game::NextLevel() noexcept { level_.NextDay(); }
+void Game::NextLevel() noexcept {
+    level_ = Level{};
+    campaign_.NextDay();
+}
 
 bool Game::Save() const noexcept { return false; }
 }  // namespace arigato::core

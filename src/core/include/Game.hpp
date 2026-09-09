@@ -12,9 +12,10 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "./Character.hpp"
-#include "./Level.hpp"
-#include "./Vec.hpp"
+#include "Campaign.hpp"
+#include "Character.hpp"
+#include "Level.hpp"
+#include "Vec.hpp"
 
 namespace arigato::core {
 class Game final {
@@ -38,8 +39,9 @@ class Game final {
     bool Save() const noexcept;
 
  private:
-    Level level_{Level::Layout{}};
     Character character_{};
+    Campaign campaign_{};
+    Level level_{};
 };
 }  // namespace arigato::core
 

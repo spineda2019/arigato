@@ -26,7 +26,7 @@ class Sprite final {
         float height{};
     };
 
- private:
+ private:  // types
     struct Impl;
 
  public:

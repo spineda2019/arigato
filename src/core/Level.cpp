@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <random>
-#include <utility>
 
 namespace arigato::core {
 
@@ -41,15 +40,11 @@ std::uint8_t SeededRandomCustAmount(std::uint8_t seed) noexcept {
 }
 }  // anonymous namespace
 
-Level::Level(Level::Layout layout) noexcept
-    : object_layout_{std::move(layout)},
-      day_{1},
-      customers_left_{UnseededRandomCustAmount()} {}
+Level::Level() noexcept : customers_left_{UnseededRandomCustAmount()} {}
 
 Level::Level(std::uint8_t seed) noexcept
-    : day_{1}, customers_left_{SeededRandomCustAmount(seed)} {}
+    : customers_left_{SeededRandomCustAmount(seed)} {}
 
-std::size_t Level::GetDay() const noexcept { return day_; }
 std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;
 }
@@ -57,15 +52,5 @@ void Level::Apply(Level::Action action) noexcept {
     customers_left_ = (customers_left_ >= action.amount_served)
                           ? customers_left_ - action.amount_served
                           : 0;
-}
-
-void Level::NextDay() noexcept {
-    ++day_;
-    customers_left_ = UnseededRandomCustAmount();
-}
-
-void Level::SeededNextDay(std::uint8_t seed) noexcept {
-    ++day_;
-    customers_left_ = SeededRandomCustAmount(seed);
 }
 }  // namespace arigato::core

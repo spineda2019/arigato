@@ -11,9 +11,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <vector>
-//
-#include "./Vec.hpp"
 
 namespace arigato::core {
 class Level final {
@@ -22,26 +19,15 @@ class Level final {
         std::uint8_t amount_served{};
     };
 
-    struct Layout final {
-        Rectangle cafe_bar{};
-        std::vector<Rectangle> cats{};
-        std::vector<Rectangle> tables{};
-    };
-
- public:
-    explicit Level(Layout) noexcept;
+ public:  // APIs
+    explicit Level() noexcept;
     explicit Level(std::uint8_t seed) noexcept;
 
-    std::size_t GetDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
     void Apply(Action) noexcept;
-    void NextDay() noexcept;
-    void SeededNextDay(std::uint8_t seed) noexcept;
 
  private:
-    Layout object_layout_{};
-    std::size_t day_{1};
     std::uint8_t customers_left_{};
 };
 }  // namespace arigato::core

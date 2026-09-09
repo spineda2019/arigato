@@ -156,19 +156,13 @@ GameState TitleScreen(Arigato& game) noexcept {
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawRectangle(
-        new_game_button.label,
-        static_cast<const int>(new_game_button.rectangle.x),
-        static_cast<const int>(new_game_button.rectangle.y),
-        static_cast<const int>(new_game_button.rectangle.width),
-        static_cast<const int>(new_game_button.rectangle.height),
-        Window::BackgroundColor::LightGray);
+        new_game_button.label, new_game_button.rectangle.x,
+        new_game_button.rectangle.y, new_game_button.rectangle.width,
+        new_game_button.rectangle.height, Window::BackgroundColor::LightGray);
     frame.DrawRectangle(
-        load_game_button.label,
-        static_cast<const int>(load_game_button.rectangle.x),
-        static_cast<const int>(load_game_button.rectangle.y),
-        static_cast<const int>(load_game_button.rectangle.width),
-        static_cast<const int>(load_game_button.rectangle.height),
-        Window::BackgroundColor::LightGray);
+        load_game_button.label, load_game_button.rectangle.x,
+        load_game_button.rectangle.y, load_game_button.rectangle.width,
+        load_game_button.rectangle.height, Window::BackgroundColor::LightGray);
 
     const int screen_width{game.window.GetWidth()};
     const int screen_height{game.window.GetHeight()};

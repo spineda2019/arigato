@@ -92,13 +92,22 @@ struct ScreenStrata final {
     static_assert(std::is_trivially_constructible_v<Index, int, int>);
     static_assert(std::is_nothrow_constructible_v<Index, int, int>);
 
-    template <Index target_index, Padding padding = {}>
+    struct Span final {
+        int col_span{1};
+        int row_span{1};
+    };
+    static_assert(std::is_trivially_destructible_v<Span>);
+    static_assert(std::is_nothrow_destructible_v<Span>);
+    static_assert(std::is_trivially_constructible_v<Span, int, int>);
+    static_assert(std::is_nothrow_constructible_v<Span, int, int>);
+
+    template <Index target_index, Padding padding = {}, Span span = {}>
     constexpr Button MakeButton(char const* label) const noexcept {
         static_assert(target_index.col <= layout.col_count, "OOB column");
         static_assert(target_index.row <= layout.row_count, "OOB row");
 
         const int col_width{[](int w) noexcept -> int {
-            int full{w / layout.col_count};
+            int full{(w / layout.col_count) * span.col_span};
             [[likely]]
             if (padding.left + padding.right < w) {
                 full -= padding.left;
@@ -107,7 +116,7 @@ struct ScreenStrata final {
             return full;
         }(screen_width_)};
         const int row_height{[](int h) noexcept -> int {
-            int full{h / layout.row_count};
+            int full{(h / layout.row_count) * span.row_span};
             [[likely]]
             if (padding.top + padding.down < h) {
                 full -= padding.left;

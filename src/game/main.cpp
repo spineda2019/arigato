@@ -143,8 +143,8 @@ GameState LevelTransition(Arigato& game) noexcept {
 }
 
 GameState TitleScreen(Arigato& game) noexcept {
-    const arigato::ScreenStrata<9, 8> screen_layout{game.window.GetWidth(),
-                                                    game.window.GetHeight()};
+    using Screen = arigato::ScreenStrata<{.col_count = 9, .row_count = 8}>;
+    const Screen screen_layout{game.window.GetWidth(), game.window.GetHeight()};
 
     const Button new_game_button{
         screen_layout.MakeButton<{.col = 1, .row = 2}>("New Game")};

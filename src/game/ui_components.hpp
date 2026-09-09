@@ -55,7 +55,17 @@ static_assert(
 static_assert(
     std::is_nothrow_constructible_v<Button, ScreenRectangle, char const*>);
 
-template <int cols, int rows>
+struct ScreenStratification final {
+    int col_count{};
+    int row_count{};
+};
+static_assert(std::is_trivially_destructible_v<ScreenStratification>);
+static_assert(std::is_nothrow_destructible_v<ScreenStratification>);
+static_assert(
+    std::is_trivially_constructible_v<ScreenStratification, int, int>);
+static_assert(std::is_nothrow_constructible_v<ScreenStratification, int, int>);
+
+template <ScreenStratification layout>
 struct ScreenStrata final {
     constexpr explicit ScreenStrata(int screen_width,
                                     int screen_height) noexcept
@@ -84,11 +94,11 @@ struct ScreenStrata final {
 
     template <Index target_index, Padding padding = {}>
     constexpr Button MakeButton(char const* label) const noexcept {
-        static_assert(target_index.col <= cols, "OOB column");
-        static_assert(target_index.row <= rows, "OOB row");
+        static_assert(target_index.col <= layout.col_count, "OOB column");
+        static_assert(target_index.row <= layout.row_count, "OOB row");
 
         const int col_width{[](int w) noexcept -> int {
-            int full{w / cols};
+            int full{w / layout.col_count};
             [[likely]]
             if (padding.left + padding.right < w) {
                 full -= padding.left;
@@ -97,7 +107,7 @@ struct ScreenStrata final {
             return full;
         }(screen_width_)};
         const int row_height{[](int h) noexcept -> int {
-            int full{h / rows};
+            int full{h / layout.row_count};
             [[likely]]
             if (padding.top + padding.down < h) {
                 full -= padding.left;

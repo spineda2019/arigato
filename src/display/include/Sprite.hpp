@@ -13,9 +13,6 @@
 #include <type_traits>
 
 namespace arigato::display {
-namespace detail {
-struct SpriteImpl;
-}  // namespace detail
 
 /// A 2D Texture. May represent a single sprite or an entire spritesheet
 class Sprite final {
@@ -29,10 +26,13 @@ class Sprite final {
         float height{};
     };
 
+ private:
+    struct Impl;
+
  public:
     explicit Sprite(const char* path) noexcept;
     explicit Sprite(const char* path, Area sprite_area) noexcept;
-    using ReadonlyImplRef_t = std::unique_ptr<detail::SpriteImpl> const&;
+    using ReadonlyImplRef_t = std::unique_ptr<Impl> const&;
     ReadonlyImplRef_t ReadonlyImplRef() const noexcept;
     float GetWidth() const noexcept;
     float GetHeight() const noexcept;
@@ -46,7 +46,7 @@ class Sprite final {
     Sprite& operator=(Sprite&&) = default;
 
  private:
-    std::unique_ptr<detail::SpriteImpl> impl_{};
+    std::unique_ptr<Impl> impl_{};
     Area area_{};
 };
 

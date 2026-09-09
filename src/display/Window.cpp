@@ -27,27 +27,24 @@ constexpr bool debug{
 }  // namespace
 
 namespace arigato::display {
-namespace detail {
-struct SpriteImpl {
+struct Sprite::Impl {
     Texture2D texture_;
 
-    explicit SpriteImpl(Texture2D texture) noexcept
-        : texture_{std::move(texture)} {}
+    explicit Impl(Texture2D texture) noexcept : texture_{std::move(texture)} {}
 
-    ~SpriteImpl() noexcept { UnloadTexture(texture_); }
-    SpriteImpl(SpriteImpl const&) = delete;
-    SpriteImpl& operator=(SpriteImpl const&) = delete;
-    SpriteImpl(SpriteImpl&&) = delete;
-    SpriteImpl& operator=(SpriteImpl&&) = delete;
+    ~Impl() noexcept { UnloadTexture(texture_); }
+    Impl(Impl const&) = delete;
+    Impl& operator=(Impl const&) = delete;
+    Impl(Impl&&) = delete;
+    Impl& operator=(Impl&&) = delete;
 };
-}  // namespace detail
 
 Sprite::Sprite(const char* path, Sprite::Area area) noexcept
-    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
+    : impl_{std::make_unique<Impl>(LoadTexture(path))},
       area_{std::move(area)} {}
 
 Sprite::Sprite(const char* path) noexcept
-    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
+    : impl_{std::make_unique<Impl>(LoadTexture(path))},
       area_{.width = static_cast<float>(impl_->texture_.width),
             .height = static_cast<float>(impl_->texture_.height)} {}
 

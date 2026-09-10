@@ -98,7 +98,7 @@ struct ScreenStrata final {
     static_assert(std::is_nothrow_constructible_v<Span, int, int>);
 
     template <Index target_index, Padding padding = {}, Span span = {}>
-    constexpr Button MakeButton(char const* label) const noexcept {
+    constexpr ScreenRectangle MakeRectangle() const noexcept {
         static_assert(target_index.col <= layout.col_count, "OOB column");
         static_assert(target_index.row <= layout.row_count, "OOB row");
 
@@ -146,11 +146,18 @@ struct ScreenStrata final {
             return {.height = full_height, .y = no_pad_y};
         }(screen_height)};
 
+        return {
+            .x = col_info.x,
+            .y = row_info.y,
+            .width = col_info.width,
+            .height = row_info.height,
+        };
+    }
+
+    template <Index target_index, Padding padding = {}, Span span = {}>
+    constexpr Button MakeButton(char const* label) const noexcept {
         return Button{
-            .rectangle{.x = col_info.x,
-                       .y = row_info.y,
-                       .width = col_info.width,
-                       .height = row_info.height},
+            .rectangle{MakeRectangle<target_index, padding, span>()},
             .label = label,
         };
     }

@@ -144,10 +144,10 @@ const Modules = struct {
         }
 
         for (CppIncludeDirs.core) |inc| {
-            mod_game.addSystemIncludePath(config.b.path(inc));
+            mod_game.addIncludePath(config.b.path(inc));
         }
         for (CppIncludeDirs.display) |inc| {
-            mod_game.addSystemIncludePath(config.b.path(inc));
+            mod_game.addIncludePath(config.b.path(inc));
         }
 
         return .{ .core = mod_core, .display = mod_display, .game = mod_game };

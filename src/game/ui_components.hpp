@@ -123,21 +123,34 @@ struct ScreenStrata final {
             }
             return {.width = full_width, .x = no_pad_x};
         }(screen_width)};
-        const int row_height{[](int h) noexcept -> int {
-            int full{(h / layout.row_count) * span.row_span};
+
+        struct RowInfo final {
+            int height{};
+            int y{};
+        };
+        static_assert(std::is_trivially_destructible_v<RowInfo>);
+        static_assert(std::is_nothrow_destructible_v<RowInfo>);
+        static_assert(std::is_trivially_constructible_v<RowInfo, int, int>);
+        static_assert(std::is_nothrow_constructible_v<RowInfo, int, int>);
+
+        const auto row_info{[](int h) noexcept -> RowInfo {
+            const int cell_height{h / layout.row_count};
+            int full_height{cell_height * span.row_span};
+            int no_pad_y{target_index.row * cell_height};
             [[likely]]
             if (padding.top + padding.down < h) {
-                full -= padding.left;
-                full -= padding.right;
+                full_height -= padding.top;
+                full_height -= padding.down;
+                no_pad_y += padding.top;
             }
-            return full;
+            return {.height = full_height, .y = no_pad_y};
         }(screen_height)};
 
         return Button{
             .rectangle{.x = col_info.x,
-                       .y = target_index.row * row_height,
+                       .y = row_info.y,
                        .width = col_info.width,
-                       .height = row_height},
+                       .height = row_info.height},
             .label = label,
         };
     }

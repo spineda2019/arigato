@@ -31,6 +31,9 @@ const CppIncludeDirs = struct {
     const display = [_][]const u8{
         "src/display/include/",
     };
+    const common = [_][]const u8{
+        "src/common_types/",
+    };
 };
 
 const cppflags = [_][]const u8{
@@ -148,6 +151,11 @@ const Modules = struct {
         }
         for (CppIncludeDirs.display) |inc| {
             mod_game.addIncludePath(config.b.path(inc));
+        }
+        for (CppIncludeDirs.common) |inc| {
+            mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
+            mod_display.addIncludePath(config.b.path(inc));
         }
 
         return .{ .core = mod_core, .display = mod_display, .game = mod_game };

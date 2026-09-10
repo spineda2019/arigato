@@ -144,7 +144,13 @@ GameState LevelTransition(Arigato& game) noexcept {
 
 GameState TitleScreen(Arigato& game) noexcept {
     using Screen = arigato::ScreenStrata<{.col_count = 9, .row_count = 8}>;
-    const Screen screen_layout{game.window.GetWidth(), game.window.GetHeight()};
+    static_assert(std::is_trivially_destructible_v<Screen>);
+    static_assert(std::is_nothrow_destructible_v<Screen>);
+    static_assert(std::is_trivially_constructible_v<Screen, int, int>);
+    static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
+
+    const Screen screen_layout{.screen_width = game.window.GetWidth(),
+                               .screen_height = game.window.GetHeight()};
 
     const Button new_game_button{
         screen_layout.MakeButton<{.col = 1, .row = 2}>("New Game")};

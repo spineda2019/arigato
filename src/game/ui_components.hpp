@@ -67,10 +67,6 @@ static_assert(std::is_nothrow_constructible_v<ScreenStratification, int, int>);
 
 template <ScreenStratification layout>
 struct ScreenStrata final {
-    constexpr explicit ScreenStrata(int screen_width,
-                                    int screen_height) noexcept
-        : screen_width_{screen_width}, screen_height_{screen_height} {}
-
     struct Padding final {
         int left{};
         int top{};
@@ -106,15 +102,27 @@ struct ScreenStrata final {
         static_assert(target_index.col <= layout.col_count, "OOB column");
         static_assert(target_index.row <= layout.row_count, "OOB row");
 
-        const int col_width{[](int w) noexcept -> int {
-            int full{(w / layout.col_count) * span.col_span};
+        struct ColInfo final {
+            int width{};
+            int x{};
+        };
+        static_assert(std::is_trivially_destructible_v<ColInfo>);
+        static_assert(std::is_nothrow_destructible_v<ColInfo>);
+        static_assert(std::is_trivially_constructible_v<ColInfo, int, int>);
+        static_assert(std::is_nothrow_constructible_v<ColInfo, int, int>);
+
+        const auto col_info{[](int w) noexcept -> ColInfo {
+            const int cell_width{w / layout.col_count};
+            int full_width{cell_width * span.col_span};
+            int no_pad_x{target_index.col * cell_width};
             [[likely]]
             if (padding.left + padding.right < w) {
-                full -= padding.left;
-                full -= padding.right;
+                full_width -= padding.left;
+                full_width -= padding.right;
+                no_pad_x += padding.left;
             }
-            return full;
-        }(screen_width_)};
+            return {.width = full_width, .x = no_pad_x};
+        }(screen_width)};
         const int row_height{[](int h) noexcept -> int {
             int full{(h / layout.row_count) * span.row_span};
             [[likely]]
@@ -123,20 +131,19 @@ struct ScreenStrata final {
                 full -= padding.right;
             }
             return full;
-        }(screen_height_)};
+        }(screen_height)};
 
         return Button{
-            .rectangle{.x = static_cast<int>(target_index.col * col_width),
-                       .y = static_cast<int>(target_index.row * row_height),
-                       .width = static_cast<int>(col_width),
-                       .height = static_cast<int>(row_height)},
+            .rectangle{.x = col_info.x,
+                       .y = target_index.row * row_height,
+                       .width = col_info.width,
+                       .height = row_height},
             .label = label,
         };
     }
 
- private:
-    int screen_width_{};
-    int screen_height_{};
+    int screen_width{};
+    int screen_height{};
 };
 
 }  // namespace arigato

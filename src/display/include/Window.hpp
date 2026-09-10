@@ -62,6 +62,11 @@ class Window final {
         /// once for many sprites in the sheet
         void DrawSpriteRegion(Sprite const&, Sprite::Area region, float x,
                               float y) const noexcept;
+        /// Draws a sprite with a specified `src` sub-region (e.g. a single
+        /// sprite region from a whole spritesheet) to a specified `dest` (e.g.
+        /// for scaling with the window)
+        void DrawSpriteRegion(Sprite const&, Sprite::Area src,
+                              Sprite::Area dest) const noexcept;
         void DrawRectangle(const char* text, int x, int y, int width,
                            int height,
                            BackgroundColor border_color) const noexcept;

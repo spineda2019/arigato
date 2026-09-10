@@ -154,9 +154,9 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
         WHITE);
 }
 
+constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
-    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
     ::DrawTexturePro(
         s.ReadonlyImplRef()->texture_,
         {.x = region.x,
@@ -164,6 +164,17 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
          .width = region.width,
          .height = region.height},
         {.x = x, .y = y, .width = region.width, .height = region.height},
+        abs_origin,
+        0.0f,  // no rotation
+        WHITE);
+}
+
+void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
+                                     Sprite::Area dest) const noexcept {
+    ::DrawTexturePro(
+        s.ReadonlyImplRef()->texture_,
+        {.x = src.x, .y = src.y, .width = src.width, .height = src.height},
+        {.x = dest.x, .y = dest.y, .width = dest.width, .height = dest.height},
         abs_origin,
         0.0f,  // no rotation
         WHITE);

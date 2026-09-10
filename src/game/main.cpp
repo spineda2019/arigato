@@ -143,7 +143,7 @@ GameState LevelTransition(Arigato& game) noexcept {
 }
 
 GameState TitleScreen(Arigato& game) noexcept {
-    using Screen = arigato::ScreenStrata<{.col_count = 9, .row_count = 8}>;
+    using Screen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
     static_assert(std::is_trivially_destructible_v<Screen>);
     static_assert(std::is_nothrow_destructible_v<Screen>);
     static_assert(std::is_trivially_constructible_v<Screen, int, int>);
@@ -152,10 +152,22 @@ GameState TitleScreen(Arigato& game) noexcept {
     const Screen screen_layout{.screen_width = game.window.GetWidth(),
                                .screen_height = game.window.GetHeight()};
 
+    constexpr Screen::Padding padding{
+        .left = 5,
+        .top = 5,
+        .right = 5,
+        .down = 5,
+    };
+    constexpr Screen::Span span{
+        .col_span = 2,
+        .row_span = 2,
+    };
     const Button new_game_button{
-        screen_layout.MakeButton<{.col = 1, .row = 2}>("New Game")};
+        screen_layout.MakeButton<{.col = 0, .row = 2}, padding, span>(
+            "New Game")};
     const Button load_game_button{
-        screen_layout.MakeButton<{.col = 1, .row = 4}>("Load Game")};
+        screen_layout.MakeButton<{.col = 0, .row = 4}, padding, span>(
+            "Load Game")};
 
     const auto mouse{game.window.GetMouse()};
 

@@ -54,6 +54,43 @@ static inline constexpr SpriteInfo cafe_bar{
     },
     .asset_path = cafe_sprite_sheet,
 };
+
+namespace cats {
+static inline constexpr char const* sprite_sheet{
+    "assets/spritesheets/beings/cats.png"};
+}
+
+namespace cats::white {
+static inline constexpr SpriteInfo right_1{
+    .sub_area{
+        .x = 4.0f,
+        .y = 8.0f,
+        .width = 23.0f,
+        .height = 18.0f,
+    },
+    .asset_path = sprite_sheet,
+};
+static inline constexpr SpriteInfo right_2{};
+static inline constexpr SpriteInfo right_3{};
+static inline constexpr SpriteInfo right_4{};
+
+static inline constexpr SpriteInfo left_1{};
+static inline constexpr SpriteInfo left_2{};
+static inline constexpr SpriteInfo left_3{};
+static inline constexpr SpriteInfo left_4{};
+
+static inline constexpr SpriteInfo away_1{};
+static inline constexpr SpriteInfo away_2{};
+static inline constexpr SpriteInfo away_3{};
+
+static inline constexpr SpriteInfo towards_1{};
+static inline constexpr SpriteInfo towards_2{};
+static inline constexpr SpriteInfo towards_3{};
+static inline constexpr SpriteInfo towards_4{};
+static inline constexpr SpriteInfo towards_5{};
+static inline constexpr SpriteInfo towards_6{};
+static inline constexpr SpriteInfo towards_7{};
+}  // namespace cats::white
 }  // namespace assets
 }  // namespace arigato
 

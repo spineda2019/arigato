@@ -24,12 +24,21 @@ struct ScreenRectangle final {
     int width{};
     int height{};
 
-    constexpr display::Sprite::Area ToSpriteArea() const noexcept {
+    inline constexpr display::Sprite::Area ToSpriteArea() const noexcept {
         return {
             .x = static_cast<const float>(x),
             .y = static_cast<const float>(y),
             .width = static_cast<const float>(width),
             .height = static_cast<const float>(height),
+        };
+    }
+    inline constexpr display::Sprite::IntegralArea ToIntegralArea()
+        const noexcept {
+        return {
+            .x = x,
+            .y = y,
+            .width = width,
+            .height = height,
         };
     }
 };

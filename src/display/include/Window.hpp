@@ -70,6 +70,10 @@ class Window final {
         void DrawRectangle(const char* text, int x, int y, int width,
                            int height,
                            BackgroundColor border_color) const noexcept;
+        void DrawRectangle(const char* text, Sprite::IntegralArea src,
+                           BackgroundColor border_color) const noexcept;
+        void DrawRectangle(const char* text, Sprite::IntegralArea src,
+                           RGB border_color) const noexcept;
 
      private:
         explicit Frame() noexcept;

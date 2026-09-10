@@ -25,6 +25,28 @@ class Sprite final {
         float width{};
         float height{};
     };
+    static_assert(std::is_trivially_destructible_v<Area>);
+    static_assert(std::is_nothrow_destructible_v<Area>);
+    static_assert(
+        std::is_trivially_constructible_v<Area, float, float, float, float>);
+    static_assert(
+        std::is_nothrow_constructible_v<Area, float, float, float, float>);
+
+    /// Like `Area`, but with integers
+    struct IntegralArea final {
+        /// Left edge of sheet
+        int x{};
+        /// Top edge of sheet
+        int y{};
+        int width{};
+        int height{};
+    };
+    static_assert(std::is_trivially_destructible_v<IntegralArea>);
+    static_assert(std::is_nothrow_destructible_v<IntegralArea>);
+    static_assert(
+        std::is_trivially_constructible_v<IntegralArea, int, int, int, int>);
+    static_assert(
+        std::is_nothrow_constructible_v<IntegralArea, int, int, int, int>);
 
  private:  // types
     struct Impl;

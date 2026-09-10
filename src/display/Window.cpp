@@ -6,15 +6,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-extern "C" {
+#include "include/Window.hpp"
+
 #include <raylib.h>
-}
 
 #include <memory>
 #include <utility>
 
 #include "include/Sprite.hpp"
-#include "include/Window.hpp"
 
 namespace {
 constexpr bool debug{
@@ -117,8 +116,8 @@ Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
     ::ClearBackground(ToRayColor(color));
 }
+constexpr unsigned char full_opaque{255};
 void Window::Frame::SetBackgroundRGB(Window::RGB rgb) const noexcept {
-    constexpr unsigned char full_opaque{255};
     ::ClearBackground(::Color{
         .r = rgb.red,
         .g = rgb.green,
@@ -132,7 +131,6 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
 }
 void Window::Frame::DrawText(const char* text, int x, int y, int size,
                              Window::RGB rgb) const noexcept {
-    constexpr unsigned char full_opaque{255};
     ::DrawText(text, x, y, size,
                ::Color{
                    .r = rgb.red,
@@ -187,5 +185,28 @@ void Window::Frame::DrawRectangle(const char* text, int x, int y, int width,
     ::DrawRectangle(x, y, width, height, color);
     // TODO(SEP): Use std::clamp
     ::DrawText(text, x + 5, y + (height / 2), height / 4, WHITE);
+}
+
+void Window::Frame::DrawRectangle(
+    const char* text, Sprite::IntegralArea src,
+    Window::BackgroundColor border_color) const noexcept {
+    const auto color{ToRayColor(border_color)};
+    ::DrawRectangle(src.x, src.y, src.width, src.height, color);
+    // TODO(SEP): Use std::clamp
+    ::DrawText(text, src.x + 5, src.y + (src.height / 2), src.height / 4,
+               WHITE);
+}
+void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
+                                  Window::RGB border_color) const noexcept {
+    ::DrawRectangle(src.x, src.y, src.width, src.height,
+                    ::Color{
+                        .r = border_color.red,
+                        .g = border_color.green,
+                        .b = border_color.blue,
+                        .a = full_opaque,
+                    });
+    // TODO(SEP): Use std::clamp
+    ::DrawText(text, src.x + 5, src.y + (src.height / 2), src.height / 4,
+               WHITE);
 }
 }  // namespace arigato::display

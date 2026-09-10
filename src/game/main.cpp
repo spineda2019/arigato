@@ -184,12 +184,16 @@ GameState TitleScreen(Arigato& game) noexcept {
 
     const int screen_width{game.window.GetWidth()};
     const int screen_height{game.window.GetHeight()};
-    const float screen_width_f{static_cast<const float>(screen_width)};
-    const float screen_height_f{static_cast<const float>(screen_height)};
-    frame.DrawSpriteRegion(
-        game.sprite_manager.Get(assets::cafe.asset_path), assets::cafe.sub_area,
-        (screen_width_f / 2) - (assets::cafe.sub_area.width / 2),
-        (screen_height_f / 2) - (assets::cafe.sub_area.height / 2));
+
+    constexpr Screen::Span cafe_span{
+        .col_span = 3,
+        .row_span = 3,
+    };
+    const auto cafe_dest_rectangle{
+        screen_layout.MakeRectangle<{.col = 4, .row = 4}, {}, cafe_span>()};
+    frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe.asset_path),
+                           assets::cafe.sub_area,
+                           cafe_dest_rectangle.ToSpriteArea());
 
     constexpr int title_size{30};
     frame.DrawText(

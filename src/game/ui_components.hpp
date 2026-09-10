@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <type_traits>
 //
+#include <Sprite.hpp>
 #include <Window.hpp>
 
 namespace arigato {
@@ -22,6 +23,15 @@ struct ScreenRectangle final {
     int y{};
     int width{};
     int height{};
+
+    constexpr display::Sprite::Area ToSpriteArea() const noexcept {
+        return {
+            .x = static_cast<const float>(x),
+            .y = static_cast<const float>(y),
+            .width = static_cast<const float>(width),
+            .height = static_cast<const float>(height),
+        };
+    }
 };
 
 static_assert(std::is_trivially_destructible_v<ScreenRectangle>);

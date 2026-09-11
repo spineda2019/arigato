@@ -101,28 +101,34 @@ GameState ProgressLevel(Arigato& game) noexcept {
                            assets::cafe_bar.sub_area,
                            cafe_region.template Convert<float>());
 
+    const display::Sprite::Area player_region{
+        .pos{pos},
+        .width = static_cast<float>(screen_layout.CellWidth() * 2),
+        .height = static_cast<float>(screen_layout.CellHeight() * 2),
+    };
     frame.DrawFullSprite(
-        game.sprite_manager.Get(assets::player_right.asset_path), pos.x, pos.y);
-    int hud_y{0};
-    constexpr int font_height{20};
+        game.sprite_manager.Get(assets::player_right.asset_path),
+        player_region);
+
     if constexpr (debug_build) {
         const int real_fps{game.window.GetFPS()};
         const auto fmt{std::format("FPS: {}", real_fps)};
-        frame.DrawText(fmt.c_str(), 0, hud_y, font_height,
-                       Window::BackgroundColor::LightGray);
-        hud_y += font_height;
+        const auto fps_rect{
+            screen_layout.MakeRectangle<{.col = 0, .row = 0}>()};
+        frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
+                       fps_rect.height, Window::BackgroundColor::LightGray);
     }
     const auto day{game.game.GetCurrentDay()};
     const auto day_fmt{std::format("Day {}", day)};
-    frame.DrawText(day_fmt.c_str(), 0, hud_y, font_height,
-                   Window::BackgroundColor::LightGray);
-    hud_y += font_height;
+    const auto day_rect{screen_layout.MakeRectangle<{.col = 0, .row = 1}>()};
+    frame.DrawText(day_fmt.c_str(), day_rect.pos.x, day_rect.pos.y,
+                   day_rect.height, Window::BackgroundColor::LightGray);
 
     const auto customers_left{game.game.GetCustomersLeft()};
     const auto cust_fmt{std::format("Customers left: {}", customers_left)};
-    frame.DrawText(cust_fmt.c_str(), 0, hud_y, font_height,
-                   Window::BackgroundColor::LightGray);
-    hud_y += font_height;
+    const auto cust_rect{screen_layout.MakeRectangle<{.col = 0, .row = 2}>()};
+    frame.DrawText(cust_fmt.c_str(), cust_rect.pos.x, cust_rect.pos.y,
+                   cust_rect.height, Window::BackgroundColor::LightGray);
 
     if (customers_left == 0) {
         return GameState::BetweenLevels;

@@ -56,6 +56,10 @@ class Window final {
                       RGB) const noexcept;
         /// Draws the entire sprite to the destination x and y coordinate
         void DrawFullSprite(Sprite const&, float x, float y) const noexcept;
+        /// Draws the entire sprite to the destination x and y coordinate to a
+        /// custom output region (say for example, to scale the output with the
+        /// screen)
+        void DrawFullSprite(Sprite const&, Sprite::Area) const noexcept;
         /// Like `DrawFullSprite` but can select a specific region of the source
         /// sprite to draw. Usefull for drawing a single sprite from a
         /// spritesheet, as the whole spritesheet can be stored in GPU memory

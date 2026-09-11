@@ -84,6 +84,14 @@ struct ScreenStrata final {
     static_assert(std::is_trivially_constructible_v<Span, int, int>);
     static_assert(std::is_nothrow_constructible_v<Span, int, int>);
 
+    constexpr int CellWidth() const noexcept {
+        return screen_width / layout.col_count;
+    }
+
+    constexpr int CellHeight() const noexcept {
+        return screen_height / layout.row_count;
+    }
+
     template <Index target_index, Padding padding = {}, Span span = {}>
     constexpr Rectangle MakeRectangle() const noexcept {
         static_assert(span.col_span >= 1);
@@ -102,8 +110,7 @@ struct ScreenStrata final {
         static_assert(std::is_trivially_constructible_v<ColInfo, int, int>);
         static_assert(std::is_nothrow_constructible_v<ColInfo, int, int>);
 
-        const auto col_info{[](int w) noexcept -> ColInfo {
-            const int cell_width{w / layout.col_count};
+        const auto col_info{[](int w, int cell_width) noexcept -> ColInfo {
             int full_width{cell_width * span.col_span};
             int no_pad_x{target_index.col * cell_width};
             [[likely]]
@@ -113,7 +120,7 @@ struct ScreenStrata final {
                 no_pad_x += padding.left;
             }
             return {.width = full_width, .x = no_pad_x};
-        }(screen_width)};
+        }(screen_width, CellWidth())};
 
         struct RowInfo final {
             int height{};
@@ -124,8 +131,7 @@ struct ScreenStrata final {
         static_assert(std::is_trivially_constructible_v<RowInfo, int, int>);
         static_assert(std::is_nothrow_constructible_v<RowInfo, int, int>);
 
-        const auto row_info{[](int h) noexcept -> RowInfo {
-            const int cell_height{h / layout.row_count};
+        const auto row_info{[](int h, int cell_height) noexcept -> RowInfo {
             int full_height{cell_height * span.row_span};
             int no_pad_y{target_index.row * cell_height};
             [[likely]]
@@ -135,7 +141,7 @@ struct ScreenStrata final {
                 no_pad_y += padding.top;
             }
             return {.height = full_height, .y = no_pad_y};
-        }(screen_height)};
+        }(screen_height, CellHeight())};
 
         return {
             .pos{.x = col_info.x, .y = row_info.y},

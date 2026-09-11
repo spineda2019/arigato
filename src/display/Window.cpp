@@ -139,10 +139,15 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                    .a = full_opaque,
                });
 }
+
+namespace {
+constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
+}  // anonymous namespace
+
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
+
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {
-    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
     ::DrawTexturePro(
         s.ReadonlyImplRef()->texture_,
         {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
@@ -152,7 +157,26 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
         WHITE);
 }
 
-constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
+void Window::Frame::DrawFullSprite(Sprite const& sprite,
+                                   Sprite::Area target) const noexcept {
+    ::DrawTexturePro(sprite.ReadonlyImplRef()->texture_,
+                     {
+                         .x = 0.0f,
+                         .y = 0.0f,
+                         .width = sprite.GetWidth(),
+                         .height = sprite.GetHeight(),
+                     },
+                     {
+                         .x = target.pos.x,
+                         .y = target.pos.y,
+                         .width = target.width,
+                         .height = target.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
+}
+
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
     ::DrawTexturePro(

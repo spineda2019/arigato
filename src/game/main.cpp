@@ -175,9 +175,6 @@ GameState TitleScreen(Arigato& game) noexcept {
     frame.DrawRectangle(load_game_button.label, load_game_button.rectangle,
                         Window::BackgroundColor::LightGray);
 
-    const int screen_width{game.window.GetWidth()};
-    const int screen_height{game.window.GetHeight()};
-
     constexpr Screen::Span cafe_span{
         .col_span = 3,
         .row_span = 3,
@@ -188,13 +185,11 @@ GameState TitleScreen(Arigato& game) noexcept {
                            assets::cafe.sub_area,
                            cafe_dest_rectangle.template Convert<float>());
 
-    constexpr int title_size{30};
-    frame.DrawText(
-        "Arigato!", screen_width / 2,
-        (screen_height / 2) -
-            static_cast<const int>((assets::cafe.sub_area.height) / 2) -
-            title_size - 5,
-        title_size, Window::RGB{.red = 41, .green = 71, .blue = 62});
+    const auto title_rect{screen_layout.MakeRectangle<
+        {.col = 4, .row = 3}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
+    frame.DrawText("Arigato!", title_rect.pos.x, title_rect.pos.y,
+                   title_rect.height,
+                   Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
         return GameState::Playing;

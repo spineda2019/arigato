@@ -9,12 +9,11 @@
 #include "include/Game.hpp"
 
 #include "include/Level.hpp"
-#include "include/Vec.hpp"
 
 namespace arigato::core {
 Game::Game() noexcept : character_{}, campaign_{}, level_{} {}
 
-Vec2D Game::GetPlayerPosition() const noexcept {
+Character::Vec2D Game::GetPlayerPosition() const noexcept {
     return character_.GetPosition();
 }
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }

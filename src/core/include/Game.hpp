@@ -15,7 +15,6 @@
 #include "Campaign.hpp"
 #include "Character.hpp"
 #include "Level.hpp"
-#include "Vec.hpp"
 
 namespace arigato::core {
 class Game final {
@@ -27,7 +26,7 @@ class Game final {
  public:
     explicit Game() noexcept;
 
-    Vec2D GetPlayerPosition() const noexcept;
+    Character::Vec2D GetPlayerPosition() const noexcept;
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 

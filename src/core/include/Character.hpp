@@ -10,12 +10,14 @@
 #define SRC_CORE_INCLUDE_CHARACTER_HPP_
 
 #include <cstdint>
-
-#include "Vec.hpp"
+//
+#include <arigato/physics.hpp>
 
 namespace arigato::core {
 class Character final {
  public:  // Types
+    using Vec2D = types::Vec2D<float>;
+
     struct Action final {
         enum class Direction : std::int8_t {
             Positive = 1,

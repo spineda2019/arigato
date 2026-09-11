@@ -13,7 +13,6 @@
 #include <Game.hpp>
 #include <Level.hpp>
 #include <Sprite.hpp>
-#include <Vec.hpp>
 #include <Window.hpp>
 //
 #include "assets.hpp"
@@ -69,11 +68,16 @@ Character::Action Translate(Window::Keys keys, float dt) noexcept {
 }
 
 GameState ProgressLevel(Arigato& game) noexcept {
+    // Input
     const Window::Keys keys{game.window.GetKeys()};
     const Character::Action action{Translate(keys, game.window.DeltaTime())};
     const Level::Action level_action{Translate(keys)};
+
+    // Sim
     game.game.Update(action, level_action);
-    const core::Vec2D pos{game.game.GetPlayerPosition()};
+
+    // Render
+    const auto pos{game.game.GetPlayerPosition()};
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});

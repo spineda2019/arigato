@@ -75,19 +75,31 @@ GameState ProgressLevel(Arigato& game) noexcept {
 
     // Sim
     game.game.Update(action, level_action);
+    const Character::Vec2D pos{game.game.GetPlayerPosition()};
 
     // Render
-    const auto pos{game.game.GetPlayerPosition()};
+    using Screen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
+    static_assert(std::is_trivially_destructible_v<Screen>);
+    static_assert(std::is_nothrow_destructible_v<Screen>);
+    static_assert(std::is_trivially_constructible_v<Screen, int, int>);
+    static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
+
+    const Screen screen_layout{
+        .screen_width = game.window.GetWidth(),
+        .screen_height = game.window.GetHeight(),
+    };
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
-    const int screen_width{game.window.GetWidth()};
-    const int screen_height{game.window.GetHeight()};
+    const auto cafe_region{
+        screen_layout
+            .MakeRectangle<{.col = (Screen::layout_info.col_count / 2) + 1,
+                            .row = (Screen::layout_info.row_count / 2) - 1},
+                           {}, {.col_span = 8, .row_span = 4}>()};
     frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe_bar.asset_path),
                            assets::cafe_bar.sub_area,
-                           static_cast<const float>(screen_width) / 2,
-                           static_cast<const float>(screen_height) / 2);
+                           cafe_region.template Convert<float>());
 
     frame.DrawFullSprite(
         game.sprite_manager.Get(assets::player_right.asset_path), pos.x, pos.y);

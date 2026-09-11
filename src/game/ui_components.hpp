@@ -86,6 +86,10 @@ struct ScreenStrata final {
 
     template <Index target_index, Padding padding = {}, Span span = {}>
     constexpr Rectangle MakeRectangle() const noexcept {
+        static_assert(span.col_span >= 1);
+        static_assert(span.row_span >= 1);
+        static_assert(target_index.col >= 0, "OOB column");
+        static_assert(target_index.row >= 0, "OOB row");
         static_assert(target_index.col <= layout.col_count, "OOB column");
         static_assert(target_index.row <= layout.row_count, "OOB row");
 
@@ -150,6 +154,7 @@ struct ScreenStrata final {
 
     int screen_width{};
     int screen_height{};
+    inline static constexpr auto layout_info{layout};
 };
 
 }  // namespace arigato

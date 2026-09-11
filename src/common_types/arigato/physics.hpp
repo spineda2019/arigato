@@ -12,11 +12,22 @@
 
 #include <type_traits>
 
+namespace arigato::types {
 template <class T>
     requires std::is_arithmetic_v<T> && (!std::is_reference_v<T>)
 struct Vec2D final {
     T x{};
     T y{};
+
+    template <class OtherT>
+        requires std::is_nothrow_constructible_v<OtherT, T> &&
+                 (std::is_trivially_constructible_v<OtherT, T>)
+    constexpr Vec2D<OtherT> Convert() const noexcept {
+        return {
+            .x = static_cast<OtherT>(x),
+            .y = static_cast<OtherT>(y),
+        };
+    }
 };
 
 template <class T>
@@ -41,6 +52,17 @@ struct Rectangle final {
     Vec2D<T> pos{};
     T width{};
     T height{};
+
+    template <class OtherT>
+        requires std::is_nothrow_constructible_v<OtherT, T> &&
+                 (std::is_trivially_constructible_v<OtherT, T>)
+    constexpr Rectangle<OtherT> Convert() const noexcept {
+        return {
+            .pos{pos.template Convert<OtherT>()},
+            .width = static_cast<OtherT>(width),
+            .height = static_cast<OtherT>(height),
+        };
+    }
 };
 
 template <class T>
@@ -63,4 +85,5 @@ static_assert(std::is_trivially_constructible_v<Rectangle<float>, Vec2D<float>,
 static_assert(std::is_nothrow_constructible_v<Rectangle<float>, Vec2D<float>,
                                               float, float>);
 
+}  // namespace arigato::types
 #endif  // SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_

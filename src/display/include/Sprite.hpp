@@ -1,52 +1,27 @@
-// Copyright (c) 2026 Sebastian Pineda (spineda.wpi.alum@gmail.com)
-//
-// Sprite.hpp - Independent representation of a game sprite/spritesheet
-//
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+/// \file
+/// \brief Independent representation of a game sprite/spritesheet
+///
+/// Copyright (c) 2026 Sebastian Pineda (spineda.wpi.alum@gmail.com)
+///
+/// This Source Code Form is subject to the terms of the Mozilla Public
+/// License, v. 2.0. If a copy of the MPL was not distributed with this
+/// file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #ifndef SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 #define SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 
 #include <memory>
 #include <type_traits>
+//
+#include <arigato/physics.hpp>
 
 namespace arigato::display {
 
 /// A 2D Texture. May represent a single sprite or an entire spritesheet
 class Sprite final {
  public:  // types
-    struct Area final {
-        /// Left edge of sheet
-        float x{};
-        /// Top edge of sheet
-        float y{};
-        float width{};
-        float height{};
-    };
-    static_assert(std::is_trivially_destructible_v<Area>);
-    static_assert(std::is_nothrow_destructible_v<Area>);
-    static_assert(
-        std::is_trivially_constructible_v<Area, float, float, float, float>);
-    static_assert(
-        std::is_nothrow_constructible_v<Area, float, float, float, float>);
-
-    /// Like `Area`, but with integers
-    struct IntegralArea final {
-        /// Left edge of sheet
-        int x{};
-        /// Top edge of sheet
-        int y{};
-        int width{};
-        int height{};
-    };
-    static_assert(std::is_trivially_destructible_v<IntegralArea>);
-    static_assert(std::is_nothrow_destructible_v<IntegralArea>);
-    static_assert(
-        std::is_trivially_constructible_v<IntegralArea, int, int, int, int>);
-    static_assert(
-        std::is_nothrow_constructible_v<IntegralArea, int, int, int, int>);
+    using Area = types::Rectangle<float>;
+    using IntegralArea = types::Rectangle<int>;
 
  private:  // types
     struct Impl;

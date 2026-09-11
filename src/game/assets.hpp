@@ -25,8 +25,7 @@ struct SpriteInfo final {
 
 static inline constexpr SpriteInfo player_right{
     .sub_area{
-        .x = 0.0f,
-        .y = 0.0f,
+        .pos{.x = 0.0f, .y = 0.0f},
         .width = 47.0f,
         .height = 62.0f,
     },
@@ -37,8 +36,7 @@ static inline constexpr char const* cafe_sprite_sheet{
     "assets/spritesheets/areas/coffeeshop.png"};
 static inline constexpr SpriteInfo cafe{
     .sub_area{
-        .x = 200.0f,
-        .y = 5.0f,
+        .pos{.x = 200.0f, .y = 5.0f},
         .width = 186.0f,
         .height = 95.0f,
     },
@@ -47,8 +45,7 @@ static inline constexpr SpriteInfo cafe{
 
 static inline constexpr SpriteInfo cafe_bar{
     .sub_area{
-        .x = 6.0f,
-        .y = 6.0f,
+        .pos{.x = 6.0f, .y = 6.0f},
         .width = 115.0f,
         .height = 68.0f,
     },
@@ -63,8 +60,7 @@ static inline constexpr char const* sprite_sheet{
 namespace cats::white {
 static inline constexpr SpriteInfo right_1{
     .sub_area{
-        .x = 4.0f,
-        .y = 8.0f,
+        .pos{.x = 4.0f, .y = 8.0f},
         .width = 23.0f,
         .height = 18.0f,
     },

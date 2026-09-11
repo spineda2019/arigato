@@ -118,8 +118,7 @@ GameState ProgressLevel(Arigato& game) noexcept {
 GameState LevelTransition(Arigato& game) noexcept {
     constexpr Button next_level_button{
         .rectangle{
-            .x = 10,
-            .y = 100,
+            .pos{.x = 10, .y = 100},
             .width = 160,
             .height = 80,
         },
@@ -129,10 +128,8 @@ GameState LevelTransition(Arigato& game) noexcept {
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
-    frame.DrawRectangle(
-        next_level_button.label, next_level_button.rectangle.x,
-        next_level_button.rectangle.y, next_level_button.rectangle.width,
-        next_level_button.rectangle.height, Window::BackgroundColor::LightGray);
+    frame.DrawRectangle(next_level_button.label, next_level_button.rectangle,
+                        Window::BackgroundColor::LightGray);
     const auto mouse{game.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
         game.game.NextLevel();
@@ -173,11 +170,9 @@ GameState TitleScreen(Arigato& game) noexcept {
 
     const Window::Frame frame{game.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
-    frame.DrawRectangle(new_game_button.label,
-                        new_game_button.rectangle.ToIntegralArea(),
+    frame.DrawRectangle(new_game_button.label, new_game_button.rectangle,
                         Window::BackgroundColor::LightGray);
-    frame.DrawRectangle(load_game_button.label,
-                        load_game_button.rectangle.ToIntegralArea(),
+    frame.DrawRectangle(load_game_button.label, load_game_button.rectangle,
                         Window::BackgroundColor::LightGray);
 
     const int screen_width{game.window.GetWidth()};
@@ -191,7 +186,7 @@ GameState TitleScreen(Arigato& game) noexcept {
         screen_layout.MakeRectangle<{.col = 4, .row = 4}, {}, cafe_span>()};
     frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe.asset_path),
                            assets::cafe.sub_area,
-                           cafe_dest_rectangle.ToSpriteArea());
+                           cafe_dest_rectangle.template Convert<float>());
 
     constexpr int title_size{30};
     frame.DrawText(

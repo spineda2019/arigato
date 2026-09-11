@@ -14,55 +14,24 @@
 //
 #include <Sprite.hpp>
 #include <Window.hpp>
+#include <arigato/physics.hpp>
 
 namespace arigato {
-struct ScreenRectangle final {
-    /// Top left
-    int x{};
-    /// Top left
-    int y{};
-    int width{};
-    int height{};
-
-    inline constexpr display::Sprite::Area ToSpriteArea() const noexcept {
-        return {
-            .x = static_cast<const float>(x),
-            .y = static_cast<const float>(y),
-            .width = static_cast<const float>(width),
-            .height = static_cast<const float>(height),
-        };
-    }
-    inline constexpr display::Sprite::IntegralArea ToIntegralArea()
-        const noexcept {
-        return {
-            .x = x,
-            .y = y,
-            .width = width,
-            .height = height,
-        };
-    }
-};
-
-static_assert(std::is_trivially_destructible_v<ScreenRectangle>);
-static_assert(std::is_nothrow_destructible_v<ScreenRectangle>);
-static_assert(
-    std::is_trivially_constructible_v<ScreenRectangle, int, int, int, int>);
-static_assert(
-    std::is_nothrow_constructible_v<ScreenRectangle, int, int, int, int>);
+using Rectangle = types::Rectangle<int>;
 
 struct Button final {
-    ScreenRectangle rectangle{};
+    Rectangle rectangle{};
     const char* label{};
 
     /// Defined here for convenience to avoid multiple TUs in the game-glue
     /// project. Should only be included once by main.cpp anyway
     inline bool Clicked(display::Window::Mouse const& mouse) const noexcept {
         return mouse.clicked &&
-               mouse.x >= static_cast<const float>(rectangle.x) &&
-               mouse.x < static_cast<const float>(rectangle.x) +
+               mouse.x >= static_cast<const float>(rectangle.pos.x) &&
+               mouse.x < static_cast<const float>(rectangle.pos.x) +
                              static_cast<const float>(rectangle.width) &&
-               mouse.y >= static_cast<const float>(rectangle.y) &&
-               mouse.y < static_cast<const float>(rectangle.y) +
+               mouse.y >= static_cast<const float>(rectangle.pos.y) &&
+               mouse.y < static_cast<const float>(rectangle.pos.y) +
                              static_cast<const float>(rectangle.height);
     }
 };
@@ -70,9 +39,8 @@ struct Button final {
 static_assert(std::is_trivially_destructible_v<Button>);
 static_assert(std::is_nothrow_destructible_v<Button>);
 static_assert(
-    std::is_trivially_constructible_v<Button, ScreenRectangle, char const*>);
-static_assert(
-    std::is_nothrow_constructible_v<Button, ScreenRectangle, char const*>);
+    std::is_trivially_constructible_v<Button, Rectangle, char const*>);
+static_assert(std::is_nothrow_constructible_v<Button, Rectangle, char const*>);
 
 struct ScreenStratification final {
     int col_count{};
@@ -117,7 +85,7 @@ struct ScreenStrata final {
     static_assert(std::is_nothrow_constructible_v<Span, int, int>);
 
     template <Index target_index, Padding padding = {}, Span span = {}>
-    constexpr ScreenRectangle MakeRectangle() const noexcept {
+    constexpr Rectangle MakeRectangle() const noexcept {
         static_assert(target_index.col <= layout.col_count, "OOB column");
         static_assert(target_index.row <= layout.row_count, "OOB row");
 
@@ -166,8 +134,7 @@ struct ScreenStrata final {
         }(screen_height)};
 
         return {
-            .x = col_info.x,
-            .y = row_info.y,
+            .pos{.x = col_info.x, .y = row_info.y},
             .width = col_info.width,
             .height = row_info.height,
         };

@@ -157,8 +157,8 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
     ::DrawTexturePro(
         s.ReadonlyImplRef()->texture_,
-        {.x = region.x,
-         .y = region.y,
+        {.x = region.pos.x,
+         .y = region.pos.y,
          .width = region.width,
          .height = region.height},
         {.x = x, .y = y, .width = region.width, .height = region.height},
@@ -169,13 +169,22 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
                                      Sprite::Area dest) const noexcept {
-    ::DrawTexturePro(
-        s.ReadonlyImplRef()->texture_,
-        {.x = src.x, .y = src.y, .width = src.width, .height = src.height},
-        {.x = dest.x, .y = dest.y, .width = dest.width, .height = dest.height},
-        abs_origin,
-        0.0f,  // no rotation
-        WHITE);
+    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+                     {
+                         .x = src.pos.x,
+                         .y = src.pos.y,
+                         .width = src.width,
+                         .height = src.height,
+                     },
+                     {
+                         .x = dest.pos.x,
+                         .y = dest.pos.y,
+                         .width = dest.width,
+                         .height = dest.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
 }
 
 void Window::Frame::DrawRectangle(const char* text, int x, int y, int width,
@@ -191,14 +200,14 @@ void Window::Frame::DrawRectangle(
     const char* text, Sprite::IntegralArea src,
     Window::BackgroundColor border_color) const noexcept {
     const auto color{ToRayColor(border_color)};
-    ::DrawRectangle(src.x, src.y, src.width, src.height, color);
+    ::DrawRectangle(src.pos.x, src.pos.y, src.width, src.height, color);
     // TODO(SEP): Use std::clamp
-    ::DrawText(text, src.x + 5, src.y + (src.height / 2), src.height / 4,
-               WHITE);
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.height / 2),
+               src.height / 4, WHITE);
 }
 void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
                                   Window::RGB border_color) const noexcept {
-    ::DrawRectangle(src.x, src.y, src.width, src.height,
+    ::DrawRectangle(src.pos.x, src.pos.y, src.width, src.height,
                     ::Color{
                         .r = border_color.red,
                         .g = border_color.green,
@@ -206,7 +215,7 @@ void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
                         .a = full_opaque,
                     });
     // TODO(SEP): Use std::clamp
-    ::DrawText(text, src.x + 5, src.y + (src.height / 2), src.height / 4,
-               WHITE);
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.height / 2),
+               src.height / 4, WHITE);
 }
 }  // namespace arigato::display

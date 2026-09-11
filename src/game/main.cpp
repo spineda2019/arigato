@@ -114,19 +114,23 @@ GameState ProgressLevel(Arigato& game) noexcept {
         const int real_fps{game.window.GetFPS()};
         const auto fmt{std::format("FPS: {}", real_fps)};
         const auto fps_rect{
-            screen_layout.MakeRectangle<{.col = 0, .row = 0}>()};
+            screen_layout
+                .MakeRectangle<{.col = 0, .row = 0},
+                               {.left = 0, .top = 0, .right = 0, .down = 5}>()};
         frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
                        fps_rect.height, Window::BackgroundColor::LightGray);
     }
     const auto day{game.game.GetCurrentDay()};
     const auto day_fmt{std::format("Day {}", day)};
-    const auto day_rect{screen_layout.MakeRectangle<{.col = 0, .row = 1}>()};
+    const auto day_rect{screen_layout.MakeRectangle<
+        {.col = 0, .row = 1}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText(day_fmt.c_str(), day_rect.pos.x, day_rect.pos.y,
                    day_rect.height, Window::BackgroundColor::LightGray);
 
     const auto customers_left{game.game.GetCustomersLeft()};
     const auto cust_fmt{std::format("Customers left: {}", customers_left)};
-    const auto cust_rect{screen_layout.MakeRectangle<{.col = 0, .row = 2}>()};
+    const auto cust_rect{screen_layout.MakeRectangle<
+        {.col = 0, .row = 2}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText(cust_fmt.c_str(), cust_rect.pos.x, cust_rect.pos.y,
                    cust_rect.height, Window::BackgroundColor::LightGray);
 

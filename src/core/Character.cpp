@@ -12,7 +12,7 @@
 
 namespace arigato::core {
 namespace {
-constexpr int move_speed{120};
+constexpr int move_speed{7};
 constexpr int Direction(Character::Action::Direction dir) {
     return std::to_underlying(dir);
 }

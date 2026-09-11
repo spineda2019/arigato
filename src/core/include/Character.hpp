@@ -31,9 +31,13 @@ class Character final {
 
  public:
     void Apply(Action) noexcept;
+    /// Returns the characters positions w.r.t game _logical units_, not pixels.
     Vec2D GetPosition() const noexcept;
 
  private:
+    /// While The character uses same the type of `types::Vec2D` as the
+    /// display module, internally this is understood by _logical_ units, not
+    /// necessarily _pixels_.
     Vec2D pos_;
 };
 }  // namespace arigato::core

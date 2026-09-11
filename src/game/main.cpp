@@ -102,7 +102,10 @@ GameState ProgressLevel(Arigato& game) noexcept {
                            cafe_region.template Convert<float>());
 
     const display::Sprite::Area player_region{
-        .pos{pos},
+        .pos{
+            .x = pos.x * screen_layout.CellWidth(),
+            .y = pos.y * screen_layout.CellHeight(),
+        },
         .width = static_cast<float>(screen_layout.CellWidth() * 2),
         .height = static_cast<float>(screen_layout.CellHeight() * 2),
     };

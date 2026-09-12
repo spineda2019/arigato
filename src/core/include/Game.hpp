@@ -21,7 +21,14 @@ class Game final {
  public:  // types
     struct Action final {
         Character::Action character_action{};
+        Level::Action level_action{};
     };
+    static_assert(std::is_trivially_destructible_v<Action>);
+    static_assert(std::is_nothrow_destructible_v<Action>);
+    static_assert(std::is_trivially_constructible_v<Action, Character::Action,
+                                                    Level::Action>);
+    static_assert(std::is_nothrow_constructible_v<Action, Character::Action,
+                                                  Level::Action>);
 
  public:
     explicit Game() noexcept;
@@ -30,7 +37,7 @@ class Game final {
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
-    void Update(Character::Action, Level::Action) noexcept;
+    void Update(Action) noexcept;
 
     void NextLevel() noexcept;
 

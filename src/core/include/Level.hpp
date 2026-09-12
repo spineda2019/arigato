@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 namespace arigato::core {
 class Level final {
@@ -18,6 +19,12 @@ class Level final {
     struct Action final {
         std::uint8_t amount_served{};
     };
+    static_assert(std::is_trivially_destructible_v<Action>);
+    static_assert(std::is_nothrow_destructible_v<Action>);
+    static_assert(std::is_trivially_constructible_v<Action, std::uint8_t>);
+    static_assert(std::is_nothrow_constructible_v<Action, std::uint8_t>);
+    static_assert(std::is_trivially_copy_constructible_v<Action>);
+    static_assert(std::is_trivially_move_constructible_v<Action>);
 
  public:  // APIs
     explicit Level() noexcept;

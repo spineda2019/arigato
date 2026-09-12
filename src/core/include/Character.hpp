@@ -28,6 +28,14 @@ class Character final {
         Direction move_y;
         float dt;
     };
+    static_assert(std::is_trivially_destructible_v<Action>);
+    static_assert(std::is_nothrow_destructible_v<Action>);
+    static_assert(std::is_trivially_constructible_v<Action, Action::Direction,
+                                                    Action::Direction, float>);
+    static_assert(std::is_nothrow_constructible_v<Action, Action::Direction,
+                                                  Action::Direction, float>);
+    static_assert(std::is_trivially_copy_constructible_v<Action>);
+    static_assert(std::is_trivially_move_constructible_v<Action>);
 
  public:
     void Apply(Action) noexcept;

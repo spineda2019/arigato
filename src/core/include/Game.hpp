@@ -11,7 +11,12 @@
 
 #include <cstddef>
 #include <cstdint>
-
+//
+#include <optional>
+#include <type_traits>
+//
+#include <arigato/physics.hpp>
+//
 #include "Campaign.hpp"
 #include "Character.hpp"
 #include "Level.hpp"
@@ -45,9 +50,9 @@ class Game final {
     bool Save() const noexcept;
 
  private:
-    Character character_{};
     Campaign campaign_{};
-    Level level_{};
+    Character character_{};
+    std::optional<Level> level_{};
 };
 }  // namespace arigato::core
 

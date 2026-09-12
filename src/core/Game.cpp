@@ -8,32 +8,33 @@
 
 #include "include/Game.hpp"
 
-#include <type_traits>
+#include <optional>
 
 #include "include/Level.hpp"
 
 namespace arigato::core {
-Game::Game() noexcept : character_{}, campaign_{}, level_{} {}
+Game::Game() noexcept : campaign_{}, character_{}, level_{std::nullopt} {}
 
 Character::Vec2D Game::GetPlayerPosition() const noexcept {
     return character_.GetPosition();
 }
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {
-    return level_.GetCustomersLeft();
+    /// Yes this throws. Yes this would terminate the program. I am (currently)
+    /// OK with that.
+    return level_->GetCustomersLeft();
 }
 
 void Game::Update(Game::Action action) noexcept {
+    if (!level_.has_value()) [[unlikely]] {
+        level_.emplace();
+    }
     character_.Apply(action.character_action);
-    level_.Apply(action.level_action);
+    level_->Apply(action.level_action);
 }
 
 void Game::NextLevel() noexcept {
-    if constexpr (!std::is_trivially_destructible_v<decltype(level_)>) {
-        level_.~Level();
-    }
-    // This is placement-new. No heap-allocation should occur
-    new (&level_) Level{};
+    level_.emplace();
     campaign_.NextDay();
 }
 

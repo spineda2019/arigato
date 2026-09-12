@@ -8,6 +8,8 @@
 
 #include "include/Game.hpp"
 
+#include <type_traits>
+
 #include "include/Level.hpp"
 
 namespace arigato::core {
@@ -27,7 +29,11 @@ void Game::Update(Game::Action action) noexcept {
 }
 
 void Game::NextLevel() noexcept {
-    level_ = Level{};
+    if constexpr (!std::is_trivially_destructible_v<decltype(level_)>) {
+        level_.~Level();
+    }
+    // This is placement-new. No heap-allocation should occur
+    new (&level_) Level{};
     campaign_.NextDay();
 }
 

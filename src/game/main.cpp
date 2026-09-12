@@ -15,6 +15,7 @@
 #include <Level.hpp>
 #include <Sprite.hpp>
 #include <Window.hpp>
+#include <arigato/meta.hpp>
 //
 #include "assets.hpp"
 #include "logical_components.hpp"
@@ -39,8 +40,9 @@ inline constexpr bool debug_build{
 template <class T>
 struct Calc final {};
 
-constexpr core::Game::Action InputToGameAction(Window::Keys input,
-                                               float dt) noexcept {
+constexpr core::Game::Action InputToGameAction(
+    arigato::meta::EfficientFuncArgType<Window::Keys>::type input,
+    float dt) noexcept {
     std::uint8_t amount_served{};
     if (input.space) {
         ++amount_served;
@@ -85,11 +87,9 @@ constexpr core::Game::Action InputToGameAction(Window::Keys input,
 GameState ProgressLevel(Arigato& game) noexcept {
     // Input
     const Window::Keys keys{game.window.GetKeys()};
-    const core::Game::Action action{
-        InputToGameAction(keys, game.window.DeltaTime())};
 
     // Sim
-    game.game.Update(action);
+    game.game.Update(InputToGameAction(keys, game.window.DeltaTime()));
     const Character::Vec2D pos{game.game.GetPlayerPosition()};
 
     // Render

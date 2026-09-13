@@ -54,16 +54,7 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
                   placed.reserve(decor_to_place.size());
 
                   for (Campaign::Decorum const& decorum : decor_to_place) {
-                      placed.emplace_back(
-                          Level::Rectangle{
-                              .pos{
-                                  .x = decorum.pos.pos.x,
-                                  .y = decorum.pos.pos.y,
-                              },
-                              .width = decorum.pos.width,
-                              .height = decorum.pos.height,
-                          },
-                          decorum.id);
+                      placed.emplace_back(decorum.pos, decorum.id);
                   }
 
                   return placed;

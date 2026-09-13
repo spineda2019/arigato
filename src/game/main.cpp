@@ -58,17 +58,6 @@ void ProgressLevel(Arigato& arigato) noexcept {
     const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
-    /*
-    const auto cafe_region{
-        screen_layout
-            .MakeRectangle<{.col = (Screen::layout_info.col_count / 2) + 1,
-                            .row = (Screen::layout_info.row_count / 2) - 1},
-                           {}, {.col_span = 8, .row_span = 4}>()};
-    frame.DrawSpriteRegion(
-        arigato.sprite_manager.Get(assets::cafe_bar.asset_path),
-        assets::cafe_bar.sub_area, cafe_region.template Convert<float>());
-        */
-
     for (const auto x : pos.cats) {
         // TODO(SEP): Dispath on cat id
         (void)x;

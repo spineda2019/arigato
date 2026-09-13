@@ -10,6 +10,7 @@
 #ifndef SRC_COMMON_TYPES_ARIGATO_META_HPP_
 #define SRC_COMMON_TYPES_ARIGATO_META_HPP_
 
+#include <cstdint>
 #include <new>
 #include <type_traits>
 namespace arigato::meta {
@@ -41,6 +42,37 @@ struct EfficientFuncArgType final {
                             std::hardware_destructive_interference_size,
                     T, T const&>::type;
 };
+
+template <class Head, class RestHead, class... Rest>
+struct OneOf final {
+    consteval static bool Helper() {
+        if (std::is_same_v<Head, RestHead>) {
+            return true;
+        } else {
+            return OneOf<Head, Rest...>::value;
+        }
+    }
+
+    static inline constexpr bool value{Helper()};
+};
+
+template <class Head, class Last>
+struct OneOf<Head, Last> final {
+    static inline constexpr bool value{std::is_same_v<Head, Last>};
+};
+
+template <class Head, class RestHead, class... Rest>
+static inline constexpr bool OneOf_v{OneOf<Head, RestHead, Rest...>::value};
+
+static_assert(OneOf_v<int, int>);
+static_assert(!OneOf_v<int, unsigned int>);
+static_assert(!OneOf_v<int, const int>);
+static_assert(!OneOf_v<int, int&>);
+static_assert(!OneOf_v<int, int const&>);
+
+static_assert(OneOf_v<int, int, float>);
+static_assert(OneOf_v<int, bool, float, std::uint64_t, int>);
+static_assert(OneOf_v<int, bool, float, int, std::uint64_t>);
 }  // namespace arigato::meta
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_META_HPP_

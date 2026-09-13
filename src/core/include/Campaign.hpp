@@ -19,24 +19,26 @@ namespace arigato::core {
 /// Representation of the currently running game-state. Theoretically should be
 /// easily (or at least tractably) serializable for saving
 class Campaign final {
- private:  // Types
+ public:  // Types
     struct Cat final {
         using Id = std::uint8_t;
         static inline constexpr Id kitters_id{0};
 
-        Id id{};
+        Id id;
     };
     static_assert(std::is_trivially_destructible_v<Cat>);
+    static_assert(std::is_trivially_constructible_v<Cat>);
     static_assert(std::is_trivially_constructible_v<Cat, Cat::Id>);
 
     struct Decorum final {
         using Id = std::uint8_t;
         static inline constexpr Id bar_id{0};
 
-        Id id{};
+        Id id;
     };
 
     static_assert(std::is_trivially_destructible_v<Decorum>);
+    static_assert(std::is_trivially_constructible_v<Decorum>);
     static_assert(std::is_trivially_constructible_v<Decorum, Decorum::Id>);
 
  public:  // APIs

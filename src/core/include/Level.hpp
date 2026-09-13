@@ -15,6 +15,8 @@
 #include <vector>
 //
 #include <arigato/physics.hpp>
+//
+#include "Campaign.hpp"
 
 namespace arigato::core {
 class Level final {
@@ -29,8 +31,6 @@ class Level final {
     static_assert(std::is_trivially_copy_constructible_v<Action>);
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
-    using Rectangle = types::Rectangle<int>;
-
  public:  // APIs
     explicit Level() noexcept;
     explicit Level(std::uint8_t seed) noexcept;
@@ -40,8 +40,32 @@ class Level final {
     void Apply(Action) noexcept;
 
  private:
+    using Rectangle = types::Rectangle<int>;
+
+    struct PlacedDecorum final {
+        Rectangle bounds;
+        Campaign::Decorum decorum;
+    };
+    static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
+    static_assert(std::is_nothrow_destructible_v<PlacedDecorum>);
+    static_assert(std::is_trivially_constructible_v<PlacedDecorum>);
+    static_assert(std::is_nothrow_constructible_v<PlacedDecorum>);
+
+    struct PlacedCat final {
+        Rectangle bounds;
+        Campaign::Cat cat;
+    };
+    static_assert(std::is_trivially_destructible_v<PlacedCat>);
+    static_assert(std::is_nothrow_destructible_v<PlacedCat>);
+    static_assert(std::is_trivially_constructible_v<PlacedCat>);
+    static_assert(std::is_nothrow_constructible_v<PlacedCat>);
+
+    struct PlacedCustomers final {};
+
+ private:
     std::uint8_t customers_left_{};
-    std::vector<Rectangle> geometry_{};
+    std::vector<PlacedCat> placed_cats_{};
+    std::vector<PlacedDecorum> placed_decor_{};
 };
 }  // namespace arigato::core
 

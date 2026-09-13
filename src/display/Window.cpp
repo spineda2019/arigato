@@ -45,7 +45,8 @@ Sprite::Sprite(const char* path, Sprite::Area area) noexcept
 
 Sprite::Sprite(const char* path) noexcept
     : impl_{std::make_unique<Impl>(LoadTexture(path))},
-      area_{.width = static_cast<float>(impl_->texture_.width),
+      area_{.pos{},
+            .width = static_cast<float>(impl_->texture_.width),
             .height = static_cast<float>(impl_->texture_.height)} {}
 
 Sprite::~Sprite() noexcept = default;

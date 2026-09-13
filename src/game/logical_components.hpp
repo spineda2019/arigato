@@ -10,22 +10,14 @@
 #ifndef SRC_GAME_LOGICAL_COMPONENTS_HPP_
 #define SRC_GAME_LOGICAL_COMPONENTS_HPP_
 
-#include <cstdint>
-//
 #include <Game.hpp>
 #include <Sprite.hpp>
 #include <SpriteManager.hpp>
 #include <Window.hpp>
 
 namespace arigato {
-enum class GameState : std::uint8_t {
-    Title,
-    Playing,
-    BetweenLevels,
-};
 
 struct Arigato final {
-    GameState state;
     display::Window window;
     core::Game game;
     /// TODO(SEP): Replace with some type of asset manager

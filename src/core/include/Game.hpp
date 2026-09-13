@@ -36,6 +36,12 @@ class Game final {
     static_assert(std::is_nothrow_constructible_v<Action, Character::Action,
                                                   Level::Action>);
 
+    enum class State : std::uint8_t {
+        Title,
+        Playing,
+        BetweenLevels,
+    };
+
  public:
     explicit Game() noexcept;
 
@@ -50,13 +56,23 @@ class Game final {
 
     void NextLevel() noexcept;
 
+    [[nodiscard(
+        "The return value should be the only observable effect of this "
+        "function")]]
+    State GetState() const noexcept;
+
+    void StartNewCampaign() noexcept;
+
+    void FinishLevel() noexcept;
+
     [[nodiscard("Save operations may fail and must be reported")]]
     bool Save() const noexcept;
 
  private:
     Campaign campaign_{};
-    Character character_{};
     std::optional<Level> level_{};
+    Character character_{};
+    State state_{Game::State::Title};
 };
 }  // namespace arigato::core
 

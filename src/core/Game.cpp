@@ -61,7 +61,11 @@ constexpr Game::Action InputToGameAction(
 }
 }  // namespace
 
-Game::Game() noexcept : campaign_{}, character_{}, level_{std::nullopt} {}
+Game::Game() noexcept
+    : campaign_{},
+      level_{std::nullopt},
+      character_{},
+      state_{Game::State::Title} {}
 
 Character::Vec2D Game::GetPlayerPosition() const noexcept {
     return character_.GetPosition();
@@ -88,7 +92,20 @@ void Game::Update(input::Input intent, float dt) noexcept {
 void Game::NextLevel() noexcept {
     level_.emplace();
     campaign_.NextDay();
+    state_ = Game::State::Playing;
 }
 
-bool Game::Save() const noexcept { return false; }
+Game::State Game::GetState() const noexcept { return state_; }
+
+void Game::StartNewCampaign() noexcept {
+    // TODO(SEP) perhaps new game specifics?
+    state_ = Game::State::Playing;
+}
+
+void Game::FinishLevel() noexcept { state_ = Game::State::BetweenLevels; }
+
+bool Game::Save() const noexcept {
+    return false;
+    (void)state_;
+}
 }  // namespace arigato::core

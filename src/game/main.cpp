@@ -36,7 +36,7 @@ inline constexpr bool debug_build{
 #endif
 };
 
-GameState ProgressLevel(Arigato& game) noexcept {
+void ProgressLevel(Arigato& game) noexcept {
     // Input+Sim
     game.game.Update(game.window.GetInput(), game.window.DeltaTime());
     const Character::Vec2D pos{game.game.GetPlayerPosition()};
@@ -102,13 +102,11 @@ GameState ProgressLevel(Arigato& game) noexcept {
                    cust_rect.height, Window::BackgroundColor::LightGray);
 
     if (customers_left == 0) {
-        return GameState::BetweenLevels;
-    } else {
-        return GameState::Playing;
+        game.game.FinishLevel();
     }
 }
 
-GameState LevelTransition(Arigato& game) noexcept {
+void LevelTransition(Arigato& game) noexcept {
     constexpr Button next_level_button{
         .rectangle{
             .pos{.x = 10, .y = 100},
@@ -126,13 +124,10 @@ GameState LevelTransition(Arigato& game) noexcept {
     const auto mouse{game.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
         game.game.NextLevel();
-        return GameState::Playing;
-    } else {
-        return GameState::BetweenLevels;
     }
 }
 
-GameState TitleScreen(Arigato& game) noexcept {
+void TitleScreen(Arigato& game) noexcept {
     using Screen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
     static_assert(std::is_trivially_destructible_v<Screen>);
     static_assert(std::is_nothrow_destructible_v<Screen>);
@@ -185,9 +180,7 @@ GameState TitleScreen(Arigato& game) noexcept {
                    Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
-        return GameState::Playing;
-    } else {
-        return GameState::Title;
+        game.game.StartNewCampaign();
     }
 }
 }  // namespace
@@ -201,22 +194,23 @@ int main() noexcept {
         arigato::assets::cafe_bar.asset_path,
     };
     arigato::Arigato game{
-        .state = arigato::GameState::Title,
         .window{800, 450, 60, "Arigato!"},
         .game{},
         .sprite_manager{texture_files},
     };
 
+    using GameState = arigato::core::Game::State;
+
     while (game.window) {
-        switch (game.state) {
-            case arigato::GameState::Title:
-                game.state = arigato::TitleScreen(game);
+        switch (game.game.GetState()) {
+            case GameState::Title:
+                arigato::TitleScreen(game);
                 break;
-            case arigato::GameState::Playing:
-                game.state = arigato::ProgressLevel(game);
+            case GameState::Playing:
+                arigato::ProgressLevel(game);
                 break;
-            case arigato::GameState::BetweenLevels:
-                game.state = arigato::LevelTransition(game);
+            case GameState::BetweenLevels:
+                arigato::LevelTransition(game);
                 break;
         }
     }

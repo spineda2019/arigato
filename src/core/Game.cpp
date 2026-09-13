@@ -102,6 +102,10 @@ void Game::StartNewCampaign() noexcept {
     state_ = Game::State::Playing;
 }
 
+void Game::LoadExistingCampaign() noexcept {
+    // TODO(SEP)
+}
+
 void Game::FinishLevel() noexcept { state_ = Game::State::BetweenLevels; }
 
 bool Game::Save() const noexcept {

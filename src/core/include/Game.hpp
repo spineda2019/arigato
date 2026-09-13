@@ -63,6 +63,8 @@ class Game final {
 
     void StartNewCampaign() noexcept;
 
+    void LoadExistingCampaign() noexcept;
+
     void FinishLevel() noexcept;
 
     [[nodiscard("Save operations may fail and must be reported")]]

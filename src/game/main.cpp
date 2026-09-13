@@ -181,6 +181,8 @@ void TitleScreen(Arigato& arigato) noexcept {
 
     if (new_game_button.Clicked(mouse)) {
         arigato.game.StartNewCampaign();
+    } else if (load_game_button.Clicked(mouse)) {
+        arigato.game.LoadExistingCampaign();
     }
 }
 }  // namespace

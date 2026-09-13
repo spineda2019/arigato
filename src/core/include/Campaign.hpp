@@ -43,6 +43,8 @@ class Campaign final {
 
  public:  // APIs
     std::size_t GetDay() const noexcept;
+    std::span<const Decorum> GetDecor() const noexcept;
+    std::span<const Cat> GetCats() const noexcept;
     void NextDay() noexcept;
 
     void AddCats(std::span<Cat::Id>);

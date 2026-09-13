@@ -23,37 +23,30 @@ inline constexpr std::uint8_t max_cust_count{32};
 static_assert(min_cust_count < max_cust_count);
 }  // anonymous namespace
 
-Level::Level() noexcept
-    : customers_left_{[]() noexcept -> std::uint8_t {
-          try {
-              std::mt19937 twister{std::random_device{}()};
-              static_assert(min_cust_count >=
-                            std::numeric_limits<std::uint8_t>::min());
-              static_assert(max_cust_count <=
-                            std::numeric_limits<std::uint8_t>::max());
-              std::uniform_int_distribution<std::uint16_t> dist{min_cust_count,
-                                                                max_cust_count};
-              return static_cast<std::uint8_t>(dist(twister));
-          } catch (...) {
-              return max_cust_count;
-          }
-      }()} {}
+Level::Level(std::random_device::result_type seed_val) noexcept
+    : customers_left_{
+          [](std::random_device::result_type seed) noexcept -> std::uint8_t {
+              try {
+                  std::mt19937 seeded_twister{seed};
+                  static_assert(min_cust_count >=
+                                std::numeric_limits<std::uint8_t>::min());
+                  static_assert(max_cust_count <=
+                                std::numeric_limits<std::uint8_t>::max());
+                  std::uniform_int_distribution<std::uint16_t> dist{
+                      min_cust_count, max_cust_count};
+                  return static_cast<std::uint8_t>(dist(seeded_twister));
+              } catch (...) {
+                  return max_cust_count;
+              }
+          }(seed_val)} {}
 
-Level::Level(std::uint8_t s) noexcept
-    : customers_left_{[](std::uint8_t seed) noexcept -> std::uint8_t {
-          try {
-              std::mt19937 seeded_twister{seed};
-              static_assert(min_cust_count >=
-                            std::numeric_limits<std::uint8_t>::min());
-              static_assert(max_cust_count <=
-                            std::numeric_limits<std::uint8_t>::max());
-              std::uniform_int_distribution<std::uint16_t> dist{min_cust_count,
-                                                                max_cust_count};
-              return static_cast<std::uint8_t>(dist(seeded_twister));
-          } catch (...) {
-              return max_cust_count;
-          }
-      }(s)} {}
+Level::Level(std::span<const Campaign::Decorum>,
+             std::span<const Campaign::Cat>) noexcept
+    : Level(std::random_device{}()) {}
+
+Level::Level(std::span<const Campaign::Decorum>, std::span<const Campaign::Cat>,
+             std::uint8_t seed) noexcept
+    : Level(seed) {}
 
 std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <ranges>
+#include <span>
 
 namespace arigato::core {
 std::size_t Campaign::GetDay() const noexcept { return day_; }
@@ -46,5 +47,12 @@ void Campaign::AddDecor(std::span<Decorum::Id> decorum_to_add) {
 
 void Campaign::AddCat(Cat::Id id) { cats_.emplace_back(id); }
 void Campaign::AddDecorum(Decorum::Id id) { decor_.emplace_back(id); }
+
+std::span<const Campaign::Decorum> Campaign::GetDecor() const noexcept {
+    return {decor_.cbegin(), decor_.size()};
+}
+std::span<const Campaign::Cat> Campaign::GetCats() const noexcept {
+    return {cats_.cbegin(), cats_.size()};
+}
 
 }  // namespace arigato::core

@@ -11,6 +11,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <random>
+#include <span>
 #include <type_traits>
 #include <vector>
 //
@@ -32,12 +34,17 @@ class Level final {
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
  public:  // APIs
-    explicit Level() noexcept;
-    explicit Level(std::uint8_t seed) noexcept;
+    explicit Level(std::span<const Campaign::Decorum>,
+                   std::span<const Campaign::Cat>) noexcept;
+    explicit Level(std::span<const Campaign::Decorum>,
+                   std::span<const Campaign::Cat>, std::uint8_t seed) noexcept;
 
     std::uint8_t GetCustomersLeft() const noexcept;
 
     void Apply(Action) noexcept;
+
+ private:  // helper ctors
+    explicit Level(std::random_device::result_type) noexcept;
 
  private:
     using Rectangle = types::Rectangle<int>;

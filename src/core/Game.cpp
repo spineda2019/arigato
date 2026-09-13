@@ -82,7 +82,7 @@ void Game::Update(input::Input intent, float dt) noexcept {
         // TODO(SEP): Somehow get campaign info into a format Level recognizes
         // and construct it with that info (e.g. what decor can the level
         // arrange)
-        level_.emplace();
+        level_.emplace(campaign_.GetDecor(), campaign_.GetCats());
     }
     const Game::Action action{InputToGameAction(intent, dt)};
     character_.Apply(action.character_action);
@@ -90,7 +90,7 @@ void Game::Update(input::Input intent, float dt) noexcept {
 }
 
 void Game::NextLevel() noexcept {
-    level_.emplace();
+    level_.emplace(campaign_.GetDecor(), campaign_.GetCats());
     campaign_.NextDay();
     state_ = Game::State::Playing;
 }

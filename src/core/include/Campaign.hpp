@@ -11,32 +11,49 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
+#include <type_traits>
 #include <vector>
 
 namespace arigato::core {
 /// Representation of the currently running game-state. Theoretically should be
 /// easily (or at least tractably) serializable for saving
 class Campaign final {
+ private:  // Types
+    struct Cat final {
+        using Id = std::uint8_t;
+        static inline constexpr Id kitters_id{0};
+
+        Id id{};
+    };
+    static_assert(std::is_trivially_destructible_v<Cat>);
+    static_assert(std::is_trivially_constructible_v<Cat, Cat::Id>);
+
+    struct Decorum final {
+        using Id = std::uint8_t;
+        static inline constexpr Id bar_id{0};
+
+        Id id{};
+    };
+
+    static_assert(std::is_trivially_destructible_v<Decorum>);
+    static_assert(std::is_trivially_constructible_v<Decorum, Decorum::Id>);
+
  public:  // APIs
     std::size_t GetDay() const noexcept;
     void NextDay() noexcept;
 
- private:  // Types
-    struct Cat final {
-        using Id = std::uint8_t;
+    void AddCats(std::span<Cat::Id>);
+    void AddDecor(std::span<Decorum::Id>);
 
-        Id id{};
-    };
-    struct Decorum final {
-        using Id = std::uint8_t;
-
-        Id id{};
-    };
+    void AddCat(Cat::Id);
+    void AddDecorum(Decorum::Id);
 
  private:
     std::size_t day_{1};
-    std::vector<Cat> cats_{};
-    std::vector<Decorum> decor_;
+    /// Always initialized with at least kitters
+    std::vector<Cat> cats_{{.id = Cat::kitters_id}};
+    std::vector<Decorum> decor_{{.id = Decorum::bar_id}};
 };
 }  // namespace arigato::core
 #endif  // SRC_CORE_INCLUDE_CAMPAIGN_HPP_

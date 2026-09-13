@@ -11,8 +11,10 @@
 
 #include <cstdint>
 #include <type_traits>
-
-#include "./Sprite.hpp"
+//
+#include <arigato/input.hpp>
+//
+#include "Sprite.hpp"
 
 namespace arigato::display {
 class Window final {
@@ -20,15 +22,6 @@ class Window final {
     enum class BackgroundColor : std::uint8_t {
         White,
         LightGray,
-    };
-
-    struct Keys final {
-        bool left{};
-        bool right{};
-        bool up{};
-        bool down{};
-
-        bool space{};
     };
 
     struct RGB final {
@@ -107,7 +100,7 @@ class Window final {
 
     int GetFPS() const noexcept;
 
-    Keys GetKeys() const noexcept;
+    input::Input GetInput() const noexcept;
 
     Mouse GetMouse() const noexcept;
 

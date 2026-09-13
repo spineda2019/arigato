@@ -15,6 +15,7 @@
 #include <optional>
 #include <type_traits>
 //
+#include <arigato/input.hpp>
 #include <arigato/physics.hpp>
 //
 #include "Campaign.hpp"
@@ -42,7 +43,10 @@ class Game final {
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
-    void Update(Action) noexcept;
+    /// Here, the `Input` represents the _intent_. It is up to the game
+    /// internally to validate the intent and update world state as appropriate
+    /// (e.g. collision)
+    void Update(input::Input, float dt) noexcept;
 
     void NextLevel() noexcept;
 

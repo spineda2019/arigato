@@ -6,13 +6,61 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "include/Game.hpp"
-
 #include <optional>
-
+//
+#include <arigato/input.hpp>
+#include <arigato/meta.hpp>
+//
+#include "include/Game.hpp"
 #include "include/Level.hpp"
 
 namespace arigato::core {
+namespace {
+constexpr Game::Action InputToGameAction(
+    arigato::meta::EfficientFuncArgType<input::Input>::type input,
+    float dt) noexcept {
+    std::uint8_t amount_served{};
+    if (input.pressed.space) {
+        ++amount_served;
+    }
+
+    const auto character_x_direction{
+        [](bool left, bool right) noexcept -> Character::Action::Direction {
+            auto dir{Character::Action::Direction::Zero};
+
+            if (left && !right) {
+                dir = Character::Action::Direction::Negative;
+            } else if (right && !left) {
+                dir = Character::Action::Direction::Positive;
+            }
+
+            return dir;
+        }(input.held.left, input.held.right)};
+
+    const auto character_y_direction{
+        [](bool up, bool down) noexcept -> Character::Action::Direction {
+            auto dir{Character::Action::Direction::Zero};
+
+            if (up && !down) {
+                dir = Character::Action::Direction::Negative;
+            } else if (down && !up) {
+                dir = Character::Action::Direction::Positive;
+            }
+
+            return dir;
+        }(input.held.up, input.held.down)};
+
+    return {
+        .character_action{
+            .move_x = character_x_direction,
+            .move_y = character_y_direction,
+            .dt = dt,
+        },
+        .level_action{.amount_served = amount_served},
+    };
+}
+}  // namespace
+
 Game::Game() noexcept : campaign_{}, character_{}, level_{std::nullopt} {}
 
 Character::Vec2D Game::GetPlayerPosition() const noexcept {
@@ -25,10 +73,14 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
     return level_->GetCustomersLeft();
 }
 
-void Game::Update(Game::Action action) noexcept {
+void Game::Update(input::Input intent, float dt) noexcept {
     if (!level_.has_value()) [[unlikely]] {
+        // TODO(SEP): Somehow get campaign info into a format Level recognizes
+        // and construct it with that info (e.g. what decor can the level
+        // arrange)
         level_.emplace();
     }
+    const Game::Action action{InputToGameAction(intent, dt)};
     character_.Apply(action.character_action);
     level_->Apply(action.level_action);
 }

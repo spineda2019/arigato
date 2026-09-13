@@ -6,14 +6,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "include/Window.hpp"
-
 #include <raylib.h>
-
+//
 #include <memory>
 #include <utility>
-
+//
+#include <arigato/input.hpp>
+//
 #include "include/Sprite.hpp"
+#include "include/Window.hpp"
 
 namespace {
 constexpr bool debug{
@@ -84,13 +85,22 @@ Window::operator bool() const noexcept { return !::WindowShouldClose(); }
 
 Window::~Window() noexcept { ::CloseWindow(); }
 
-Window::Keys Window::GetKeys() const noexcept {
-    return Window::Keys{
-        .left = ::IsKeyDown(KEY_LEFT),
-        .right = ::IsKeyDown(KEY_RIGHT),
-        .up = ::IsKeyDown(KEY_UP),
-        .down = ::IsKeyDown(KEY_DOWN),
-        .space = ::IsKeyPressed(KEY_SPACE),
+input::Input Window::GetInput() const noexcept {
+    return {
+        .pressed{
+            .left = ::IsKeyPressed(KEY_LEFT),
+            .right = ::IsKeyPressed(KEY_RIGHT),
+            .up = ::IsKeyPressed(KEY_UP),
+            .down = ::IsKeyPressed(KEY_DOWN),
+            .space = ::IsKeyPressed(KEY_SPACE),
+        },
+        .held{
+            .left = ::IsKeyDown(KEY_LEFT),
+            .right = ::IsKeyDown(KEY_RIGHT),
+            .up = ::IsKeyDown(KEY_UP),
+            .down = ::IsKeyDown(KEY_DOWN),
+            .space = false,  // keep until we care about holding space
+        },
     };
 };
 

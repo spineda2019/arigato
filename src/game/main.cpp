@@ -7,7 +7,6 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include <array>
-#include <cstdint>
 #include <format>
 //
 #include <Character.hpp>
@@ -15,6 +14,7 @@
 #include <Level.hpp>
 #include <Sprite.hpp>
 #include <Window.hpp>
+#include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
 #include "assets.hpp"
@@ -36,60 +36,9 @@ inline constexpr bool debug_build{
 #endif
 };
 
-/// Calculate if keys is bigger than 8 bytes, and make the type a ref if it is
-template <class T>
-struct Calc final {};
-
-constexpr core::Game::Action InputToGameAction(
-    arigato::meta::EfficientFuncArgType<Window::Keys>::type input,
-    float dt) noexcept {
-    std::uint8_t amount_served{};
-    if (input.space) {
-        ++amount_served;
-    }
-
-    const auto character_x_direction{
-        [](bool left, bool right) noexcept -> Character::Action::Direction {
-            auto dir{Character::Action::Direction::Zero};
-
-            if (left && !right) {
-                dir = Character::Action::Direction::Negative;
-            } else if (right && !left) {
-                dir = Character::Action::Direction::Positive;
-            }
-
-            return dir;
-        }(input.left, input.right)};
-
-    const auto character_y_direction{
-        [](bool up, bool down) noexcept -> Character::Action::Direction {
-            auto dir{Character::Action::Direction::Zero};
-
-            if (up && !down) {
-                dir = Character::Action::Direction::Negative;
-            } else if (down && !up) {
-                dir = Character::Action::Direction::Positive;
-            }
-
-            return dir;
-        }(input.up, input.down)};
-
-    return {
-        .character_action{
-            .move_x = character_x_direction,
-            .move_y = character_y_direction,
-            .dt = dt,
-        },
-        .level_action{.amount_served = amount_served},
-    };
-}
-
 GameState ProgressLevel(Arigato& game) noexcept {
-    // Input
-    const Window::Keys keys{game.window.GetKeys()};
-
-    // Sim
-    game.game.Update(InputToGameAction(keys, game.window.DeltaTime()));
+    // Input+Sim
+    game.game.Update(game.window.GetInput(), game.window.DeltaTime());
     const Character::Vec2D pos{game.game.GetPlayerPosition()};
 
     // Render

@@ -12,6 +12,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
+//
+#include <arigato/physics.hpp>
 
 namespace arigato::core {
 class Level final {
@@ -26,6 +29,8 @@ class Level final {
     static_assert(std::is_trivially_copy_constructible_v<Action>);
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
+    using Rectangle = types::Rectangle<int>;
+
  public:  // APIs
     explicit Level() noexcept;
     explicit Level(std::uint8_t seed) noexcept;
@@ -36,6 +41,7 @@ class Level final {
 
  private:
     std::uint8_t customers_left_{};
+    std::vector<Rectangle> geometry_{};
 };
 }  // namespace arigato::core
 

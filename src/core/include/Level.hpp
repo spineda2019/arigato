@@ -38,7 +38,7 @@ class Level final {
 
     struct PlacedDecorum final {
         Rectangle bounds;
-        id::Id decorum;
+        id::DecorId decorum;
     };
     static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
     static_assert(std::is_nothrow_destructible_v<PlacedDecorum>);
@@ -47,7 +47,7 @@ class Level final {
 
     struct PlacedCat final {
         Rectangle bounds;
-        id::Id cat;
+        id::CatId cat;
     };
     static_assert(std::is_trivially_destructible_v<PlacedCat>);
     static_assert(std::is_nothrow_destructible_v<PlacedCat>);

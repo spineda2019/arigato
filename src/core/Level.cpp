@@ -26,10 +26,13 @@ inline constexpr std::uint8_t min_cust_count{3};
 inline constexpr std::uint8_t max_cust_count{32};
 static_assert(min_cust_count < max_cust_count);
 
+inline constexpr std::uint8_t max_x{32};
+inline constexpr std::uint8_t max_y{32};
+
 }  // anonymous namespace
 
 Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat>) noexcept
+             std::span<const Campaign::Cat> cats) noexcept
     : customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
           try {
               static_assert(min_cust_count >=
@@ -44,24 +47,21 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
           }
       }(twister)},
       placed_decor_{
-          [](std::span<const Campaign::Decorum> decor_to_place,
-             std::mt19937& rng) noexcept -> std::vector<Level::PlacedDecorum> {
+          [](std::span<const Campaign::Decorum> decor_to_place) noexcept
+              -> std::vector<Level::PlacedDecorum> {
               try {
                   std::vector<Level::PlacedDecorum> placed{};
                   placed.reserve(decor_to_place.size());
-
-                  std::uniform_int_distribution<std::uint16_t> dist{
-                      0, std::numeric_limits<std::uint8_t>::max()};
 
                   for (Campaign::Decorum const& decorum : decor_to_place) {
                       placed.emplace_back(
                           Level::Rectangle{
                               .pos{
-                                  .x = dist(rng),
-                                  .y = dist(rng),
+                                  .x = decorum.pos.pos.x,
+                                  .y = decorum.pos.pos.y,
                               },
-                              .width = 1,
-                              .height = 1,
+                              .width = decorum.pos.width,
+                              .height = decorum.pos.height,
                           },
                           decorum.id);
                   }
@@ -70,7 +70,35 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
               } catch (...) {
                   return {};
               }
-          }(decor, twister)} {}
+          }(decor)},
+      placed_cats_{
+          [](std::span<const Campaign::Cat> cats_to_place,
+             std::mt19937& rng) noexcept -> std::vector<Level::PlacedCat> {
+              try {
+                  std::vector<Level::PlacedCat> placed{};
+                  placed.reserve(cats_to_place.size());
+
+                  std::uniform_int_distribution<std::uint16_t> dist_x{0, max_x};
+                  std::uniform_int_distribution<std::uint16_t> dist_y{0, max_y};
+
+                  for (Campaign::Cat const& cat : cats_to_place) {
+                      placed.emplace_back(
+                          Level::Rectangle{
+                              .pos{
+                                  .x = dist_x(rng),
+                                  .y = dist_y(rng),
+                              },
+                              .width = 1,
+                              .height = 1,
+                          },
+                          cat.id);
+                  }
+
+                  return placed;
+              } catch (...) {
+                  return {};
+              }
+          }(cats, twister)} {}
 
 Level::Level(std::span<const Campaign::Decorum> decor,
              std::span<const Campaign::Cat> cats) noexcept

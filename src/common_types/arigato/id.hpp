@@ -15,9 +15,13 @@
 namespace arigato::id {
 using Id_t = std::uint16_t;
 
-enum class Id : Id_t {
+enum class CatId : Id_t {
     Unknown,
     Kitters,
+};
+
+enum class DecorId : Id_t {
+    Unknown,
     CafeBar,
 };
 

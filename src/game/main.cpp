@@ -6,6 +6,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
 #include <array>
 #include <format>
 //
@@ -17,6 +18,7 @@
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
+#include "arigato/id.hpp"
 #include "assets.hpp"
 #include "logical_components.hpp"
 #include "ui_components.hpp"
@@ -56,6 +58,7 @@ void ProgressLevel(Arigato& arigato) noexcept {
     const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
+    /*
     const auto cafe_region{
         screen_layout
             .MakeRectangle<{.col = (Screen::layout_info.col_count / 2) + 1,
@@ -64,6 +67,37 @@ void ProgressLevel(Arigato& arigato) noexcept {
     frame.DrawSpriteRegion(
         arigato.sprite_manager.Get(assets::cafe_bar.asset_path),
         assets::cafe_bar.sub_area, cafe_region.template Convert<float>());
+        */
+
+    for (const auto x : pos.cats) {
+        // TODO(SEP): Dispath on cat id
+        (void)x;
+    }
+
+    for (const auto decorum : pos.decor) {
+        switch (decorum.decorum) {
+            case id::DecorId::CafeBar:
+                frame.DrawSpriteRegion(
+                    arigato.sprite_manager.Get(assets::cafe_bar.asset_path),
+                    assets::cafe_bar.sub_area,
+                    {
+                        .pos{
+                            .x = static_cast<float>(decorum.bounds.pos.x *
+                                                    screen_layout.CellWidth()),
+                            .y = static_cast<float>(decorum.bounds.pos.y *
+                                                    screen_layout.CellHeight()),
+                        },
+                        .width = static_cast<float>(decorum.bounds.width *
+                                                    screen_layout.CellWidth()),
+                        .height = static_cast<float>(
+                            decorum.bounds.height * screen_layout.CellHeight()),
+                    });
+                break;
+            case id::DecorId::Unknown:
+                // TODO(SEP): Log somewhere
+                break;
+        }
+    }
 
     const display::Sprite::Area player_region{
         .pos{

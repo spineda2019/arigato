@@ -27,11 +27,11 @@ class Campaign final {
           ///
           /// Can be randomly placed within a level
     struct Cat final {
-        id::Id id;
+        id::CatId id;
     };
     static_assert(std::is_trivially_destructible_v<Cat>);
     static_assert(std::is_trivially_constructible_v<Cat>);
-    static_assert(std::is_trivially_constructible_v<Cat, id::Id>);
+    static_assert(std::is_trivially_constructible_v<Cat, id::CatId>);
 
     /// \brief Represents a decorum currently owned by the player
     ///
@@ -42,14 +42,14 @@ class Campaign final {
         using Position = types::Rectangle<int>;
 
         Position pos;
-        id::Id id;
+        id::DecorId id;
     };
 
     static_assert(std::is_trivially_destructible_v<Decorum>);
     static_assert(std::is_trivially_constructible_v<Decorum>);
     static_assert(std::is_trivially_copy_constructible_v<Decorum>);
-    static_assert(
-        std::is_trivially_constructible_v<Decorum, Decorum::Position, id::Id>);
+    static_assert(std::is_trivially_constructible_v<Decorum, Decorum::Position,
+                                                    id::DecorId>);
 
  public:  // APIs
     std::size_t GetDay() const noexcept;
@@ -57,24 +57,24 @@ class Campaign final {
     std::span<const Cat> GetCats() const noexcept;
     void NextDay() noexcept;
 
-    void AddCats(std::span<id::Id>);
-    void AddDecor(std::span<id::Id>);
+    void AddCats(std::span<id::CatId>);
+    void AddDecor(std::span<id::DecorId>);
 
-    void AddCat(id::Id);
-    void AddDecorum(id::Id);
+    void AddCat(id::CatId);
+    void AddDecorum(id::DecorId);
 
  private:
-    inline static constexpr Cat kitters{.id = id::Id::Kitters};
+    inline static constexpr Cat kitters{.id = id::CatId::Kitters};
     inline static constexpr Decorum cafe_bar{
         .pos{
             .pos{
-                .x = 5,
-                .y = 5,
+                .x = 13,
+                .y = 7,
             },
-            .width = 1,
-            .height = 1,
+            .width = 8,
+            .height = 4,
         },
-        .id = id::Id::CafeBar,
+        .id = id::DecorId::CafeBar,
     };
 
  private:

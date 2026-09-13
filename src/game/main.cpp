@@ -6,7 +6,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include <algorithm>
 #include <array>
 #include <format>
 //
@@ -38,19 +37,29 @@ inline constexpr bool debug_build{
 #endif
 };
 
+namespace screen_layouts {
+using LevelScreen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
+static_assert(std::is_trivially_destructible_v<LevelScreen>);
+static_assert(std::is_nothrow_destructible_v<LevelScreen>);
+static_assert(std::is_trivially_constructible_v<LevelScreen, int, int>);
+static_assert(std::is_nothrow_constructible_v<LevelScreen, int, int>);
+
+using TitleScreen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
+static_assert(std::is_trivially_destructible_v<TitleScreen>);
+static_assert(std::is_nothrow_destructible_v<TitleScreen>);
+static_assert(std::is_trivially_constructible_v<TitleScreen, int, int>);
+static_assert(std::is_nothrow_constructible_v<TitleScreen, int, int>);
+
+}  // namespace screen_layouts
+
 void ProgressLevel(Arigato& arigato) noexcept {
     // Input+Sim
     arigato.game.Update(arigato.window.GetInput(), arigato.window.DeltaTime());
     const core::Game::Entities pos{arigato.game.GetPositions()};
 
     // Render
-    using Screen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
-    static_assert(std::is_trivially_destructible_v<Screen>);
-    static_assert(std::is_nothrow_destructible_v<Screen>);
-    static_assert(std::is_trivially_constructible_v<Screen, int, int>);
-    static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
 
-    const Screen screen_layout{
+    const screen_layouts::LevelScreen screen_layout{
         .screen_width = arigato.window.GetWidth(),
         .screen_height = arigato.window.GetHeight(),
     };
@@ -151,22 +160,17 @@ void LevelTransition(Arigato& arigato) noexcept {
 }
 
 void TitleScreen(Arigato& arigato) noexcept {
-    using Screen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
-    static_assert(std::is_trivially_destructible_v<Screen>);
-    static_assert(std::is_nothrow_destructible_v<Screen>);
-    static_assert(std::is_trivially_constructible_v<Screen, int, int>);
-    static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
+    const screen_layouts::TitleScreen screen_layout{
+        .screen_width = arigato.window.GetWidth(),
+        .screen_height = arigato.window.GetHeight()};
 
-    const Screen screen_layout{.screen_width = arigato.window.GetWidth(),
-                               .screen_height = arigato.window.GetHeight()};
-
-    constexpr Screen::Padding padding{
+    constexpr screen_layouts::TitleScreen::Padding padding{
         .left = 5,
         .top = 5,
         .right = 5,
         .down = 5,
     };
-    constexpr Screen::Span span{
+    constexpr screen_layouts::TitleScreen::Span span{
         .col_span = 2,
         .row_span = 2,
     };
@@ -186,7 +190,7 @@ void TitleScreen(Arigato& arigato) noexcept {
     frame.DrawRectangle(load_game_button.label, load_game_button.rectangle,
                         Window::BackgroundColor::LightGray);
 
-    constexpr Screen::Span cafe_span{
+    constexpr screen_layouts::TitleScreen::Span cafe_span{
         .col_span = 3,
         .row_span = 3,
     };

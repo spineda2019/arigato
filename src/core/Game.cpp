@@ -68,7 +68,11 @@ Game::Game() noexcept
       state_{Game::State::Title} {}
 
 Game::Entities Game::GetPositions() const noexcept {
-    return {.character{character_.GetPosition()}};
+    return {
+        .character{character_.GetPosition()},
+        .cats{level_->GetPlacedCats()},
+        .decor{level_->GetPlacedDecor()},
+    };
 }
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {
@@ -79,9 +83,6 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 
 void Game::Update(input::Input intent, float dt) noexcept {
     if (!level_.has_value()) [[unlikely]] {
-        // TODO(SEP): Somehow get campaign info into a format Level recognizes
-        // and construct it with that info (e.g. what decor can the level
-        // arrange)
         level_.emplace(campaign_.GetDecor(), campaign_.GetCats());
     }
     const Game::Action action{InputToGameAction(intent, dt)};

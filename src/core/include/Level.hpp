@@ -33,25 +33,11 @@ class Level final {
     static_assert(std::is_trivially_copy_constructible_v<Action>);
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
- public:  // APIs
-    explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>) noexcept;
-    explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>, std::uint8_t seed) noexcept;
-
-    std::uint8_t GetCustomersLeft() const noexcept;
-
-    void Apply(Action) noexcept;
-
- private:  // helper ctors
-    explicit Level(std::random_device::result_type) noexcept;
-
- private:
     using Rectangle = types::Rectangle<int>;
 
     struct PlacedDecorum final {
         Rectangle bounds;
-        Campaign::Decorum decorum;
+        Campaign::Decorum::Id decorum;
     };
     static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
     static_assert(std::is_nothrow_destructible_v<PlacedDecorum>);
@@ -60,19 +46,36 @@ class Level final {
 
     struct PlacedCat final {
         Rectangle bounds;
-        Campaign::Cat cat;
+        Campaign::Cat::Id cat;
     };
     static_assert(std::is_trivially_destructible_v<PlacedCat>);
     static_assert(std::is_nothrow_destructible_v<PlacedCat>);
     static_assert(std::is_trivially_constructible_v<PlacedCat>);
     static_assert(std::is_nothrow_constructible_v<PlacedCat>);
 
+    /// TODO(SEP)
     struct PlacedCustomers final {};
+
+ public:  // APIs
+    explicit Level(std::span<const Campaign::Decorum>,
+                   std::span<const Campaign::Cat>) noexcept;
+    explicit Level(std::span<const Campaign::Decorum>,
+                   std::span<const Campaign::Cat>, std::uint8_t seed) noexcept;
+
+    std::uint8_t GetCustomersLeft() const noexcept;
+    std::span<const PlacedCat> GetPlacedCats() const noexcept;
+    std::span<const PlacedDecorum> GetPlacedDecor() const noexcept;
+
+    void Apply(Action) noexcept;
+
+ private:  // helper ctors
+    explicit Level(std::mt19937 rng, std::span<const Campaign::Decorum> decor,
+                   std::span<const Campaign::Cat>) noexcept;
 
  private:
     std::uint8_t customers_left_{};
-    std::vector<PlacedCat> placed_cats_{};
     std::vector<PlacedDecorum> placed_decor_{};
+    std::vector<PlacedCat> placed_cats_{};
 };
 }  // namespace arigato::core
 

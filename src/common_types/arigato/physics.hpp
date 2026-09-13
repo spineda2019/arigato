@@ -39,6 +39,8 @@ struct Vec2D<const T> final {
 
 static_assert(std::is_trivially_destructible_v<Vec2D<int>>);
 static_assert(std::is_nothrow_destructible_v<Vec2D<int>>);
+static_assert(std::is_trivially_constructible_v<Vec2D<int>>);
+static_assert(std::is_trivially_copy_constructible_v<Vec2D<int>>);
 static_assert(std::is_trivially_constructible_v<Vec2D<int>, int, int>);
 static_assert(std::is_nothrow_constructible_v<Vec2D<int>, int, int>);
 static_assert(std::is_trivially_destructible_v<Vec2D<float>>);
@@ -76,6 +78,7 @@ struct Rectangle<const T> final {
 static_assert(std::is_trivially_destructible_v<Rectangle<int>>);
 static_assert(std::is_nothrow_destructible_v<Rectangle<int>>);
 static_assert(std::is_trivially_constructible_v<Rectangle<int>>);
+static_assert(std::is_trivially_copy_constructible_v<Rectangle<int>>);
 static_assert(
     std::is_trivially_constructible_v<Rectangle<int>, Vec2D<int>, int, int>);
 static_assert(

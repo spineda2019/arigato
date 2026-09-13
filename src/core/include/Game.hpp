@@ -13,6 +13,7 @@
 #include <cstdint>
 //
 #include <optional>
+#include <span>
 #include <type_traits>
 //
 #include <arigato/input.hpp>
@@ -44,12 +45,18 @@ class Game final {
 
     struct Entities final {
         Character::Vec2D character;
+        std::span<const Level::PlacedCat> cats;
+        std::span<const Level::PlacedDecorum> decor;
     };
 
     static_assert(std::is_trivially_destructible_v<Entities>);
     static_assert(std::is_nothrow_destructible_v<Entities>);
-    static_assert(std::is_trivially_constructible_v<Entities>);
+    static_assert(std::is_trivially_constructible_v<Entities, Character::Vec2D,
+                                                    decltype(Entities::cats),
+                                                    decltype(Entities::decor)>);
     static_assert(std::is_nothrow_constructible_v<Entities>);
+    static_assert(std::is_trivially_copy_constructible_v<Entities>);
+    static_assert(std::is_trivially_move_constructible_v<Entities>);
 
  public:
     explicit Game() noexcept;

@@ -46,7 +46,9 @@ void Campaign::AddDecor(std::span<Decorum::Id> decorum_to_add) {
 }
 
 void Campaign::AddCat(Cat::Id id) { cats_.emplace_back(id); }
-void Campaign::AddDecorum(Decorum::Id id) { decor_.emplace_back(id); }
+void Campaign::AddDecorum(Decorum::Id id) {
+    decor_.emplace_back(Campaign::Decorum::Position{}, id);
+}
 
 std::span<const Campaign::Decorum> Campaign::GetDecor() const noexcept {
     return {decor_.cbegin(), decor_.size()};

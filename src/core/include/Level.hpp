@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <vector>
 //
+#include <arigato/id.hpp>
 #include <arigato/physics.hpp>
 //
 #include "Campaign.hpp"
@@ -37,7 +38,7 @@ class Level final {
 
     struct PlacedDecorum final {
         Rectangle bounds;
-        Campaign::Decorum::Id decorum;
+        id::Id decorum;
     };
     static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
     static_assert(std::is_nothrow_destructible_v<PlacedDecorum>);
@@ -46,7 +47,7 @@ class Level final {
 
     struct PlacedCat final {
         Rectangle bounds;
-        Campaign::Cat::Id cat;
+        id::Id cat;
     };
     static_assert(std::is_trivially_destructible_v<PlacedCat>);
     static_assert(std::is_nothrow_destructible_v<PlacedCat>);

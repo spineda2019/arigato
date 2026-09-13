@@ -15,6 +15,7 @@
 #include <type_traits>
 #include <vector>
 //
+#include <arigato/id.hpp>
 #include <arigato/physics.hpp>
 
 namespace arigato::core {
@@ -26,14 +27,11 @@ class Campaign final {
           ///
           /// Can be randomly placed within a level
     struct Cat final {
-        using Id = std::uint8_t;
-        static inline constexpr Id kitters_id{0};
-
-        Id id;
+        id::Id id;
     };
     static_assert(std::is_trivially_destructible_v<Cat>);
     static_assert(std::is_trivially_constructible_v<Cat>);
-    static_assert(std::is_trivially_constructible_v<Cat, Cat::Id>);
+    static_assert(std::is_trivially_constructible_v<Cat, id::Id>);
 
     /// \brief Represents a decorum currently owned by the player
     ///
@@ -41,20 +39,17 @@ class Campaign final {
     /// is customizable by the player, and is thus part of this type for
     /// persistence.
     struct Decorum final {
-        using Id = std::uint8_t;
         using Position = types::Rectangle<int>;
 
-        static inline constexpr Id bar_id{0};
-
         Position pos;
-        Id id;
+        id::Id id;
     };
 
     static_assert(std::is_trivially_destructible_v<Decorum>);
     static_assert(std::is_trivially_constructible_v<Decorum>);
     static_assert(std::is_trivially_copy_constructible_v<Decorum>);
-    static_assert(std::is_trivially_constructible_v<Decorum, Decorum::Position,
-                                                    Decorum::Id>);
+    static_assert(
+        std::is_trivially_constructible_v<Decorum, Decorum::Position, id::Id>);
 
  public:  // APIs
     std::size_t GetDay() const noexcept;
@@ -62,14 +57,14 @@ class Campaign final {
     std::span<const Cat> GetCats() const noexcept;
     void NextDay() noexcept;
 
-    void AddCats(std::span<Cat::Id>);
-    void AddDecor(std::span<Decorum::Id>);
+    void AddCats(std::span<id::Id>);
+    void AddDecor(std::span<id::Id>);
 
-    void AddCat(Cat::Id);
-    void AddDecorum(Decorum::Id);
+    void AddCat(id::Id);
+    void AddDecorum(id::Id);
 
  private:
-    inline static constexpr Cat kitters{.id = Cat::kitters_id};
+    inline static constexpr Cat kitters{.id = id::Id::Kitters};
     inline static constexpr Decorum cafe_bar{
         .pos{
             .pos{
@@ -79,7 +74,7 @@ class Campaign final {
             .width = 1,
             .height = 1,
         },
-        .id = Decorum::bar_id,
+        .id = id::Id::CafeBar,
     };
 
  private:

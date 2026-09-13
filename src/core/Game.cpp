@@ -67,8 +67,8 @@ Game::Game() noexcept
       character_{},
       state_{Game::State::Title} {}
 
-Character::Vec2D Game::GetPlayerPosition() const noexcept {
-    return character_.GetPosition();
+Game::Entities Game::GetPositions() const noexcept {
+    return {.character{character_.GetPosition()}};
 }
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {

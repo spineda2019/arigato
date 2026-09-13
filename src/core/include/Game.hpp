@@ -42,10 +42,20 @@ class Game final {
         BetweenLevels,
     };
 
+    struct Entities final {
+        Character::Vec2D character;
+    };
+
+    static_assert(std::is_trivially_destructible_v<Entities>);
+    static_assert(std::is_nothrow_destructible_v<Entities>);
+    static_assert(std::is_trivially_constructible_v<Entities>);
+    static_assert(std::is_nothrow_constructible_v<Entities>);
+
  public:
     explicit Game() noexcept;
 
-    Character::Vec2D GetPlayerPosition() const noexcept;
+    /// Returns the player's position in the world in _game units_, not pixels.
+    Entities GetPositions() const noexcept;
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 

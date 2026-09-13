@@ -16,8 +16,8 @@ namespace arigato::types {
 template <class T>
     requires std::is_arithmetic_v<T> && (!std::is_reference_v<T>)
 struct Vec2D final {
-    T x{};
-    T y{};
+    T x;
+    T y;
 
     template <class OtherT>
         requires std::is_nothrow_constructible_v<OtherT, T> &&

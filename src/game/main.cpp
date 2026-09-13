@@ -39,7 +39,7 @@ inline constexpr bool debug_build{
 void ProgressLevel(Arigato& arigato) noexcept {
     // Input+Sim
     arigato.game.Update(arigato.window.GetInput(), arigato.window.DeltaTime());
-    const Character::Vec2D pos{arigato.game.GetPlayerPosition()};
+    const core::Game::Entities pos{arigato.game.GetPositions()};
 
     // Render
     using Screen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
@@ -67,8 +67,8 @@ void ProgressLevel(Arigato& arigato) noexcept {
 
     const display::Sprite::Area player_region{
         .pos{
-            .x = pos.x * screen_layout.CellWidth(),
-            .y = pos.y * screen_layout.CellHeight(),
+            .x = pos.character.x * screen_layout.CellWidth(),
+            .y = pos.character.y * screen_layout.CellHeight(),
         },
         .width = static_cast<float>(screen_layout.CellWidth() * 2),
         .height = static_cast<float>(screen_layout.CellHeight() * 2),

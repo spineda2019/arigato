@@ -36,10 +36,10 @@ inline constexpr bool debug_build{
 #endif
 };
 
-void ProgressLevel(Arigato& game) noexcept {
+void ProgressLevel(Arigato& arigato) noexcept {
     // Input+Sim
-    game.game.Update(game.window.GetInput(), game.window.DeltaTime());
-    const Character::Vec2D pos{game.game.GetPlayerPosition()};
+    arigato.game.Update(arigato.window.GetInput(), arigato.window.DeltaTime());
+    const Character::Vec2D pos{arigato.game.GetPlayerPosition()};
 
     // Render
     using Screen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
@@ -49,11 +49,11 @@ void ProgressLevel(Arigato& game) noexcept {
     static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
 
     const Screen screen_layout{
-        .screen_width = game.window.GetWidth(),
-        .screen_height = game.window.GetHeight(),
+        .screen_width = arigato.window.GetWidth(),
+        .screen_height = arigato.window.GetHeight(),
     };
 
-    const Window::Frame frame{game.window.MakeFrame()};
+    const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
     const auto cafe_region{
@@ -61,9 +61,9 @@ void ProgressLevel(Arigato& game) noexcept {
             .MakeRectangle<{.col = (Screen::layout_info.col_count / 2) + 1,
                             .row = (Screen::layout_info.row_count / 2) - 1},
                            {}, {.col_span = 8, .row_span = 4}>()};
-    frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe_bar.asset_path),
-                           assets::cafe_bar.sub_area,
-                           cafe_region.template Convert<float>());
+    frame.DrawSpriteRegion(
+        arigato.sprite_manager.Get(assets::cafe_bar.asset_path),
+        assets::cafe_bar.sub_area, cafe_region.template Convert<float>());
 
     const display::Sprite::Area player_region{
         .pos{
@@ -74,11 +74,11 @@ void ProgressLevel(Arigato& game) noexcept {
         .height = static_cast<float>(screen_layout.CellHeight() * 2),
     };
     frame.DrawFullSprite(
-        game.sprite_manager.Get(assets::player_right.asset_path),
+        arigato.sprite_manager.Get(assets::player_right.asset_path),
         player_region);
 
     if constexpr (debug_build) {
-        const int real_fps{game.window.GetFPS()};
+        const int real_fps{arigato.window.GetFPS()};
         const auto fmt{std::format("FPS: {}", real_fps)};
         const auto fps_rect{
             screen_layout
@@ -87,14 +87,14 @@ void ProgressLevel(Arigato& game) noexcept {
         frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
                        fps_rect.height, Window::BackgroundColor::LightGray);
     }
-    const auto day{game.game.GetCurrentDay()};
+    const auto day{arigato.game.GetCurrentDay()};
     const auto day_fmt{std::format("Day {}", day)};
     const auto day_rect{screen_layout.MakeRectangle<
         {.col = 0, .row = 1}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText(day_fmt.c_str(), day_rect.pos.x, day_rect.pos.y,
                    day_rect.height, Window::BackgroundColor::LightGray);
 
-    const auto customers_left{game.game.GetCustomersLeft()};
+    const auto customers_left{arigato.game.GetCustomersLeft()};
     const auto cust_fmt{std::format("Customers left: {}", customers_left)};
     const auto cust_rect{screen_layout.MakeRectangle<
         {.col = 0, .row = 2}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
@@ -102,11 +102,11 @@ void ProgressLevel(Arigato& game) noexcept {
                    cust_rect.height, Window::BackgroundColor::LightGray);
 
     if (customers_left == 0) {
-        game.game.FinishLevel();
+        arigato.game.FinishLevel();
     }
 }
 
-void LevelTransition(Arigato& game) noexcept {
+void LevelTransition(Arigato& arigato) noexcept {
     constexpr Button next_level_button{
         .rectangle{
             .pos{.x = 10, .y = 100},
@@ -115,27 +115,27 @@ void LevelTransition(Arigato& game) noexcept {
         },
         .label = "Next Level",
     };
-    const auto frame{game.window.MakeFrame()};
+    const auto frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawText("You beat the level!", 0, 0, 20,
                    Window::BackgroundColor::LightGray);
     frame.DrawRectangle(next_level_button.label, next_level_button.rectangle,
                         Window::BackgroundColor::LightGray);
-    const auto mouse{game.window.GetMouse()};
+    const auto mouse{arigato.window.GetMouse()};
     if (next_level_button.Clicked(mouse)) {
-        game.game.NextLevel();
+        arigato.game.NextLevel();
     }
 }
 
-void TitleScreen(Arigato& game) noexcept {
+void TitleScreen(Arigato& arigato) noexcept {
     using Screen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
     static_assert(std::is_trivially_destructible_v<Screen>);
     static_assert(std::is_nothrow_destructible_v<Screen>);
     static_assert(std::is_trivially_constructible_v<Screen, int, int>);
     static_assert(std::is_nothrow_constructible_v<Screen, int, int>);
 
-    const Screen screen_layout{.screen_width = game.window.GetWidth(),
-                               .screen_height = game.window.GetHeight()};
+    const Screen screen_layout{.screen_width = arigato.window.GetWidth(),
+                               .screen_height = arigato.window.GetHeight()};
 
     constexpr Screen::Padding padding{
         .left = 5,
@@ -154,9 +154,9 @@ void TitleScreen(Arigato& game) noexcept {
         screen_layout.MakeButton<{.col = 0, .row = 4}, padding, span>(
             "Load Game")};
 
-    const auto mouse{game.window.GetMouse()};
+    const auto mouse{arigato.window.GetMouse()};
 
-    const Window::Frame frame{game.window.MakeFrame()};
+    const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB(Window::RGB{.red = 114, .green = 165, .blue = 82});
     frame.DrawRectangle(new_game_button.label, new_game_button.rectangle,
                         Window::BackgroundColor::LightGray);
@@ -169,7 +169,7 @@ void TitleScreen(Arigato& game) noexcept {
     };
     const auto cafe_dest_rectangle{
         screen_layout.MakeRectangle<{.col = 4, .row = 4}, {}, cafe_span>()};
-    frame.DrawSpriteRegion(game.sprite_manager.Get(assets::cafe.asset_path),
+    frame.DrawSpriteRegion(arigato.sprite_manager.Get(assets::cafe.asset_path),
                            assets::cafe.sub_area,
                            cafe_dest_rectangle.template Convert<float>());
 
@@ -180,7 +180,7 @@ void TitleScreen(Arigato& game) noexcept {
                    Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {
-        game.game.StartNewCampaign();
+        arigato.game.StartNewCampaign();
     }
 }
 }  // namespace
@@ -193,7 +193,7 @@ int main() noexcept {
         arigato::assets::cafe.asset_path,
         arigato::assets::cafe_bar.asset_path,
     };
-    arigato::Arigato game{
+    arigato::Arigato arigato{
         .window{800, 450, 60, "Arigato!"},
         .game{},
         .sprite_manager{texture_files},
@@ -201,19 +201,19 @@ int main() noexcept {
 
     using GameState = arigato::core::Game::State;
 
-    while (game.window) {
-        switch (game.game.GetState()) {
+    while (arigato.window) {
+        switch (arigato.game.GetState()) {
             case GameState::Title:
-                arigato::TitleScreen(game);
+                arigato::TitleScreen(arigato);
                 break;
             case GameState::Playing:
-                arigato::ProgressLevel(game);
+                arigato::ProgressLevel(arigato);
                 break;
             case GameState::BetweenLevels:
-                arigato::LevelTransition(game);
+                arigato::LevelTransition(arigato);
                 break;
         }
     }
 
-    (void)game.game.Save();
+    (void)arigato.game.Save();
 }

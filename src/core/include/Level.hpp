@@ -37,7 +37,7 @@ class Level final {
     using Rectangle = types::Rectangle<int>;
 
     struct PlacedDecorum final {
-        Rectangle bounds;
+        Rectangle rect;
         id::DecorId decorum;
     };
     static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
@@ -46,7 +46,7 @@ class Level final {
     static_assert(std::is_nothrow_constructible_v<PlacedDecorum>);
 
     struct PlacedCat final {
-        Rectangle bounds;
+        Rectangle rect;
         id::CatId cat;
     };
     static_assert(std::is_trivially_destructible_v<PlacedCat>);

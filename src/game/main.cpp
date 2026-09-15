@@ -80,15 +80,19 @@ void ProgressLevel(Arigato& arigato) noexcept {
                     assets::cafe_bar.sub_area,
                     {
                         .pos{
-                            .x = static_cast<float>(decorum.bounds.pos.x *
+                            .x = static_cast<float>(decorum.rect.pos.x *
                                                     screen_layout.CellWidth()),
-                            .y = static_cast<float>(decorum.bounds.pos.y *
+                            .y = static_cast<float>(decorum.rect.pos.y *
                                                     screen_layout.CellHeight()),
                         },
-                        .width = static_cast<float>(decorum.bounds.width *
-                                                    screen_layout.CellWidth()),
-                        .height = static_cast<float>(
-                            decorum.bounds.height * screen_layout.CellHeight()),
+                        .bounds{
+                            .width =
+                                static_cast<float>(decorum.rect.bounds.width *
+                                                   screen_layout.CellWidth()),
+                            .height =
+                                static_cast<float>(decorum.rect.bounds.height *
+                                                   screen_layout.CellHeight()),
+                        },
                     });
                 break;
             case id::DecorId::Unknown:
@@ -102,8 +106,10 @@ void ProgressLevel(Arigato& arigato) noexcept {
             .x = pos.character.x * screen_layout.CellWidth(),
             .y = pos.character.y * screen_layout.CellHeight(),
         },
-        .width = static_cast<float>(screen_layout.CellWidth() * 2),
-        .height = static_cast<float>(screen_layout.CellHeight() * 2),
+        .bounds{
+            .width = static_cast<float>(screen_layout.CellWidth() * 2),
+            .height = static_cast<float>(screen_layout.CellHeight() * 2),
+        },
     };
     frame.DrawFullSprite(
         arigato.sprite_manager.Get(assets::player_right.asset_path),
@@ -117,21 +123,22 @@ void ProgressLevel(Arigato& arigato) noexcept {
                 .MakeRectangle<{.col = 0, .row = 0},
                                {.left = 0, .top = 0, .right = 0, .down = 5}>()};
         frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
-                       fps_rect.height, Window::BackgroundColor::LightGray);
+                       fps_rect.bounds.height,
+                       Window::BackgroundColor::LightGray);
     }
     const auto day{arigato.game.GetCurrentDay()};
     const auto day_fmt{std::format("Day {}", day)};
     const auto day_rect{screen_layout.MakeRectangle<
         {.col = 0, .row = 1}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText(day_fmt.c_str(), day_rect.pos.x, day_rect.pos.y,
-                   day_rect.height, Window::BackgroundColor::LightGray);
+                   day_rect.bounds.height, Window::BackgroundColor::LightGray);
 
     const auto customers_left{arigato.game.GetCustomersLeft()};
     const auto cust_fmt{std::format("Customers left: {}", customers_left)};
     const auto cust_rect{screen_layout.MakeRectangle<
         {.col = 0, .row = 2}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText(cust_fmt.c_str(), cust_rect.pos.x, cust_rect.pos.y,
-                   cust_rect.height, Window::BackgroundColor::LightGray);
+                   cust_rect.bounds.height, Window::BackgroundColor::LightGray);
 
     if (customers_left == 0) {
         arigato.game.FinishLevel();
@@ -142,8 +149,7 @@ void LevelTransition(Arigato& arigato) noexcept {
     constexpr Button next_level_button{
         .rectangle{
             .pos{.x = 10, .y = 100},
-            .width = 160,
-            .height = 80,
+            .bounds{.width = 160, .height = 80},
         },
         .label = "Next Level",
     };
@@ -203,7 +209,7 @@ void TitleScreen(Arigato& arigato) noexcept {
     const auto title_rect{screen_layout.MakeRectangle<
         {.col = 4, .row = 3}, {.left = 0, .top = 0, .right = 0, .down = 5}>()};
     frame.DrawText("Arigato!", title_rect.pos.x, title_rect.pos.y,
-                   title_rect.height,
+                   title_rect.bounds.height,
                    Window::RGB{.red = 41, .green = 71, .blue = 62});
 
     if (new_game_button.Clicked(mouse)) {

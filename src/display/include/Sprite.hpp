@@ -22,13 +22,14 @@ class Sprite final {
  public:  // types
     using Area = types::Rectangle<float>;
     using IntegralArea = types::Rectangle<int>;
+    using Bounds = types::Bounds<float>;
 
  private:  // types
     struct Impl;
 
  public:
     explicit Sprite(const char* path) noexcept;
-    explicit Sprite(const char* path, Area sprite_area) noexcept;
+    explicit Sprite(const char* path, Bounds) noexcept;
     using ReadonlyImplRef_t = std::unique_ptr<Impl> const&;
     ReadonlyImplRef_t ReadonlyImplRef() const noexcept;
     float GetWidth() const noexcept;
@@ -44,7 +45,7 @@ class Sprite final {
 
  private:
     std::unique_ptr<Impl> impl_{};
-    Area area_{};
+    Bounds area_{};
 };
 
 static_assert(!std::is_copy_assignable_v<Sprite>,

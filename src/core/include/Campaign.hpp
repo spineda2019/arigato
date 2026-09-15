@@ -71,8 +71,10 @@ class Campaign final {
                 .x = 13,
                 .y = 7,
             },
-            .width = 8,
-            .height = 4,
+            .bounds{
+                .width = 8,
+                .height = 4,
+            },
         },
         .id = id::DecorId::CafeBar,
     };

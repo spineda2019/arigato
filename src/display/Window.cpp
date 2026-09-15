@@ -39,14 +39,12 @@ struct Sprite::Impl {
     Impl& operator=(Impl&&) = delete;
 };
 
-Sprite::Sprite(const char* path, Sprite::Area area) noexcept
-    : impl_{std::make_unique<Impl>(LoadTexture(path))},
-      area_{std::move(area)} {}
+Sprite::Sprite(const char* path, Sprite::Bounds area) noexcept
+    : impl_{std::make_unique<Impl>(LoadTexture(path))}, area_{area} {}
 
 Sprite::Sprite(const char* path) noexcept
     : impl_{std::make_unique<Impl>(LoadTexture(path))},
-      area_{.pos{},
-            .width = static_cast<float>(impl_->texture_.width),
+      area_{.width = static_cast<float>(impl_->texture_.width),
             .height = static_cast<float>(impl_->texture_.height)} {}
 
 Sprite::~Sprite() noexcept = default;
@@ -180,8 +178,8 @@ void Window::Frame::DrawFullSprite(Sprite const& sprite,
                      {
                          .x = target.pos.x,
                          .y = target.pos.y,
-                         .width = target.width,
-                         .height = target.height,
+                         .width = target.bounds.width,
+                         .height = target.bounds.height,
                      },
                      abs_origin,
                      0.0f,  // no rotation
@@ -190,16 +188,22 @@ void Window::Frame::DrawFullSprite(Sprite const& sprite,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
-    ::DrawTexturePro(
-        s.ReadonlyImplRef()->texture_,
-        {.x = region.pos.x,
-         .y = region.pos.y,
-         .width = region.width,
-         .height = region.height},
-        {.x = x, .y = y, .width = region.width, .height = region.height},
-        abs_origin,
-        0.0f,  // no rotation
-        WHITE);
+    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+                     {
+                         .x = region.pos.x,
+                         .y = region.pos.y,
+                         .width = region.bounds.width,
+                         .height = region.bounds.height,
+                     },
+                     {
+                         .x = x,
+                         .y = y,
+                         .width = region.bounds.width,
+                         .height = region.bounds.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
 }
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
@@ -208,14 +212,14 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
                      {
                          .x = src.pos.x,
                          .y = src.pos.y,
-                         .width = src.width,
-                         .height = src.height,
+                         .width = src.bounds.width,
+                         .height = src.bounds.height,
                      },
                      {
                          .x = dest.pos.x,
                          .y = dest.pos.y,
-                         .width = dest.width,
-                         .height = dest.height,
+                         .width = dest.bounds.width,
+                         .height = dest.bounds.height,
                      },
                      abs_origin,
                      0.0f,  // no rotation
@@ -235,14 +239,15 @@ void Window::Frame::DrawRectangle(
     const char* text, Sprite::IntegralArea src,
     Window::BackgroundColor border_color) const noexcept {
     const auto color{ToRayColor(border_color)};
-    ::DrawRectangle(src.pos.x, src.pos.y, src.width, src.height, color);
+    ::DrawRectangle(src.pos.x, src.pos.y, src.bounds.width, src.bounds.height,
+                    color);
     // TODO(SEP): Use std::clamp
-    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.height / 2),
-               src.height / 4, WHITE);
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.bounds.height / 2),
+               src.bounds.height / 4, WHITE);
 }
 void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
                                   Window::RGB border_color) const noexcept {
-    ::DrawRectangle(src.pos.x, src.pos.y, src.width, src.height,
+    ::DrawRectangle(src.pos.x, src.pos.y, src.bounds.width, src.bounds.height,
                     ::Color{
                         .r = border_color.red,
                         .g = border_color.green,
@@ -250,7 +255,7 @@ void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
                         .a = full_opaque,
                     });
     // TODO(SEP): Use std::clamp
-    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.height / 2),
-               src.height / 4, WHITE);
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.bounds.height / 2),
+               src.bounds.height / 4, WHITE);
 }
 }  // namespace arigato::display

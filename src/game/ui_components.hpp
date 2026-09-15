@@ -26,13 +26,12 @@ struct Button final {
     /// Defined here for convenience to avoid multiple TUs in the game-glue
     /// project. Should only be included once by main.cpp anyway
     inline bool Clicked(display::Window::Mouse const& mouse) const noexcept {
-        return mouse.clicked &&
-               mouse.x >= static_cast<const float>(rectangle.pos.x) &&
-               mouse.x < static_cast<const float>(rectangle.pos.x) +
-                             static_cast<const float>(rectangle.width) &&
-               mouse.y >= static_cast<const float>(rectangle.pos.y) &&
-               mouse.y < static_cast<const float>(rectangle.pos.y) +
-                             static_cast<const float>(rectangle.height);
+        const auto float_rect{rectangle.template Convert<float>()};
+
+        return mouse.clicked && mouse.x >= float_rect.pos.x &&
+               mouse.x < float_rect.pos.x + float_rect.bounds.width &&
+               mouse.y >= float_rect.pos.y &&
+               mouse.y < float_rect.pos.y + float_rect.bounds.height;
     }
 };
 
@@ -145,8 +144,7 @@ struct ScreenStrata final {
 
         return {
             .pos{.x = col_info.x, .y = row_info.y},
-            .width = col_info.width,
-            .height = row_info.height,
+            .bounds{.width = col_info.width, .height = row_info.height},
         };
     }
 

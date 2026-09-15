@@ -57,7 +57,7 @@ struct Bounds final {
     template <class OtherT>
         requires std::is_nothrow_constructible_v<OtherT, T> &&
                  (std::is_trivially_constructible_v<OtherT, T>)
-    constexpr Vec2D<OtherT> Convert() const noexcept {
+    constexpr Bounds<OtherT> Convert() const noexcept {
         return {
             .width = static_cast<OtherT>(width),
             .height = static_cast<OtherT>(height),
@@ -88,8 +88,7 @@ template <class T>
 struct Rectangle final {
     /// TODO(SEP) make this not needed, and include in a future "PositionedRect"
     Vec2D<T> pos;
-    T width;
-    T height;
+    Bounds<T> bounds;
 
     template <class OtherT>
         requires std::is_nothrow_constructible_v<OtherT, T> &&
@@ -97,8 +96,7 @@ struct Rectangle final {
     constexpr Rectangle<OtherT> Convert() const noexcept {
         return {
             .pos{pos.template Convert<OtherT>()},
-            .width = static_cast<OtherT>(width),
-            .height = static_cast<OtherT>(height),
+            .bounds{bounds.template Convert<OtherT>()},
         };
     }
 };
@@ -115,16 +113,16 @@ static_assert(std::is_nothrow_destructible_v<Rectangle<int>>);
 static_assert(std::is_trivially_constructible_v<Rectangle<int>>);
 static_assert(std::is_trivially_copy_constructible_v<Rectangle<int>>);
 static_assert(
-    std::is_trivially_constructible_v<Rectangle<int>, Vec2D<int>, int, int>);
+    std::is_trivially_constructible_v<Rectangle<int>, Vec2D<int>, Bounds<int>>);
 static_assert(
-    std::is_nothrow_constructible_v<Rectangle<int>, Vec2D<int>, int, int>);
+    std::is_nothrow_constructible_v<Rectangle<int>, Vec2D<int>, Bounds<int>>);
 static_assert(std::is_trivially_destructible_v<Rectangle<float>>);
 static_assert(std::is_nothrow_destructible_v<Rectangle<float>>);
 static_assert(std::is_trivially_constructible_v<Rectangle<float>>);
 static_assert(std::is_trivially_constructible_v<Rectangle<float>, Vec2D<float>,
-                                                float, float>);
+                                                Bounds<float>>);
 static_assert(std::is_nothrow_constructible_v<Rectangle<float>, Vec2D<float>,
-                                              float, float>);
+                                              Bounds<float>>);
 
 }  // namespace arigato::types
 #endif  // SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_

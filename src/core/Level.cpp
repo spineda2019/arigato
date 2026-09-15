@@ -62,8 +62,10 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
                               .x = dist_x(rng),
                               .y = dist_y(rng),
                           },
-                          .width = 1,
-                          .height = 1,
+                          .bounds{
+                              .width = 1,
+                              .height = 1,
+                          },
                       },
                       cat.id);
               }

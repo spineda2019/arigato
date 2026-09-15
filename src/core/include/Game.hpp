@@ -59,7 +59,8 @@ class Game final {
     static_assert(std::is_trivially_move_constructible_v<Entities>);
 
  public:
-    explicit Game() noexcept;
+    using Bounds = types::Bounds<int>;
+    explicit Game(Bounds) noexcept;
 
     /// Returns the player's position in the world in _game units_, not pixels.
     Entities GetPositions() const noexcept;
@@ -91,6 +92,7 @@ class Game final {
     Campaign campaign_{};
     std::optional<Level> level_{};
     Character character_{};
+    Bounds level_bounds_{};
     State state_{Game::State::Title};
 };
 }  // namespace arigato::core

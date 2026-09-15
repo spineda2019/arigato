@@ -57,11 +57,14 @@ class Level final {
     /// TODO(SEP)
     struct PlacedCustomers final {};
 
+    using Bounds = types::Bounds<int>;
+
  public:  // APIs
     explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>) noexcept;
+                   std::span<const Campaign::Cat>, Bounds) noexcept;
     explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>, std::uint8_t seed) noexcept;
+                   std::span<const Campaign::Cat>, Bounds,
+                   std::uint8_t seed) noexcept;
 
     std::uint8_t GetCustomersLeft() const noexcept;
     std::span<const PlacedCat> GetPlacedCats() const noexcept;
@@ -71,12 +74,12 @@ class Level final {
 
  private:  // helper ctors
     explicit Level(std::mt19937 rng, std::span<const Campaign::Decorum> decor,
-                   std::span<const Campaign::Cat>) noexcept;
+                   std::span<const Campaign::Cat>, Bounds) noexcept;
 
  private:
-    std::uint8_t customers_left_{};
     std::vector<PlacedDecorum> placed_decor_{};
     std::vector<PlacedCat> placed_cats_{};
+    std::uint8_t customers_left_{};
 };
 }  // namespace arigato::core
 

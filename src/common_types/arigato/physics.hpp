@@ -50,6 +50,41 @@ static_assert(std::is_nothrow_constructible_v<Vec2D<float>, float, float>);
 
 template <class T>
     requires std::is_arithmetic_v<T> && (!std::is_reference_v<T>)
+struct Bounds final {
+    T width;
+    T height;
+
+    template <class OtherT>
+        requires std::is_nothrow_constructible_v<OtherT, T> &&
+                 (std::is_trivially_constructible_v<OtherT, T>)
+    constexpr Vec2D<OtherT> Convert() const noexcept {
+        return {
+            .width = static_cast<OtherT>(width),
+            .height = static_cast<OtherT>(height),
+        };
+    }
+};
+
+template <class T>
+struct Bounds<const T> final {
+    static_assert(
+        false,
+        "Do not apply const on the type. Make your object const instead");
+};
+
+static_assert(std::is_trivially_destructible_v<Bounds<int>>);
+static_assert(std::is_nothrow_destructible_v<Bounds<int>>);
+static_assert(std::is_trivially_constructible_v<Bounds<int>>);
+static_assert(std::is_trivially_copy_constructible_v<Bounds<int>>);
+static_assert(std::is_trivially_constructible_v<Bounds<int>, int, int>);
+static_assert(std::is_nothrow_constructible_v<Bounds<int>, int, int>);
+static_assert(std::is_trivially_destructible_v<Bounds<float>>);
+static_assert(std::is_nothrow_destructible_v<Bounds<float>>);
+static_assert(std::is_trivially_constructible_v<Bounds<float>, float, float>);
+static_assert(std::is_nothrow_constructible_v<Bounds<float>, float, float>);
+
+template <class T>
+    requires std::is_arithmetic_v<T> && (!std::is_reference_v<T>)
 struct Rectangle final {
     /// TODO(SEP) make this not needed, and include in a future "PositionedRect"
     Vec2D<T> pos;

@@ -25,28 +25,11 @@ namespace {
 inline constexpr std::uint8_t min_cust_count{3};
 inline constexpr std::uint8_t max_cust_count{32};
 static_assert(min_cust_count < max_cust_count);
-
-inline constexpr std::uint8_t max_x{32};
-inline constexpr std::uint8_t max_y{32};
-
 }  // anonymous namespace
 
 Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats) noexcept
-    : customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
-          try {
-              static_assert(min_cust_count >=
-                            std::numeric_limits<std::uint8_t>::min());
-              static_assert(max_cust_count <=
-                            std::numeric_limits<std::uint8_t>::max());
-              std::uniform_int_distribution<std::uint16_t> dist{min_cust_count,
-                                                                max_cust_count};
-              return static_cast<std::uint8_t>(dist(rng));
-          } catch (...) {
-              return max_cust_count;
-          }
-      }(twister)},
-      placed_decor_{
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
+    : placed_decor_{
           [](std::span<const Campaign::Decorum> decor_to_place) noexcept
               -> std::vector<Level::PlacedDecorum> {
               try {
@@ -62,42 +45,56 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
                   return {};
               }
           }(decor)},
-      placed_cats_{
-          [](std::span<const Campaign::Cat> cats_to_place,
-             std::mt19937& rng) noexcept -> std::vector<Level::PlacedCat> {
-              try {
-                  std::vector<Level::PlacedCat> placed{};
-                  placed.reserve(cats_to_place.size());
+      placed_cats_{[](std::span<const Campaign::Cat> cats_to_place,
+                      std::mt19937& rng, Level::Bounds level_bounds) noexcept
+                       -> std::vector<Level::PlacedCat> {
+          try {
+              std::vector<Level::PlacedCat> placed{};
+              placed.reserve(cats_to_place.size());
 
-                  std::uniform_int_distribution<std::uint16_t> dist_x{0, max_x};
-                  std::uniform_int_distribution<std::uint16_t> dist_y{0, max_y};
+              std::uniform_int_distribution<int> dist_x{0, level_bounds.width};
+              std::uniform_int_distribution<int> dist_y{0, level_bounds.height};
 
-                  for (Campaign::Cat const& cat : cats_to_place) {
-                      placed.emplace_back(
-                          Level::Rectangle{
-                              .pos{
-                                  .x = dist_x(rng),
-                                  .y = dist_y(rng),
-                              },
-                              .width = 1,
-                              .height = 1,
+              for (Campaign::Cat const& cat : cats_to_place) {
+                  placed.emplace_back(
+                      Level::Rectangle{
+                          .pos{
+                              .x = dist_x(rng),
+                              .y = dist_y(rng),
                           },
-                          cat.id);
-                  }
-
-                  return placed;
-              } catch (...) {
-                  return {};
+                          .width = 1,
+                          .height = 1,
+                      },
+                      cat.id);
               }
-          }(cats, twister)} {}
+
+              return placed;
+          } catch (...) {
+              return {};
+          }
+      }(cats, twister, bounds)},
+      customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
+          try {
+              static_assert(min_cust_count >=
+                            std::numeric_limits<std::uint8_t>::min());
+              static_assert(max_cust_count <=
+                            std::numeric_limits<std::uint8_t>::max());
+              std::uniform_int_distribution<std::uint16_t> dist{min_cust_count,
+                                                                max_cust_count};
+              return static_cast<std::uint8_t>(dist(rng));
+          } catch (...) {
+              return max_cust_count;
+          }
+      }(twister)} {}
 
 Level::Level(std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats) noexcept
-    : Level(std::mt19937{std::random_device{}()}, decor, cats) {}
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
+    : Level(std::mt19937{std::random_device{}()}, decor, cats, bounds) {}
 
 Level::Level(std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats, std::uint8_t seed) noexcept
-    : Level(std::mt19937{seed}, decor, cats) {}
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds,
+             std::uint8_t seed) noexcept
+    : Level(std::mt19937{seed}, decor, cats, bounds) {}
 
 std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;

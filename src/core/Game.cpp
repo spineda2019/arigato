@@ -11,6 +11,7 @@
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
+#include "arigato/physics.hpp"
 #include "include/Game.hpp"
 #include "include/Level.hpp"
 
@@ -61,10 +62,11 @@ constexpr Game::Action InputToGameAction(
 }
 }  // namespace
 
-Game::Game() noexcept
+Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
       level_{std::nullopt},
       character_{},
+      level_bounds_{bounds},
       state_{Game::State::Title} {}
 
 Game::Entities Game::GetPositions() const noexcept {
@@ -83,7 +85,8 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 
 void Game::Update(input::Input intent, float dt) noexcept {
     if (!level_.has_value()) [[unlikely]] {
-        level_.emplace(campaign_.GetDecor(), campaign_.GetCats());
+        level_.emplace(campaign_.GetDecor(), campaign_.GetCats(),
+                       level_bounds_);
     }
     const Game::Action action{InputToGameAction(intent, dt)};
     character_.Apply(action.character_action);
@@ -91,7 +94,7 @@ void Game::Update(input::Input intent, float dt) noexcept {
 }
 
 void Game::NextLevel() noexcept {
-    level_.emplace(campaign_.GetDecor(), campaign_.GetCats());
+    level_.emplace(campaign_.GetDecor(), campaign_.GetCats(), level_bounds_);
     campaign_.NextDay();
     state_ = Game::State::Playing;
 }

@@ -224,7 +224,12 @@ int main() noexcept {
     };
     arigato::Arigato arigato{
         .window{800, 450, 60, "Arigato!"},
-        .game{},
+        .game{{
+            .width =
+                arigato::screen_layouts::LevelScreen::layout_info.col_count,
+            .height =
+                arigato::screen_layouts::LevelScreen::layout_info.row_count,
+        }},
         .sprite_manager{texture_files},
     };
 

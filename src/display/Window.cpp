@@ -24,6 +24,14 @@ constexpr bool debug{
     false
 #endif
 };
+
+constexpr bool cap_fps{
+#ifdef ARIGATO_CAP_FPS
+    true
+#else
+    false
+#endif
+};
 }  // namespace
 
 namespace arigato::display {
@@ -75,9 +83,11 @@ Window::Window(int width, int height, int fps, const char* title) noexcept {
     if constexpr (!debug) {
         ::SetTraceLogLevel(LOG_NONE);
     }
+    if constexpr (cap_fps) {
+        ::SetTargetFPS(fps);
+    }
     ::SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     ::InitWindow(width, height, title);
-    ::SetTargetFPS(fps);
 }
 
 Window::operator bool() const noexcept { return !::WindowShouldClose(); }

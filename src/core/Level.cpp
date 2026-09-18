@@ -111,8 +111,8 @@ std::span<const Level::PlacedDecorum> Level::GetPlacedDecor() const noexcept {
 }
 
 void Level::Apply(Level::Action action) noexcept {
-    customers_left_ = (customers_left_ >= action.amount_served)
-                          ? customers_left_ - action.amount_served
-                          : 0;
+    if (action.served && customers_left_ > 0) {
+        --customers_left_;
+    }
 }
 }  // namespace arigato::core

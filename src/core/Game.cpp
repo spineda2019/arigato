@@ -11,7 +11,6 @@
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
-#include "arigato/physics.hpp"
 #include "include/Game.hpp"
 #include "include/Level.hpp"
 
@@ -20,11 +19,6 @@ namespace {
 constexpr Game::Action InputToGameAction(
     arigato::meta::EfficientFuncArgType<input::Input>::type input,
     float dt) noexcept {
-    std::uint8_t amount_served{};
-    if (input.pressed.space) {
-        ++amount_served;
-    }
-
     const auto character_x_direction{
         [](bool left, bool right) noexcept -> Character::Action::Direction {
             auto dir{Character::Action::Direction::Zero};
@@ -57,7 +51,7 @@ constexpr Game::Action InputToGameAction(
             .move_y = character_y_direction,
             .dt = dt,
         },
-        .level_action{.amount_served = amount_served},
+        .level_action{.served = input.pressed.space},
     };
 }
 }  // namespace

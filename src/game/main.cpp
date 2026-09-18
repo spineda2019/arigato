@@ -69,7 +69,11 @@ void ProgressLevel(Arigato& arigato) noexcept {
 
     for (const auto x : pos.cats) {
         // TODO(SEP): Dispath on cat id
-        (void)x;
+        switch (x.cat) {
+            case id::CatId::Kitters:
+            case id::CatId::Unknown:
+                break;
+        }
     }
 
     for (const auto decorum : pos.decor) {

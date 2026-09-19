@@ -67,7 +67,7 @@ void ProgressLevel(Arigato& arigato) noexcept {
     const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
-    for (const auto x : pos.cats) {
+    for (const auto x : pos.statics.cats) {
         // TODO(SEP): Dispath on cat id
         switch (x.cat) {
             case id::CatId::Kitters:
@@ -76,7 +76,7 @@ void ProgressLevel(Arigato& arigato) noexcept {
         }
     }
 
-    for (const auto decorum : pos.decor) {
+    for (const auto decorum : pos.statics.decor) {
         switch (decorum.decorum) {
             case id::DecorId::CafeBar:
                 frame.DrawSpriteRegion(
@@ -107,8 +107,8 @@ void ProgressLevel(Arigato& arigato) noexcept {
 
     const display::Sprite::Area player_region{
         .pos{
-            .x = pos.character.x * screen_layout.CellWidth(),
-            .y = pos.character.y * screen_layout.CellHeight(),
+            .x = pos.dynamics.character.pos.x * screen_layout.CellWidth(),
+            .y = pos.dynamics.character.pos.y * screen_layout.CellHeight(),
         },
         .bounds{
             .width = static_cast<float>(screen_layout.CellWidth() * 2),

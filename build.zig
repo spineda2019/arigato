@@ -44,6 +44,7 @@ const cppflags = [_][]const u8{
     "-Wshadow",
     "-Wconversion",
     "-Werror",
+    "-fexperimental-library",
 };
 
 fn allFlags(config: struct {

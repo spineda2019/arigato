@@ -11,6 +11,7 @@
 #define SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_
 
 #include <type_traits>
+#include <utility>
 
 namespace arigato::types {
 template <class T>
@@ -22,11 +23,16 @@ struct Vec2D final {
     template <class OtherT>
         requires std::is_nothrow_constructible_v<OtherT, T> &&
                  (std::is_trivially_constructible_v<OtherT, T>)
-    constexpr Vec2D<OtherT> Convert() const noexcept {
+    inline constexpr Vec2D<OtherT> Convert() const noexcept {
         return {
             .x = static_cast<OtherT>(x),
             .y = static_cast<OtherT>(y),
         };
+    }
+
+    inline constexpr void Translate(T dx, T dy) noexcept {
+        x += dx;
+        y += dy;
     }
 };
 
@@ -57,7 +63,7 @@ struct Bounds final {
     template <class OtherT>
         requires std::is_nothrow_constructible_v<OtherT, T> &&
                  (std::is_trivially_constructible_v<OtherT, T>)
-    constexpr Bounds<OtherT> Convert() const noexcept {
+    inline constexpr Bounds<OtherT> Convert() const noexcept {
         return {
             .width = static_cast<OtherT>(width),
             .height = static_cast<OtherT>(height),
@@ -91,13 +97,17 @@ struct Rectangle final {
     Bounds<T> bounds;
 
     template <class OtherT>
-        requires std::is_nothrow_constructible_v<OtherT, T> &&
-                 (std::is_trivially_constructible_v<OtherT, T>)
-    constexpr Rectangle<OtherT> Convert() const noexcept {
+        requires(std::is_trivially_constructible_v<OtherT, T>)
+    inline constexpr Rectangle<OtherT> Convert() const noexcept {
         return {
             .pos{pos.template Convert<OtherT>()},
             .bounds{bounds.template Convert<OtherT>()},
         };
+    }
+
+    inline constexpr decltype(std::declval<T>() + std::declval<T>()) RightEdge()
+        const noexcept {
+        return pos.x + bounds.width;
     }
 };
 

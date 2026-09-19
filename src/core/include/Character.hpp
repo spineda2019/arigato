@@ -9,45 +9,31 @@
 #ifndef SRC_CORE_INCLUDE_CHARACTER_HPP_
 #define SRC_CORE_INCLUDE_CHARACTER_HPP_
 
-#include <cstdint>
+#include <type_traits>
 //
 #include <arigato/physics.hpp>
 
 namespace arigato::core {
 class Character final {
  public:  // Types
-    using Vec2D = types::Vec2D<float>;
-
-    struct Action final {
-        enum class Direction : std::int8_t {
-            Positive = 1,
-            Zero = 0,
-            Negative = -1,
-        };
-        Direction move_x;
-        Direction move_y;
-        float dt;
-    };
-    static_assert(std::is_trivially_destructible_v<Action>);
-    static_assert(std::is_nothrow_destructible_v<Action>);
-    static_assert(std::is_trivially_constructible_v<Action, Action::Direction,
-                                                    Action::Direction, float>);
-    static_assert(std::is_nothrow_constructible_v<Action, Action::Direction,
-                                                  Action::Direction, float>);
-    static_assert(std::is_trivially_copy_constructible_v<Action>);
-    static_assert(std::is_trivially_move_constructible_v<Action>);
+    using Rectangle = types::Rectangle<float>;
 
  public:
-    void Apply(Action) noexcept;
+    explicit Character(Rectangle) noexcept;
+
+ public:
+    void Apply(float dx, float dy) noexcept;
     /// Returns the characters positions w.r.t game _logical units_, not pixels.
-    Vec2D GetPosition() const noexcept;
+    Rectangle GetPosition() const noexcept;
 
  private:
     /// While The character uses same the type of `types::Vec2D` as the
     /// display module, internally this is understood by _logical_ units, not
     /// necessarily _pixels_.
-    Vec2D pos_;
+    Rectangle bounds_;
 };
+
+static_assert(std::is_trivially_destructible_v<Character>);
 }  // namespace arigato::core
 
 #endif  // SRC_CORE_INCLUDE_CHARACTER_HPP_

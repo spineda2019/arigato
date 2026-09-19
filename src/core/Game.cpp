@@ -7,6 +7,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include <optional>
+#include <type_traits>
 //
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
@@ -17,29 +18,30 @@
 namespace arigato::core {
 namespace {
 constexpr Game::Action InputToGameAction(
-    arigato::meta::EfficientFuncArgType<input::Input>::type input,
-    float dt) noexcept {
+    arigato::meta::EfficientFuncArgType<input::Input>::type input) noexcept {
+    using MoveDirection = Game::Entities::Dynamic::Action::Direction;
+
     const auto character_x_direction{
-        [](bool left, bool right) noexcept -> Character::Action::Direction {
-            auto dir{Character::Action::Direction::Zero};
+        [](bool left, bool right) noexcept -> MoveDirection {
+            auto dir{MoveDirection::Zero};
 
             if (left && !right) {
-                dir = Character::Action::Direction::Negative;
+                dir = MoveDirection::Negative;
             } else if (right && !left) {
-                dir = Character::Action::Direction::Positive;
+                dir = MoveDirection::Positive;
             }
 
             return dir;
         }(input.held.left, input.held.right)};
 
     const auto character_y_direction{
-        [](bool up, bool down) noexcept -> Character::Action::Direction {
-            auto dir{Character::Action::Direction::Zero};
+        [](bool up, bool down) noexcept -> MoveDirection {
+            auto dir{MoveDirection::Zero};
 
             if (up && !down) {
-                dir = Character::Action::Direction::Negative;
+                dir = MoveDirection::Negative;
             } else if (down && !up) {
-                dir = Character::Action::Direction::Positive;
+                dir = MoveDirection::Positive;
             }
 
             return dir;
@@ -49,27 +51,60 @@ constexpr Game::Action InputToGameAction(
         .character_action{
             .move_x = character_x_direction,
             .move_y = character_y_direction,
-            .dt = dt,
         },
         .level_action{.served = input.pressed.space},
     };
 }
+
+template <class T>
+    requires std::is_arithmetic_v<T>
+constexpr T NoThrowRClamp(T val, T hi) noexcept {
+    return val <= hi ? val : hi;
+}
+
+template <class T>
+    requires std::is_arithmetic_v<T>
+constexpr T NoThrowLClamp(T val, T lo) noexcept {
+    return val >= lo ? val : lo;
+}
+
+template <class T>
+    requires std::is_arithmetic_v<T>
+constexpr T NoThrowClamp(T val, T lo, T hi) noexcept {
+    return NoThrowRClamp<T>(NoThrowLClamp<T>(val, lo), hi);
+}
+
+static_assert(NoThrowClamp<unsigned char>(2, 1, 3) == 2);
+static_assert(NoThrowClamp<unsigned char>(0, 1, 3) == 1);
+static_assert(NoThrowClamp<unsigned char>(4, 1, 3) == 3);
+
 }  // namespace
 
 Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
       level_{std::nullopt},
-      character_{},
+      character_{{.pos{}, .bounds{.width = 1, .height = 1}}},
       level_bounds_{bounds},
       state_{Game::State::Title} {}
 
-Game::Entities Game::GetPositions() const noexcept {
+Game::Entities::Static Game::GetStatics() const noexcept {
     return {
-        .character{character_.GetPosition()},
         .cats{level_->GetPlacedCats()},
         .decor{level_->GetPlacedDecor()},
     };
 }
+
+Game::Entities::Dynamic Game::GetDynamics() const noexcept {
+    return {.character{character_.GetPosition()}};
+}
+
+Game::Entities Game::GetPositions() const noexcept {
+    return {
+        .statics{this->GetStatics()},
+        .dynamics{this->GetDynamics()},
+    };
+}
+
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {
     /// Yes this throws. Yes this would terminate the program. I am (currently)
@@ -82,8 +117,17 @@ void Game::Update(input::Input intent, float dt) noexcept {
         level_.emplace(campaign_.GetDecor(), campaign_.GetCats(),
                        level_bounds_);
     }
-    const Game::Action action{InputToGameAction(intent, dt)};
-    character_.Apply(action.character_action);
+    const Game::Action action{InputToGameAction(intent)};
+
+    constexpr int move_speed{7};
+
+    const Game::Entities::Dynamic::Movement character_movement{
+        action.character_action.Translate(move_speed, dt)};
+
+    // TODO(SEP): introduce collision handling/clamping
+    // const Game::Entities entities{this->GetPositions()};
+
+    character_.Apply(character_movement.delta.x, character_movement.delta.y);
     level_->Apply(action.level_action);
 }
 

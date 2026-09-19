@@ -15,6 +15,7 @@
 #include <optional>
 #include <span>
 #include <type_traits>
+#include <utility>
 //
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
@@ -26,17 +27,6 @@
 namespace arigato::core {
 class Game final {
  public:  // types
-    struct Action final {
-        Character::Action character_action{};
-        Level::Action level_action{};
-    };
-    static_assert(std::is_trivially_destructible_v<Action>);
-    static_assert(std::is_nothrow_destructible_v<Action>);
-    static_assert(std::is_trivially_constructible_v<Action, Character::Action,
-                                                    Level::Action>);
-    static_assert(std::is_nothrow_constructible_v<Action, Character::Action,
-                                                  Level::Action>);
-
     enum class State : std::uint8_t {
         Title,
         Playing,
@@ -44,19 +34,97 @@ class Game final {
     };
 
     struct Entities final {
-        Character::Vec2D character;
-        std::span<const Level::PlacedCat> cats;
-        std::span<const Level::PlacedDecorum> decor;
+        /// Represents all objects that can't move
+        struct Static final {
+            std::span<const Level::PlacedCat> cats;
+            std::span<const Level::PlacedDecorum> decor;
+        };
+
+        static_assert(std::is_trivially_destructible_v<Static>);
+        static_assert(std::is_trivially_constructible_v<
+                      Static, std::span<const Level::PlacedCat>,
+                      std::span<const Level::PlacedDecorum>>);
+        static_assert(std::is_trivially_copy_constructible_v<Static>);
+        static_assert(std::is_trivially_copy_assignable_v<Static>);
+
+        /// Represents all objects that can move (whether by the player or game
+        /// AI)
+        struct Dynamic final {
+            struct Movement final {
+                using Delta = types::Vec2D<float>;
+
+                Delta delta;
+            };
+
+            static_assert(std::is_trivially_destructible_v<Movement>);
+            static_assert(std::is_trivially_constructible_v<Movement>);
+            static_assert(
+                std::is_trivially_constructible_v<Movement, Movement::Delta>);
+            static_assert(std::is_trivially_copy_constructible_v<Movement>);
+            static_assert(std::is_trivially_copy_assignable_v<Movement>);
+
+            struct Action final {
+                enum class Direction : std::int8_t {
+                    Positive = 1,
+                    Zero = 0,
+                    Negative = -1,
+                };
+                Direction move_x;
+                Direction move_y;
+
+                inline constexpr Movement Translate(std::uint8_t speed,
+                                                    float dt) const noexcept {
+                    constexpr auto translate =
+                        [](Direction move, std::uint8_t speed_arg,
+                           float dt_arg) noexcept -> float {
+                        return static_cast<float>(std::to_underlying(move) *
+                                                  speed_arg) *
+                               dt_arg;
+                    };
+
+                    return {
+                        .delta{
+                            .x = translate(move_x, speed, dt),
+                            .y = translate(move_y, speed, dt),
+                        },
+                    };
+                }
+            };
+            static_assert(std::is_trivially_destructible_v<Action>);
+            static_assert(std::is_trivially_constructible_v<Action>);
+            static_assert(std::is_trivially_constructible_v<
+                          Action, Action::Direction, Action::Direction>);
+            static_assert(std::is_trivially_copy_constructible_v<Action>);
+            static_assert(std::is_trivially_copy_assignable_v<Action>);
+
+            Character::Rectangle character;
+        };
+
+        static_assert(std::is_trivially_destructible_v<Dynamic>);
+        static_assert(std::is_trivially_constructible_v<Dynamic>);
+        static_assert(std::is_trivially_copy_constructible_v<Dynamic>);
+        static_assert(std::is_trivially_copy_assignable_v<Dynamic>);
+
+        Static statics;
+        Dynamic dynamics;
     };
 
     static_assert(std::is_trivially_destructible_v<Entities>);
-    static_assert(std::is_nothrow_destructible_v<Entities>);
-    static_assert(std::is_trivially_constructible_v<Entities, Character::Vec2D,
-                                                    decltype(Entities::cats),
-                                                    decltype(Entities::decor)>);
-    static_assert(std::is_nothrow_constructible_v<Entities>);
+    static_assert(std::is_trivially_constructible_v<Entities, Entities::Static,
+                                                    Entities::Dynamic>);
     static_assert(std::is_trivially_copy_constructible_v<Entities>);
-    static_assert(std::is_trivially_move_constructible_v<Entities>);
+    static_assert(std::is_trivially_copy_assignable_v<Entities>);
+
+    struct Action final {
+        Entities::Dynamic::Action character_action;
+        Level::Action level_action;
+    };
+    static_assert(std::is_trivially_destructible_v<Action>);
+    static_assert(std::is_trivially_constructible_v<Action>);
+    static_assert(std::is_trivially_constructible_v<
+                  Action, Entities::Dynamic::Action, Level::Action>);
+    static_assert(std::is_trivially_copy_constructible_v<Action>);
+    static_assert(std::is_trivially_copy_assignable_v<Action>);
 
  public:
     using Bounds = types::Bounds<int>;
@@ -64,6 +132,8 @@ class Game final {
 
     /// Returns the player's position in the world in _game units_, not pixels.
     Entities GetPositions() const noexcept;
+    Entities::Static GetStatics() const noexcept;
+    Entities::Dynamic GetDynamics() const noexcept;
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
@@ -91,7 +161,7 @@ class Game final {
  private:
     Campaign campaign_{};
     std::optional<Level> level_{};
-    Character character_{};
+    Character character_{{.pos{}, .bounds{.width = 1, .height = 1}}};
     Bounds level_bounds_{};
     State state_{Game::State::Title};
 };

@@ -8,21 +8,14 @@
 
 #include "include/Character.hpp"
 
-#include <utility>
-
 namespace arigato::core {
-namespace {
-constexpr int move_speed{7};
-constexpr int Direction(Character::Action::Direction dir) {
-    return std::to_underlying(dir);
-}
-}  // namespace
-void Character::Apply(Character::Action action) noexcept {
-    pos_.x +=
-        static_cast<float>(Direction(action.move_x) * move_speed) * action.dt;
-    pos_.y +=
-        static_cast<float>(Direction(action.move_y) * move_speed) * action.dt;
+
+Character::Character(Rectangle bounds) noexcept : bounds_{bounds} {}
+
+void Character::Apply(float dx, float dy) noexcept {
+    bounds_.pos.x += dx;
+    bounds_.pos.y += dy;
 };
 
-Character::Vec2D Character::GetPosition() const noexcept { return pos_; }
+Character::Rectangle Character::GetPosition() const noexcept { return bounds_; }
 }  // namespace arigato::core

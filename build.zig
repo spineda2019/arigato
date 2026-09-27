@@ -14,6 +14,7 @@ const CppFiles = struct {
         "src/core/Character.cpp",
         "src/core/Level.cpp",
         "src/core/Campaign.cpp",
+        "src/core/PhysicsManager.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",

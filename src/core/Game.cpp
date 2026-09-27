@@ -6,12 +6,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+#include <concepts>
+#include <execution>
 #include <optional>
+#include <span>
 #include <type_traits>
+#include <vector>
 //
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
+#include "arigato/physics.hpp"
 #include "include/Game.hpp"
 #include "include/Level.hpp"
 
@@ -83,22 +89,23 @@ static_assert(NoThrowClamp<unsigned char>(4, 1, 3) == 3);
 Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
       level_{std::nullopt},
+      physics_manager_{},
       character_{{.pos{}, .bounds{.width = 1, .height = 1}}},
       level_bounds_{bounds},
       state_{Game::State::Title} {}
 
-Game::Entities::Static Game::GetStatics() const noexcept {
+Game::Entities::Static Game::GetStatics() noexcept {
     return {
         .cats{level_->GetPlacedCats()},
         .decor{level_->GetPlacedDecor()},
     };
 }
 
-Game::Entities::Dynamic Game::GetDynamics() const noexcept {
+Game::Entities::Dynamic Game::GetDynamics() noexcept {
     return {.character{character_.GetPosition()}};
 }
 
-Game::Entities Game::GetPositions() const noexcept {
+Game::Entities Game::GetPositions() noexcept {
     return {
         .statics{this->GetStatics()},
         .dynamics{this->GetDynamics()},
@@ -120,14 +127,20 @@ void Game::Update(input::Input intent, float dt) noexcept {
     const Game::Action action{InputToGameAction(intent)};
 
     constexpr int move_speed{7};
-
     const Game::Entities::Dynamic::Movement character_movement{
         action.character_action.Translate(move_speed, dt)};
 
     // TODO(SEP): introduce collision handling/clamping
-    // const Game::Entities entities{this->GetPositions()};
+    Game::Entities entities{this->GetPositions()};
+    entities.dynamics.character.pos.x += character_movement.delta.x;
+    entities.dynamics.character.pos.y += character_movement.delta.y;
 
-    character_.Apply(character_movement.delta.x, character_movement.delta.y);
+    auto all_dynamics{entities.dynamics.AllDynamics()};
+    const auto all_statics{entities.statics.AllStatics()};
+    physics_manager_.Collide<float, int>(all_dynamics, all_statics);
+
+    // character_.Apply(character_movement.delta.x, character_movement.delta.y);
+    character_.Apply(entities.dynamics.character.pos, {});
     level_->Apply(action.level_action);
 }
 
@@ -154,4 +167,29 @@ bool Game::Save() const noexcept {
     return false;
     (void)state_;
 }
+
+std::vector<types::Rectangle<int>> Game::Entities::Static::AllStatics() const {
+    using Rect = types::Rectangle<int>;
+
+    std::vector<Rect> all_statics(cats.size() + decor.size());
+
+    constexpr auto get_rect = [](auto& rect_owner) noexcept -> Rect
+        requires std::same_as<Rect,
+                              std::remove_cvref_t<decltype(rect_owner.rect)>>
+    { return (rect_owner.rect); };
+
+    auto it{std::transform(
+        std::execution::par_unseq, cats.begin(), cats.end(),
+        all_statics.begin(),
+        [](Level::PlacedCat& cat) noexcept { return cat.rect; })};
+    std::transform(std::execution::par_unseq, decor.begin(), decor.end(), it,
+                   get_rect);
+
+    return all_statics;
+}
+
+std::vector<types::Rectangle<float>*> Game::Entities::Dynamic::AllDynamics() {
+    return {&character};
+}
+
 }  // namespace arigato::core

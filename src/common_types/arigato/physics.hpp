@@ -109,6 +109,18 @@ struct Rectangle final {
         const noexcept {
         return pos.x + bounds.width;
     }
+
+    inline constexpr bool Overlaps(Rectangle<T> other) const noexcept {
+        return pos.x < other.RightEdge() && other.pos.x < RightEdge() &&
+               pos.y < other.pos.y + other.bounds.height &&
+               other.pos.y < pos.y + bounds.height;
+    }
+
+    template <class O>
+        requires std::is_convertible_v<T, O>
+    inline constexpr bool Overlaps(Rectangle<O> other_raw) const noexcept {
+        return Overlaps(other_raw.template Convert<T>());
+    }
 };
 
 template <class T>

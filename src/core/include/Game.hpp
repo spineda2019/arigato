@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 //
 #include <optional>
 #include <span>
@@ -23,6 +24,7 @@
 #include "Campaign.hpp"
 #include "Character.hpp"
 #include "Level.hpp"
+#include "PhysicsManager.hpp"
 
 namespace arigato::core {
 class Game final {
@@ -36,14 +38,16 @@ class Game final {
     struct Entities final {
         /// Represents all objects that can't move
         struct Static final {
-            std::span<const Level::PlacedCat> cats;
-            std::span<const Level::PlacedDecorum> decor;
+            std::span<Level::PlacedCat> cats;
+            std::span<Level::PlacedDecorum> decor;
+
+            std::vector<types::Rectangle<int>> AllStatics() const;
         };
 
         static_assert(std::is_trivially_destructible_v<Static>);
         static_assert(std::is_trivially_constructible_v<
-                      Static, std::span<const Level::PlacedCat>,
-                      std::span<const Level::PlacedDecorum>>);
+                      Static, std::span<Level::PlacedCat>,
+                      std::span<Level::PlacedDecorum>>);
         static_assert(std::is_trivially_copy_constructible_v<Static>);
         static_assert(std::is_trivially_copy_assignable_v<Static>);
 
@@ -98,6 +102,9 @@ class Game final {
             static_assert(std::is_trivially_copy_assignable_v<Action>);
 
             Character::Rectangle character;
+            // TODO(SEP): hold span of customers
+
+            std::vector<types::Rectangle<float>*> AllDynamics();
         };
 
         static_assert(std::is_trivially_destructible_v<Dynamic>);
@@ -131,9 +138,9 @@ class Game final {
     explicit Game(Bounds) noexcept;
 
     /// Returns the player's position in the world in _game units_, not pixels.
-    Entities GetPositions() const noexcept;
-    Entities::Static GetStatics() const noexcept;
-    Entities::Dynamic GetDynamics() const noexcept;
+    Entities GetPositions() noexcept;
+    Entities::Static GetStatics() noexcept;
+    Entities::Dynamic GetDynamics() noexcept;
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 
@@ -161,6 +168,7 @@ class Game final {
  private:
     Campaign campaign_{};
     std::optional<Level> level_{};
+    PhysicsManager physics_manager_{};
     Character character_{{.pos{}, .bounds{.width = 1, .height = 1}}};
     Bounds level_bounds_{};
     State state_{Game::State::Title};

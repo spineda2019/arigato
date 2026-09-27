@@ -12,9 +12,9 @@ namespace arigato::core {
 
 Character::Character(Rectangle bounds) noexcept : bounds_{bounds} {}
 
-void Character::Apply(float dx, float dy) noexcept {
-    bounds_.pos.x += dx;
-    bounds_.pos.y += dy;
+void Character::Apply(Vec pos, Passkey) noexcept {
+    bounds_.pos.x = pos.x;
+    bounds_.pos.y = pos.y;
 };
 
 Character::Rectangle Character::GetPosition() const noexcept { return bounds_; }

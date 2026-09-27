@@ -68,8 +68,8 @@ class Level final {
                    std::uint8_t seed) noexcept;
 
     std::uint8_t GetCustomersLeft() const noexcept;
-    std::span<const PlacedCat> GetPlacedCats() const noexcept;
-    std::span<const PlacedDecorum> GetPlacedDecor() const noexcept;
+    std::span<PlacedCat> GetPlacedCats() noexcept;
+    std::span<PlacedDecorum> GetPlacedDecor() noexcept;
 
     void Apply(Action) noexcept;
 

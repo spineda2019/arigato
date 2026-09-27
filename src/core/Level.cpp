@@ -102,12 +102,12 @@ std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;
 }
 
-std::span<const Level::PlacedCat> Level::GetPlacedCats() const noexcept {
-    return {placed_cats_.cbegin(), placed_cats_.size()};
+std::span<Level::PlacedCat> Level::GetPlacedCats() noexcept {
+    return {placed_cats_.begin(), placed_cats_.size()};
 }
 
-std::span<const Level::PlacedDecorum> Level::GetPlacedDecor() const noexcept {
-    return {placed_decor_.cbegin(), placed_decor_.size()};
+std::span<Level::PlacedDecorum> Level::GetPlacedDecor() noexcept {
+    return {placed_decor_.begin(), placed_decor_.size()};
 }
 
 void Level::Apply(Level::Action action) noexcept {

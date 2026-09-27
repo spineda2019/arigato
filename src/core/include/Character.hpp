@@ -16,13 +16,21 @@
 namespace arigato::core {
 class Character final {
  public:  // Types
-    using Rectangle = types::Rectangle<float>;
+    using WorldUnit = float;
+    using Rectangle = types::Rectangle<WorldUnit>;
+    using Vec = types::Vec2D<WorldUnit>;
 
  public:
     explicit Character(Rectangle) noexcept;
 
+ private:  // passkeys
+    class Game;
+    struct Passkey final {
+        friend Game;
+    };
+
  public:
-    void Apply(float dx, float dy) noexcept;
+    void Apply(Vec, Passkey) noexcept;
     /// Returns the characters positions w.r.t game _logical units_, not pixels.
     Rectangle GetPosition() const noexcept;
 

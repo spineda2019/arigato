@@ -197,21 +197,36 @@ const Modules = struct {
     };
 };
 
+const BuildOptions = struct {
+    create_compiledb: bool,
+    draw_hitboxes: bool,
+
+    fn init(b: *std.Build) BuildOptions {
+        return .{
+            .create_compiledb = b.option(
+                bool,
+                "compiledb",
+                "Generate the compilation database",
+            ) orelse false,
+            .draw_hitboxes = b.option(
+                bool,
+                "drawhit",
+                "Draw hitboxes around physics entities",
+            ) orelse false,
+        };
+    }
+};
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-
-    const create_compiledb = b.option(
-        bool,
-        "compiledb",
-        "Generate the compilation database",
-    ) orelse false;
+    const options: BuildOptions = .init(b);
 
     const mods: Modules = try .init(.{
         .b = b,
         .target = target,
         .optimize = optimize,
-        .create_compiledb = create_compiledb,
+        .create_compiledb = options.create_compiledb,
     });
 
     if (optimize == .Debug) {
@@ -219,6 +234,9 @@ pub fn build(b: *std.Build) !void {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_DEBUG", "");
         }
+    }
+    if (options.draw_hitboxes) {
+        mods.game.addCMacro("ARIGATO_DRAW_HITBOXES", "");
     }
 
     const compilations: Modules.Compilations = .init(.{
@@ -289,7 +307,7 @@ pub fn build(b: *std.Build) !void {
     compiledb_run.addFileArg(b.path(""));
     compiledb_run.step.dependOn(&compilations.game.step);
     compiledb_step.dependOn(&compiledb_run.step);
-    if (create_compiledb) {
+    if (options.create_compiledb) {
         b.getInstallStep().dependOn(compiledb_step);
     }
 }

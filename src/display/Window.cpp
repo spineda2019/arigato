@@ -268,4 +268,17 @@ void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
     ::DrawText(text, src.pos.x + 5, src.pos.y + (src.bounds.height / 2),
                src.bounds.height / 4, WHITE);
 }
+void Window::Frame::DrawHitbox(Sprite::Area rec,
+                               RGB border_color) const noexcept {
+    ::DrawRectangleLines(
+        static_cast<int>(rec.pos.x), static_cast<int>(rec.pos.y),
+        static_cast<int>(rec.bounds.width), static_cast<int>(rec.bounds.height),
+        ::Color{
+            .r = border_color.red,
+            .g = border_color.green,
+            .b = border_color.blue,
+            .a = full_opaque,
+        });
+}
+
 }  // namespace arigato::display

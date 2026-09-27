@@ -18,9 +18,9 @@ struct SpriteInfo final {
     /// Many sprites may come from the same sprite_sheet_ (same path as well)
     /// and only differ by the region in the sheet they inhabit. Should match
     /// the image size if this sprite represents an entire sprite on its own.
-    display::Sprite::Area sub_area{};
+    display::Sprite::Area sub_area;
     /// Path (relative to the deployed executable) to the asset on disk
-    char const* asset_path{};
+    char const* asset_path;
 };
 
 static inline constexpr SpriteInfo player_right{

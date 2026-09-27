@@ -18,6 +18,7 @@
 #include <arigato/meta.hpp>
 //
 #include "arigato/id.hpp"
+#include "arigato/physics.hpp"
 #include "assets.hpp"
 #include "logical_components.hpp"
 #include "ui_components.hpp"
@@ -31,6 +32,14 @@ using Character = core::Character;
 
 inline constexpr bool debug_build{
 #ifdef ARIGATO_DEBUG
+    true
+#else
+    false
+#endif
+};
+
+inline constexpr bool draw_hotboxes{
+#ifdef ARIGATO_DRAW_HITBOXES
     true
 #else
     false
@@ -76,32 +85,55 @@ void ProgressLevel(Arigato& arigato) noexcept {
         }
     }
 
+    struct SpriteDrawInfo final {
+        assets::SpriteInfo sprite_info;
+        types::Rectangle<float> bounds;
+        bool known;
+    };
+
     for (const auto decorum : pos.statics.decor) {
-        switch (decorum.decorum) {
-            case id::DecorId::CafeBar:
-                frame.DrawSpriteRegion(
-                    arigato.sprite_manager.Get(assets::cafe_bar.asset_path),
-                    assets::cafe_bar.sub_area,
-                    {
-                        .pos{
-                            .x = static_cast<float>(decorum.rect.pos.x *
-                                                    screen_layout.CellWidth()),
-                            .y = static_cast<float>(decorum.rect.pos.y *
-                                                    screen_layout.CellHeight()),
-                        },
-                        .bounds{
-                            .width =
-                                static_cast<float>(decorum.rect.bounds.width *
-                                                   screen_layout.CellWidth()),
-                            .height =
-                                static_cast<float>(decorum.rect.bounds.height *
-                                                   screen_layout.CellHeight()),
-                        },
-                    });
-                break;
-            case id::DecorId::Unknown:
-                // TODO(SEP): Log somewhere
-                break;
+        const SpriteDrawInfo info{
+            [](decltype(decorum) const* body,
+               decltype(screen_layout) layout) noexcept -> SpriteDrawInfo {
+                // TODO(SEP): Generalize this switch to avoid redundant code
+                switch (body->decorum) {
+                    case id::DecorId::CafeBar:
+                        return {
+                            .sprite_info{
+                                .sub_area{assets::cafe_bar.sub_area},
+                                .asset_path = assets::cafe_bar.asset_path,
+                            },
+                            .bounds{
+                                .pos{
+                                    .x = static_cast<float>(body->rect.pos.x *
+                                                            layout.CellWidth()),
+                                    .y = static_cast<float>(
+                                        body->rect.pos.y * layout.CellHeight()),
+                                },
+                                .bounds{
+                                    .width = static_cast<float>(
+                                        body->rect.bounds.width *
+                                        layout.CellWidth()),
+                                    .height = static_cast<float>(
+                                        body->rect.bounds.height *
+                                        layout.CellHeight()),
+                                },
+                            },
+                            .known = true,
+                        };
+                        break;
+                    case id::DecorId::Unknown:
+                        return {.sprite_info{}, .bounds{}, .known = false};
+                }
+            }(&decorum, screen_layout)};
+
+        if (info.known) [[likely]] {
+            frame.DrawSpriteRegion(
+                arigato.sprite_manager.Get(info.sprite_info.asset_path),
+                info.sprite_info.sub_area, info.bounds);
+            if constexpr (draw_hotboxes) {
+                frame.DrawHitbox(info.bounds, {.red = 255, .green{}, .blue{}});
+            }
         }
     }
 
@@ -118,6 +150,10 @@ void ProgressLevel(Arigato& arigato) noexcept {
     frame.DrawFullSprite(
         arigato.sprite_manager.Get(assets::player_right.asset_path),
         player_region);
+
+    if constexpr (draw_hotboxes) {
+        frame.DrawHitbox(player_region, {.red = 255, .green{}, .blue{}});
+    }
 
     if constexpr (debug_build) {
         const int real_fps{arigato.window.GetFPS()};

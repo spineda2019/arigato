@@ -71,6 +71,10 @@ class Window final {
                            BackgroundColor border_color) const noexcept;
         void DrawRectangle(const char* text, Sprite::IntegralArea src,
                            RGB border_color) const noexcept;
+        /// \brief draw a hitbox
+        ///
+        /// Details TBD
+        void DrawHitbox(Sprite::Area, RGB) const noexcept;
 
      private:
         explicit Frame() noexcept;

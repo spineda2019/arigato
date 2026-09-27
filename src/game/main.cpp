@@ -137,14 +137,17 @@ void ProgressLevel(Arigato& arigato) noexcept {
         }
     }
 
+    const float character_width{arigato.game.GetCharacterWidth()};
     const display::Sprite::Area player_region{
         .pos{
             .x = pos.dynamics.character.pos.x * screen_layout.CellWidth(),
             .y = pos.dynamics.character.pos.y * screen_layout.CellHeight(),
         },
         .bounds{
-            .width = static_cast<float>(screen_layout.CellWidth() * 2),
-            .height = static_cast<float>(screen_layout.CellHeight() * 2),
+            .width =
+                static_cast<float>(screen_layout.CellWidth()) * character_width,
+            .height = static_cast<float>(screen_layout.CellHeight()) *
+                      character_width,
         },
     };
     frame.DrawFullSprite(

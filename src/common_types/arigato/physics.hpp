@@ -110,10 +110,22 @@ struct Rectangle final {
         return pos.x + bounds.width;
     }
 
+    inline constexpr decltype(std::declval<T>() + std::declval<T>())
+    BottomEdge() const noexcept {
+        return pos.y + bounds.height;
+    }
+
+    inline constexpr bool OverlapsX(Rectangle<T> other) const noexcept {
+        return pos.x > other.pos.x && pos.x < other.RightEdge();
+    }
+
+    inline constexpr bool OverlapsY(Rectangle<T> other) const noexcept {
+        return pos.y < other.pos.y && pos.y > other.BottomEdge();
+    }
+
     inline constexpr bool Overlaps(Rectangle<T> other) const noexcept {
-        return pos.x < other.RightEdge() && other.pos.x < RightEdge() &&
-               pos.y < other.pos.y + other.bounds.height &&
-               other.pos.y < pos.y + bounds.height;
+        return pos.x < other.RightEdge() && other.pos.x < this->RightEdge() &&
+               pos.y < other.BottomEdge() && other.pos.y < this->BottomEdge();
     }
 
     template <class O>

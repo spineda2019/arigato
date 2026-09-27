@@ -148,6 +148,8 @@ class Game final {
     [[nodiscard("Save operations may fail and must be reported")]]
     bool Save() const noexcept;
 
+    float GetCharacterWidth() const noexcept;
+
  private:
     Campaign campaign_{};
     std::optional<Level> level_{};

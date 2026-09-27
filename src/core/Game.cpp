@@ -10,7 +10,6 @@
 #include <concepts>
 #include <execution>
 #include <optional>
-#include <ranges>
 #include <span>
 #include <type_traits>
 #include <utility>
@@ -92,7 +91,7 @@ Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
       level_{std::nullopt},
       physics_manager_{},
-      character_{{.pos{}, .bounds{.width = 1, .height = 1}}},
+      character_{{.pos{}, .bounds{.width = 2.0f, .height = 2.0f}}},
       level_bounds_{bounds},
       state_{Game::State::Title} {}
 
@@ -176,6 +175,10 @@ void Game::FinishLevel() noexcept { state_ = Game::State::BetweenLevels; }
 bool Game::Save() const noexcept {
     return false;
     (void)state_;
+}
+
+float Game::GetCharacterWidth() const noexcept {
+    return character_.GetPosition().bounds.width;
 }
 
 Game::Entities::Dynamic::Movement Game::Entities::Dynamic::Action::Translate(

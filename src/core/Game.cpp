@@ -10,8 +10,10 @@
 #include <concepts>
 #include <execution>
 #include <optional>
+#include <ranges>
 #include <span>
 #include <type_traits>
+#include <utility>
 #include <vector>
 //
 #include <arigato/input.hpp>
@@ -124,22 +126,30 @@ void Game::Update(input::Input intent, float dt) noexcept {
         level_.emplace(campaign_.GetDecor(), campaign_.GetCats(),
                        level_bounds_);
     }
+
+    // Only affects controllable bodies, like the character
     const Game::Action action{InputToGameAction(intent)};
 
-    constexpr int move_speed{7};
     const Game::Entities::Dynamic::Movement character_movement{
-        action.character_action.Translate(move_speed, dt)};
+        action.character_action.Translate(Game::dyn_body_speed, dt)};
 
-    // TODO(SEP): introduce collision handling/clamping
     Game::Entities entities{this->GetPositions()};
     entities.dynamics.character.pos.x += character_movement.delta.x;
     entities.dynamics.character.pos.y += character_movement.delta.y;
 
     auto all_dynamics{entities.dynamics.AllDynamics()};
-    const auto all_statics{entities.statics.AllStatics()};
-    physics_manager_.Collide<float, int>(all_dynamics, all_statics);
+    const auto all_statics_int{entities.statics.AllStatics()};
+    std::vector<std::remove_pointer_t<decltype(all_dynamics)::value_type>>
+        all_statics(all_statics_int.size());
+    std::transform(std::execution::par_unseq, all_statics_int.begin(),
+                   all_statics_int.end(), all_statics.begin(),
+                   [](decltype(all_statics_int)::value_type rect) noexcept
+                       -> decltype(all_statics)::value_type {
+                       return rect.template Convert<float>();
+                   });
 
-    // character_.Apply(character_movement.delta.x, character_movement.delta.y);
+    physics_manager_.Collide(all_dynamics, all_statics);
+
     character_.Apply(entities.dynamics.character.pos, {});
     level_->Apply(action.level_action);
 }
@@ -166,6 +176,23 @@ void Game::FinishLevel() noexcept { state_ = Game::State::BetweenLevels; }
 bool Game::Save() const noexcept {
     return false;
     (void)state_;
+}
+
+Game::Entities::Dynamic::Movement Game::Entities::Dynamic::Action::Translate(
+    std::uint8_t speed, float dt) const noexcept {
+    constexpr auto translate =
+        [](Game::Entities::Dynamic::Action::Direction move,
+           std::uint8_t speed_arg, float dt_arg) noexcept -> float {
+        return static_cast<float>(std::to_underlying(move) * speed_arg) *
+               dt_arg;
+    };
+
+    return {
+        .delta{
+            .x = translate(move_x, speed, dt),
+            .y = translate(move_y, speed, dt),
+        },
+    };
 }
 
 std::vector<types::Rectangle<int>> Game::Entities::Static::AllStatics() const {

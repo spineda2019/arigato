@@ -16,7 +16,6 @@
 #include <optional>
 #include <span>
 #include <type_traits>
-#include <utility>
 //
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
@@ -76,23 +75,7 @@ class Game final {
                 Direction move_x;
                 Direction move_y;
 
-                inline constexpr Movement Translate(std::uint8_t speed,
-                                                    float dt) const noexcept {
-                    constexpr auto translate =
-                        [](Direction move, std::uint8_t speed_arg,
-                           float dt_arg) noexcept -> float {
-                        return static_cast<float>(std::to_underlying(move) *
-                                                  speed_arg) *
-                               dt_arg;
-                    };
-
-                    return {
-                        .delta{
-                            .x = translate(move_x, speed, dt),
-                            .y = translate(move_y, speed, dt),
-                        },
-                    };
-                }
+                Movement Translate(std::uint8_t speed, float dt) const noexcept;
             };
             static_assert(std::is_trivially_destructible_v<Action>);
             static_assert(std::is_trivially_constructible_v<Action>);
@@ -172,6 +155,9 @@ class Game final {
     Character character_{{.pos{}, .bounds{.width = 1, .height = 1}}};
     Bounds level_bounds_{};
     State state_{Game::State::Title};
+
+ private:  // statics
+    static inline constexpr int dyn_body_speed{7};
 };
 }  // namespace arigato::core
 

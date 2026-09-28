@@ -51,7 +51,7 @@ static inline constexpr SpriteInfo cafe_bar{
 
 namespace cats {
 static inline constexpr char const* sprite_sheet{
-    "assets/spritesheets/beings/cats.png"};
+    "assets/spritesheets/beings/cat.png"};
 }
 
 namespace cats::white {

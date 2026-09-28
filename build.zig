@@ -123,10 +123,24 @@ const Modules = struct {
                 }),
             });
         }
-        const raylib_dep = config.b.dependency("raylib", .{
-            .target = config.target,
-            .optimize = config.optimize,
-        });
+        const raylib_dep = blk: {
+            if (!config.target.query.isNative()) {
+                std.debug.print(
+                    "INFO: Cross-compiling uses raylib's memory platform\n",
+                    .{},
+                );
+                break :blk config.b.dependency("raylib", .{
+                    .target = config.target,
+                    .optimize = config.optimize,
+                    .platform = .memory,
+                });
+            } else {
+                break :blk config.b.dependency("raylib", .{
+                    .target = config.target,
+                    .optimize = config.optimize,
+                });
+            }
+        };
         const raylib_artifact = raylib_dep.artifact("raylib");
         mod_display.linkLibrary(raylib_artifact);
 

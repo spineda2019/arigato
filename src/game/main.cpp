@@ -76,20 +76,55 @@ void ProgressLevel(Arigato& arigato) noexcept {
     const Window::Frame frame{arigato.window.MakeFrame()};
     frame.SetBackgroundRGB({.red = 165, .green = 115, .blue = 75});
 
-    for (const auto x : pos.statics.cats) {
-        // TODO(SEP): Dispath on cat id
-        switch (x.cat) {
-            case id::CatId::Kitters:
-            case id::CatId::Unknown:
-                break;
-        }
-    }
-
     struct SpriteDrawInfo final {
         assets::SpriteInfo sprite_info;
         types::Rectangle<float> bounds;
         bool known;
     };
+
+    for (const auto cat : pos.statics.cats) {
+        const SpriteDrawInfo info{[](decltype(cat) const* body,
+                                     decltype(screen_layout) layout) noexcept
+                                      -> SpriteDrawInfo {
+            // TODO(SEP): Generalize this switch to avoid redundant code
+            switch (body->cat) {
+                case id::CatId::Kitters:
+                case id::CatId::Unknown:
+                    return {
+                        .sprite_info{
+                            .sub_area{assets::cats::white::right_1.sub_area},
+                            .asset_path =
+                                assets::cats::white::right_1.asset_path,
+                        },
+                        .bounds{
+                            .pos{
+                                .x = static_cast<float>(body->rect.pos.x *
+                                                        layout.CellWidth()),
+                                .y = static_cast<float>(body->rect.pos.y *
+                                                        layout.CellHeight()),
+                            },
+                            .bounds{
+                                .width =
+                                    static_cast<float>(body->rect.bounds.width *
+                                                       layout.CellWidth()),
+                                .height = static_cast<float>(
+                                    body->rect.bounds.height *
+                                    layout.CellHeight()),
+                            },
+                        },
+                        .known = true,
+                    };
+                    break;
+            }
+        }(&cat, screen_layout)};
+
+        frame.DrawSpriteRegion(
+            arigato.sprite_manager.Get(info.sprite_info.asset_path),
+            info.sprite_info.sub_area, info.bounds);
+        if constexpr (draw_hotboxes) {
+            frame.DrawHitbox(info.bounds, {.red = 255, .green{}, .blue{}});
+        }
+    }
 
     for (const auto decorum : pos.statics.decor) {
         const SpriteDrawInfo info{

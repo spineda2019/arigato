@@ -7,8 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SRC_GAME_LOGICAL_COMPONENTS_HPP_
-#define SRC_GAME_LOGICAL_COMPONENTS_HPP_
+#ifndef SRC_GAME_ARIGATO_HPP_
+#define SRC_GAME_ARIGATO_HPP_
 
 #include <Game.hpp>
 #include <Sprite.hpp>
@@ -16,13 +16,11 @@
 #include <Window.hpp>
 
 namespace arigato {
-
 struct Arigato final {
     display::Window window;
     core::Game game;
-    /// TODO(SEP): Replace with some type of asset manager
     display::SpriteManager sprite_manager;
 };
 }  // namespace arigato
 
-#endif  // SRC_GAME_LOGICAL_COMPONENTS_HPP_
+#endif  // SRC_GAME_ARIGATO_HPP_

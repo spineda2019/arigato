@@ -52,8 +52,10 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
               std::vector<Level::PlacedCat> placed{};
               placed.reserve(cats_to_place.size());
 
-              std::uniform_int_distribution<int> dist_x{0, level_bounds.width};
-              std::uniform_int_distribution<int> dist_y{0, level_bounds.height};
+              std::uniform_int_distribution<int> dist_x{0,
+                                                        level_bounds.width - 1};
+              std::uniform_int_distribution<int> dist_y{
+                  0, level_bounds.height - 1};
 
               for (Campaign::Cat const& cat : cats_to_place) {
                   placed.emplace_back(

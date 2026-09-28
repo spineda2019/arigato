@@ -17,48 +17,28 @@
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 //
+#include "Arigato.hpp"
 #include "arigato/id.hpp"
 #include "arigato/physics.hpp"
 #include "assets.hpp"
-#include "logical_components.hpp"
+#include "build_flags.hpp"
 #include "ui_components.hpp"
 
 namespace arigato {
 namespace {
 using Window = display::Window;
-
+//
 using Level = core::Level;
 using Character = core::Character;
-
-inline constexpr bool debug_build{
-#ifdef ARIGATO_DEBUG
-    true
-#else
-    false
-#endif
-};
-
-inline constexpr bool draw_hotboxes{
-#ifdef ARIGATO_DRAW_HITBOXES
-    true
-#else
-    false
-#endif
-};
 
 namespace screen_layouts {
 using LevelScreen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;
 static_assert(std::is_trivially_destructible_v<LevelScreen>);
-static_assert(std::is_nothrow_destructible_v<LevelScreen>);
 static_assert(std::is_trivially_constructible_v<LevelScreen, int, int>);
-static_assert(std::is_nothrow_constructible_v<LevelScreen, int, int>);
 
 using TitleScreen = arigato::ScreenStrata<{.col_count = 10, .row_count = 10}>;
 static_assert(std::is_trivially_destructible_v<TitleScreen>);
-static_assert(std::is_nothrow_destructible_v<TitleScreen>);
 static_assert(std::is_trivially_constructible_v<TitleScreen, int, int>);
-static_assert(std::is_nothrow_constructible_v<TitleScreen, int, int>);
-
 }  // namespace screen_layouts
 
 void ProgressLevel(Arigato& arigato) noexcept {

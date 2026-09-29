@@ -301,7 +301,7 @@ int main() noexcept {
     using GameState = arigato::core::Game::State;
 
     // We have asserts!
-    // arigato::core::zig::zig_assert(...);
+    // arigato::core::zig::zig_assert(false);
 
     while (arigato.window) {
         switch (arigato.game.GetState()) {

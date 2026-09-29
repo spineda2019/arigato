@@ -130,11 +130,18 @@ const Modules = struct {
                     "INFO: Cross-compiling uses raylib's memory platform\n",
                     .{},
                 );
-                break :blk config.b.dependency("raylib", .{
-                    .target = config.target,
-                    .optimize = config.optimize,
-                    .platform = .memory,
-                });
+                break :blk switch (config.target.result.os.tag) {
+                    .windows => config.b.dependency("raylib", .{
+                        .target = config.target,
+                        .optimize = config.optimize,
+                        .platform = .win32,
+                    }),
+                    else => config.b.dependency("raylib", .{
+                        .target = config.target,
+                        .optimize = config.optimize,
+                        .platform = .memory,
+                    }),
+                };
             } else {
                 break :blk config.b.dependency("raylib", .{
                     .target = config.target,

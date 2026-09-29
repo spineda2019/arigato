@@ -89,6 +89,7 @@ const Modules = struct {
         create_compiledb: bool,
     }) std.mem.Allocator.Error!Modules {
         const mod_core = config.b.createModule(.{
+            .root_source_file = config.b.path("src/core/root.zig"),
             .target = config.target,
             .optimize = config.optimize,
             .link_libc = true,

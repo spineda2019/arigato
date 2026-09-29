@@ -16,6 +16,7 @@
 #include <Window.hpp>
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
+#include <zig.hpp>
 //
 #include "Arigato.hpp"
 #include "arigato/id.hpp"
@@ -298,6 +299,9 @@ int main() noexcept {
     };
 
     using GameState = arigato::core::Game::State;
+
+    // We have asserts!
+    // arigato::core::zig::zig_assert(...);
 
     while (arigato.window) {
         switch (arigato.game.GetState()) {

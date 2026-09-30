@@ -9,7 +9,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-export fn zig_assert(cond: bool) void {
+export fn zig_debug_assert(cond: bool) void {
     if (builtin.mode == .Debug or builtin.mode == .ReleaseSafe) {
         std.debug.assert(cond);
     }

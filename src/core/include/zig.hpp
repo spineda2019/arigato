@@ -10,7 +10,12 @@
 #define SRC_CORE_INCLUDE_ZIG_HPP_
 
 namespace arigato::core::zig {
+namespace detail {
 extern "C" {
+void zig_debug_assert(bool cond) noexcept;
+}
+}  // namespace detail
+
 /// \brief Invoke the zig assertion function
 ///
 /// Assertions in zig are different in C++, and can take affect even in release
@@ -18,8 +23,14 @@ extern "C" {
 /// can even be used as optimization heuristics by the compiler. However, that
 /// behavior from C++ is plain UB, so this should only hold affect in Debug and
 /// ReleaseSafe builds
-void zig_assert(bool cond) noexcept;
+inline constexpr void zig_assert(bool cond) noexcept {
+#ifdef ARIGATO_ASSERT
+    detail::zig_debug_assert(cond);
+#else
+    (void)cond;
+#endif
 }
+
 }  // namespace arigato::core::zig
 
 #endif  // SRC_CORE_INCLUDE_ZIG_HPP_

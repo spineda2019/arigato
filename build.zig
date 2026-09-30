@@ -251,10 +251,14 @@ pub fn build(b: *std.Build) !void {
         .create_compiledb = options.create_compiledb,
     });
 
-    if (optimize == .Debug) {
-        inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+    inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+        if (optimize == .Debug) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_DEBUG", "");
+        }
+        if (optimize == .Debug or optimize == .ReleaseSafe) {
+            const mod: *std.Build.Module = @field(mods, field_name);
+            mod.addCMacro("ARIGATO_ASSERT", "");
         }
     }
     if (options.draw_hitboxes) {

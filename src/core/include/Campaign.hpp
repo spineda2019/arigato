@@ -10,7 +10,6 @@
 #define SRC_CORE_INCLUDE_CAMPAIGN_HPP_
 
 #include <cstddef>
-#include <cstdint>
 #include <span>
 #include <type_traits>
 #include <vector>

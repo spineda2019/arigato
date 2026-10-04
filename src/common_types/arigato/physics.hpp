@@ -10,6 +10,7 @@
 #ifndef SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_
 #define SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 
@@ -159,4 +160,26 @@ static_assert(std::is_nothrow_constructible_v<Rectangle<float>, Vec2D<float>,
                                               Bounds<float>>);
 
 }  // namespace arigato::types
+
+namespace arigato::physics {
+/// \brief Where the owning entity desires to move
+///
+/// Representation from _before_ collision/physics is calculated and
+/// enforced
+struct Intent final {
+    enum class MoveDirection : std::int8_t {
+        Positive = 1,
+        Zero = 0,
+        Negative = -1,
+    };
+
+    MoveDirection move_x;
+    MoveDirection move_y;
+};
+
+static_assert(std::is_trivially_constructible_v<Intent>);
+static_assert(std::is_trivially_copy_constructible_v<Intent>);
+static_assert(std::is_trivially_destructible_v<Intent>);
+}  // namespace arigato::physics
+
 #endif  // SRC_COMMON_TYPES_ARIGATO_PHYSICS_HPP_

@@ -25,6 +25,11 @@ enum class DecorId : Id_t {
     CafeBar,
 };
 
+enum class EntityId : Id_t {
+    Kitters,
+    CafeBar,
+};
+
 }  // namespace arigato::id
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_ID_HPP_

@@ -172,6 +172,7 @@ const Modules = struct {
 
         for (CppIncludeDirs.core) |inc| {
             mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
         }
         for (CppIncludeDirs.display) |inc| {
             mod_game.addIncludePath(config.b.path(inc));

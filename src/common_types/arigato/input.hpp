@@ -11,6 +11,7 @@
 #define SRC_COMMON_TYPES_ARIGATO_INPUT_HPP_
 
 #include <type_traits>
+
 namespace arigato::input {
 struct Keys final {
     bool left;
@@ -22,10 +23,8 @@ struct Keys final {
 };
 
 static_assert(std::is_trivially_destructible_v<Keys>);
-static_assert(std::is_nothrow_destructible_v<Keys>);
-static_assert(std::is_nothrow_constructible_v<Keys>);
 static_assert(std::is_trivially_constructible_v<Keys>);
-static_assert(std::is_default_constructible_v<Keys>);
+static_assert(std::is_trivially_copy_constructible_v<Keys>);
 
 struct Input final {
     Keys pressed;
@@ -33,10 +32,8 @@ struct Input final {
 };
 
 static_assert(std::is_trivially_destructible_v<Input>);
-static_assert(std::is_nothrow_destructible_v<Input>);
-static_assert(std::is_nothrow_constructible_v<Input>);
 static_assert(std::is_trivially_constructible_v<Input>);
-static_assert(std::is_default_constructible_v<Input>);
+static_assert(std::is_trivially_copy_constructible_v<Input>);
 }  // namespace arigato::input
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_INPUT_HPP_

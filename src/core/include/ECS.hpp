@@ -45,6 +45,34 @@ class ECS final {
 
     void Update();
 
+    template <component::Component C>
+    inline void SetComponent(arigato::entities::Id id, C component) {
+        auto& storage{this->StorageOf<C>()};
+        zig::zig_assert(storage.size() == entity_count);
+        zig::zig_assert(component_masks_.size() == entity_count);
+        zig::zig_assert(id < entity_count);
+        zig::zig_assert(
+            component_masks_[id].test(std::to_underlying(BitSetIndex::Alive)));
+
+        component_masks_[id].set(std::to_underlying(IndexOf<C>()));
+        storage[id] = component;
+    }
+    template <component::Component C>
+    inline bool HasComponent(entities::Id id) const noexcept {
+        return id < entity_count &&
+               component_masks_[id].test(std::to_underlying(IndexOf<C>()));
+    }
+    template <component::Component C>
+    inline auto* GetComponent(this auto& self, entities::Id id) noexcept {
+        auto* const data{self.template StorageOf<C>().data()};
+        return self.template HasComponent<C>(id) ? data + id : nullptr;
+    }
+    template <component::Component C>
+    inline void RemoveComponent(entities::Id id) noexcept {
+        if (id < entity_count) {
+            component_masks_[id].reset(std::to_underlying(IndexOf<C>()));
+        }
+    }
     /// \brief Create a new entity with no components
     arigato::entities::Id CreateEmptyEntity();
     /// \brief Create a new entity with a known set of components
@@ -59,6 +87,8 @@ class ECS final {
     ///
     /// Double destructions should be memory-safe
     void DestroyEntity(arigato::entities::Id);
+
+    entities::Id SpawnPlayer(types::Rectangle<float> body, float speed);
 
  private:
     /// \brief sugar-helper to enfore component concept on container elements
@@ -87,19 +117,6 @@ class ECS final {
     /// \brief Create a new entity at the tail end of the arrays with the alive
     /// bit set
     void AppendEmptyEntity();
-
-    template <component::Component C>
-    inline void SetComponent(arigato::entities::Id id, C component) {
-        auto& storage{this->StorageOf<C>()};
-        zig::zig_assert(storage.size() == entity_count);
-        zig::zig_assert(component_masks_.size() == entity_count);
-        zig::zig_assert(id < entity_count);
-        zig::zig_assert(
-            component_masks_[id].test(std::to_underlying(BitSetIndex::Alive)));
-
-        component_masks_[id].set(std::to_underlying(IndexOf<C>()));
-        storage[id] = component;
-    }
 
     template <component::Component C>
     inline static consteval BitSetIndex IndexOf() noexcept {

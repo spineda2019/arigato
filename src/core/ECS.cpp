@@ -11,6 +11,8 @@
 #include <limits>
 #include <utility>
 
+#include "arigato/physics.hpp"
+#include "components/PhysicsComponent.hpp"
 #include "include/entities/Id.hpp"
 #include "include/zig.hpp"
 
@@ -57,6 +59,16 @@ void ECS::DestroyEntity(arigato::entities::Id id) {
         component_masks_[id].reset();
         free_ids_.push_back(id);
     }
+}
+
+arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
+                                       float speed) {
+    player_id_ =
+        this->CreateEntity(component::PhysicsBodyComponent{.position{body}},
+                           component::PhysicsSpeedComponent{.speed = speed},
+                           component::PhysicsIntentComponent{});
+
+    return player_id_;
 }
 
 }  // namespace arigato::core

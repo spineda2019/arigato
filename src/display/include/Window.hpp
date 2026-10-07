@@ -11,8 +11,10 @@
 
 #include <cstdint>
 #include <type_traits>
-
-#include "./Sprite.hpp"
+//
+#include <arigato/input.hpp>
+//
+#include "Sprite.hpp"
 
 namespace arigato::display {
 class Window final {
@@ -20,15 +22,6 @@ class Window final {
     enum class BackgroundColor : std::uint8_t {
         White,
         LightGray,
-    };
-
-    struct Keys final {
-        bool left{};
-        bool right{};
-        bool up{};
-        bool down{};
-
-        bool space{};
     };
 
     struct RGB final {
@@ -52,17 +45,36 @@ class Window final {
         void SetBackgroundRGB(RGB) const noexcept;
         void DrawText(const char* text, int x, int y, int size,
                       BackgroundColor color) const noexcept;
+        void DrawText(const char* text, int x, int y, int size,
+                      RGB) const noexcept;
         /// Draws the entire sprite to the destination x and y coordinate
         void DrawFullSprite(Sprite const&, float x, float y) const noexcept;
+        /// Draws the entire sprite to the destination x and y coordinate to a
+        /// custom output region (say for example, to scale the output with the
+        /// screen)
+        void DrawFullSprite(Sprite const&, Sprite::Area) const noexcept;
         /// Like `DrawFullSprite` but can select a specific region of the source
         /// sprite to draw. Usefull for drawing a single sprite from a
         /// spritesheet, as the whole spritesheet can be stored in GPU memory
         /// once for many sprites in the sheet
         void DrawSpriteRegion(Sprite const&, Sprite::Area region, float x,
                               float y) const noexcept;
+        /// Draws a sprite with a specified `src` sub-region (e.g. a single
+        /// sprite region from a whole spritesheet) to a specified `dest` (e.g.
+        /// for scaling with the window)
+        void DrawSpriteRegion(Sprite const&, Sprite::Area src,
+                              Sprite::Area dest) const noexcept;
         void DrawRectangle(const char* text, int x, int y, int width,
                            int height,
                            BackgroundColor border_color) const noexcept;
+        void DrawRectangle(const char* text, Sprite::IntegralArea src,
+                           BackgroundColor border_color) const noexcept;
+        void DrawRectangle(const char* text, Sprite::IntegralArea src,
+                           RGB border_color) const noexcept;
+        /// \brief draw a hitbox
+        ///
+        /// Details TBD
+        void DrawHitbox(Sprite::Area, RGB) const noexcept;
 
      private:
         explicit Frame() noexcept;
@@ -92,7 +104,7 @@ class Window final {
 
     int GetFPS() const noexcept;
 
-    Keys GetKeys() const noexcept;
+    input::Input GetInput() const noexcept;
 
     Mouse GetMouse() const noexcept;
 

@@ -6,13 +6,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-extern "C" {
 #include <raylib.h>
-}
-
+//
 #include <memory>
 #include <utility>
-
+//
+#include <arigato/input.hpp>
+//
 #include "include/Sprite.hpp"
 #include "include/Window.hpp"
 
@@ -24,30 +24,34 @@ constexpr bool debug{
     false
 #endif
 };
+
+constexpr bool cap_fps{
+#ifdef ARIGATO_CAP_FPS
+    true
+#else
+    false
+#endif
+};
 }  // namespace
 
 namespace arigato::display {
-namespace detail {
-struct SpriteImpl {
+struct Sprite::Impl {
     Texture2D texture_;
 
-    explicit SpriteImpl(Texture2D texture) noexcept
-        : texture_{std::move(texture)} {}
+    explicit Impl(Texture2D texture) noexcept : texture_{std::move(texture)} {}
 
-    ~SpriteImpl() noexcept { UnloadTexture(texture_); }
-    SpriteImpl(SpriteImpl const&) = delete;
-    SpriteImpl& operator=(SpriteImpl const&) = delete;
-    SpriteImpl(SpriteImpl&&) = delete;
-    SpriteImpl& operator=(SpriteImpl&&) = delete;
+    ~Impl() noexcept { UnloadTexture(texture_); }
+    Impl(Impl const&) = delete;
+    Impl& operator=(Impl const&) = delete;
+    Impl(Impl&&) = delete;
+    Impl& operator=(Impl&&) = delete;
 };
-}  // namespace detail
 
-Sprite::Sprite(const char* path, Sprite::Area area) noexcept
-    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
-      area_{std::move(area)} {}
+Sprite::Sprite(const char* path, Sprite::Bounds area) noexcept
+    : impl_{std::make_unique<Impl>(LoadTexture(path))}, area_{area} {}
 
 Sprite::Sprite(const char* path) noexcept
-    : impl_{std::make_unique<detail::SpriteImpl>(LoadTexture(path))},
+    : impl_{std::make_unique<Impl>(LoadTexture(path))},
       area_{.width = static_cast<float>(impl_->texture_.width),
             .height = static_cast<float>(impl_->texture_.height)} {}
 
@@ -79,22 +83,33 @@ Window::Window(int width, int height, int fps, const char* title) noexcept {
     if constexpr (!debug) {
         ::SetTraceLogLevel(LOG_NONE);
     }
+    if constexpr (cap_fps) {
+        ::SetTargetFPS(fps);
+    }
     ::SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     ::InitWindow(width, height, title);
-    ::SetTargetFPS(fps);
 }
 
 Window::operator bool() const noexcept { return !::WindowShouldClose(); }
 
 Window::~Window() noexcept { ::CloseWindow(); }
 
-Window::Keys Window::GetKeys() const noexcept {
-    return Window::Keys{
-        .left = ::IsKeyDown(KEY_LEFT),
-        .right = ::IsKeyDown(KEY_RIGHT),
-        .up = ::IsKeyDown(KEY_UP),
-        .down = ::IsKeyDown(KEY_DOWN),
-        .space = ::IsKeyPressed(KEY_SPACE),
+input::Input Window::GetInput() const noexcept {
+    return {
+        .pressed{
+            .left = ::IsKeyPressed(KEY_LEFT),
+            .right = ::IsKeyPressed(KEY_RIGHT),
+            .up = ::IsKeyPressed(KEY_UP),
+            .down = ::IsKeyPressed(KEY_DOWN),
+            .space = ::IsKeyPressed(KEY_SPACE),
+        },
+        .held{
+            .left = ::IsKeyDown(KEY_LEFT),
+            .right = ::IsKeyDown(KEY_RIGHT),
+            .up = ::IsKeyDown(KEY_UP),
+            .down = ::IsKeyDown(KEY_DOWN),
+            .space = false,  // keep until we care about holding space
+        },
     };
 };
 
@@ -120,8 +135,8 @@ Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
     ::ClearBackground(ToRayColor(color));
 }
+constexpr unsigned char full_opaque{255};
 void Window::Frame::SetBackgroundRGB(Window::RGB rgb) const noexcept {
-    constexpr unsigned char full_opaque{255};
     ::ClearBackground(::Color{
         .r = rgb.red,
         .g = rgb.green,
@@ -133,10 +148,25 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                              BackgroundColor color) const noexcept {
     ::DrawText(text, x, y, size, ToRayColor(color));
 }
+void Window::Frame::DrawText(const char* text, int x, int y, int size,
+                             Window::RGB rgb) const noexcept {
+    ::DrawText(text, x, y, size,
+               ::Color{
+                   .r = rgb.red,
+                   .g = rgb.green,
+                   .b = rgb.blue,
+                   .a = full_opaque,
+               });
+}
+
+namespace {
+constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
+}  // anonymous namespace
+
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
+
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {
-    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
     ::DrawTexturePro(
         s.ReadonlyImplRef()->texture_,
         {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
@@ -146,19 +176,64 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
         WHITE);
 }
 
+void Window::Frame::DrawFullSprite(Sprite const& sprite,
+                                   Sprite::Area target) const noexcept {
+    ::DrawTexturePro(sprite.ReadonlyImplRef()->texture_,
+                     {
+                         .x = 0.0f,
+                         .y = 0.0f,
+                         .width = sprite.GetWidth(),
+                         .height = sprite.GetHeight(),
+                     },
+                     {
+                         .x = target.pos.x,
+                         .y = target.pos.y,
+                         .width = target.bounds.width,
+                         .height = target.bounds.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
+}
+
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
-    constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
-    ::DrawTexturePro(
-        s.ReadonlyImplRef()->texture_,
-        {.x = region.x,
-         .y = region.y,
-         .width = region.width,
-         .height = region.height},
-        {.x = x, .y = y, .width = region.width, .height = region.height},
-        abs_origin,
-        0.0f,  // no rotation
-        WHITE);
+    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+                     {
+                         .x = region.pos.x,
+                         .y = region.pos.y,
+                         .width = region.bounds.width,
+                         .height = region.bounds.height,
+                     },
+                     {
+                         .x = x,
+                         .y = y,
+                         .width = region.bounds.width,
+                         .height = region.bounds.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
+}
+
+void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
+                                     Sprite::Area dest) const noexcept {
+    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+                     {
+                         .x = src.pos.x,
+                         .y = src.pos.y,
+                         .width = src.bounds.width,
+                         .height = src.bounds.height,
+                     },
+                     {
+                         .x = dest.pos.x,
+                         .y = dest.pos.y,
+                         .width = dest.bounds.width,
+                         .height = dest.bounds.height,
+                     },
+                     abs_origin,
+                     0.0f,  // no rotation
+                     WHITE);
 }
 
 void Window::Frame::DrawRectangle(const char* text, int x, int y, int width,
@@ -169,4 +244,41 @@ void Window::Frame::DrawRectangle(const char* text, int x, int y, int width,
     // TODO(SEP): Use std::clamp
     ::DrawText(text, x + 5, y + (height / 2), height / 4, WHITE);
 }
+
+void Window::Frame::DrawRectangle(
+    const char* text, Sprite::IntegralArea src,
+    Window::BackgroundColor border_color) const noexcept {
+    const auto color{ToRayColor(border_color)};
+    ::DrawRectangle(src.pos.x, src.pos.y, src.bounds.width, src.bounds.height,
+                    color);
+    // TODO(SEP): Use std::clamp
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.bounds.height / 2),
+               src.bounds.height / 4, WHITE);
+}
+void Window::Frame::DrawRectangle(const char* text, Sprite::IntegralArea src,
+                                  Window::RGB border_color) const noexcept {
+    ::DrawRectangle(src.pos.x, src.pos.y, src.bounds.width, src.bounds.height,
+                    ::Color{
+                        .r = border_color.red,
+                        .g = border_color.green,
+                        .b = border_color.blue,
+                        .a = full_opaque,
+                    });
+    // TODO(SEP): Use std::clamp
+    ::DrawText(text, src.pos.x + 5, src.pos.y + (src.bounds.height / 2),
+               src.bounds.height / 4, WHITE);
+}
+void Window::Frame::DrawHitbox(Sprite::Area rec,
+                               RGB border_color) const noexcept {
+    ::DrawRectangleLines(
+        static_cast<int>(rec.pos.x), static_cast<int>(rec.pos.y),
+        static_cast<int>(rec.bounds.width), static_cast<int>(rec.bounds.height),
+        ::Color{
+            .r = border_color.red,
+            .g = border_color.green,
+            .b = border_color.blue,
+            .a = full_opaque,
+        });
+}
+
 }  // namespace arigato::display

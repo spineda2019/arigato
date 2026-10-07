@@ -7,10 +7,17 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "include/Level.hpp"
-
+//
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <random>
+#include <span>
+#include <vector>
+//
+#include <arigato/meta.hpp>
+
+#include "include/Campaign.hpp"
 
 namespace arigato::core {
 
@@ -18,51 +25,96 @@ namespace {
 inline constexpr std::uint8_t min_cust_count{3};
 inline constexpr std::uint8_t max_cust_count{32};
 static_assert(min_cust_count < max_cust_count);
-std::uint8_t UnseededRandomCustAmount() noexcept {
-    try {
-        std::mt19937 twister{std::random_device{}()};
-        std::uniform_int_distribution<std::uint8_t> dist{min_cust_count,
-                                                         max_cust_count};
-        return dist(twister);
-    } catch (...) {
-        return 42;
-    }
-}
-std::uint8_t SeededRandomCustAmount(std::uint8_t seed) noexcept {
-    try {
-        std::mt19937 seeded_twister{seed};
-        std::uniform_int_distribution<std::uint8_t> dist{min_cust_count,
-                                                         max_cust_count};
-        return dist(seeded_twister);
-    } catch (...) {
-        return 42;
-    }
-}
 }  // anonymous namespace
 
-Level::Level() noexcept
-    : day_{1}, customers_left_{UnseededRandomCustAmount()} {}
+Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
+    : placed_decor_{
+          [](std::span<const Campaign::Decorum> decor_to_place) noexcept
+              -> std::vector<Level::PlacedDecorum> {
+              try {
+                  std::vector<Level::PlacedDecorum> placed{};
+                  placed.reserve(decor_to_place.size());
 
-Level::Level(std::uint8_t seed) noexcept
-    : day_{1}, customers_left_{SeededRandomCustAmount(seed)} {}
+                  for (Campaign::Decorum const& decorum : decor_to_place) {
+                      placed.emplace_back(decorum.pos, decorum.id);
+                  }
 
-std::size_t Level::GetDay() const noexcept { return day_; }
+                  return placed;
+              } catch (...) {
+                  return {};
+              }
+          }(decor)},
+      placed_cats_{[](std::span<const Campaign::Cat> cats_to_place,
+                      std::mt19937& rng, Level::Bounds level_bounds) noexcept
+                       -> std::vector<Level::PlacedCat> {
+          try {
+              std::vector<Level::PlacedCat> placed{};
+              placed.reserve(cats_to_place.size());
+
+              std::uniform_int_distribution<int> dist_x{0,
+                                                        level_bounds.width - 1};
+              std::uniform_int_distribution<int> dist_y{
+                  0, level_bounds.height - 1};
+
+              for (Campaign::Cat const& cat : cats_to_place) {
+                  placed.emplace_back(
+                      Level::Rectangle{
+                          .pos{
+                              .x = dist_x(rng),
+                              .y = dist_y(rng),
+                          },
+                          .bounds{
+                              .width = 1,
+                              .height = 1,
+                          },
+                      },
+                      cat.id);
+              }
+
+              return placed;
+          } catch (...) {
+              return {};
+          }
+      }(cats, twister, bounds)},
+      customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
+          try {
+              static_assert(min_cust_count >=
+                            std::numeric_limits<std::uint8_t>::min());
+              static_assert(max_cust_count <=
+                            std::numeric_limits<std::uint8_t>::max());
+              std::uniform_int_distribution<std::uint16_t> dist{min_cust_count,
+                                                                max_cust_count};
+              return static_cast<std::uint8_t>(dist(rng));
+          } catch (...) {
+              return max_cust_count;
+          }
+      }(twister)} {}
+
+Level::Level(std::span<const Campaign::Decorum> decor,
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
+    : Level(std::mt19937{std::random_device{}()}, decor, cats, bounds) {}
+
+Level::Level(std::span<const Campaign::Decorum> decor,
+             std::span<const Campaign::Cat> cats, Level::Bounds bounds,
+             std::uint8_t seed) noexcept
+    : Level(std::mt19937{seed}, decor, cats, bounds) {}
+
 std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;
 }
+
+std::span<Level::PlacedCat> Level::GetPlacedCats() noexcept {
+    return {placed_cats_.begin(), placed_cats_.size()};
+}
+
+std::span<Level::PlacedDecorum> Level::GetPlacedDecor() noexcept {
+    return {placed_decor_.begin(), placed_decor_.size()};
+}
+
 void Level::Apply(Level::Action action) noexcept {
-    customers_left_ = (customers_left_ >= action.amount_served)
-                          ? customers_left_ - action.amount_served
-                          : 0;
-}
-
-void Level::NextDay() noexcept {
-    ++day_;
-    customers_left_ = UnseededRandomCustAmount();
-}
-
-void Level::SeededNextDay(std::uint8_t seed) noexcept {
-    ++day_;
-    customers_left_ = SeededRandomCustAmount(seed);
+    if (action.served && customers_left_ > 0) {
+        --customers_left_;
+    }
 }
 }  // namespace arigato::core

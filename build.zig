@@ -13,9 +13,12 @@ const CppFiles = struct {
         "src/core/Game.cpp",
         "src/core/Character.cpp",
         "src/core/Level.cpp",
+        "src/core/Campaign.cpp",
+        "src/core/PhysicsManager.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
+        "src/display/SpriteManager.cpp",
     };
     const game = [_][]const u8{
         "src/game/main.cpp",
@@ -29,6 +32,9 @@ const CppIncludeDirs = struct {
     const display = [_][]const u8{
         "src/display/include/",
     };
+    const common = [_][]const u8{
+        "src/common_types/",
+    };
 };
 
 const cppflags = [_][]const u8{
@@ -39,6 +45,7 @@ const cppflags = [_][]const u8{
     "-Wshadow",
     "-Wconversion",
     "-Werror",
+    "-fexperimental-library",
 };
 
 fn allFlags(config: struct {
@@ -82,6 +89,7 @@ const Modules = struct {
         create_compiledb: bool,
     }) std.mem.Allocator.Error!Modules {
         const mod_core = config.b.createModule(.{
+            .root_source_file = config.b.path("src/core/root.zig"),
             .target = config.target,
             .optimize = config.optimize,
             .link_libc = true,
@@ -116,10 +124,31 @@ const Modules = struct {
                 }),
             });
         }
-        const raylib_dep = config.b.dependency("raylib", .{
-            .target = config.target,
-            .optimize = config.optimize,
-        });
+        const raylib_dep = blk: {
+            if (!config.target.query.isNative()) {
+                std.debug.print(
+                    "INFO: Cross-compiling uses raylib's memory platform\n",
+                    .{},
+                );
+                break :blk switch (config.target.result.os.tag) {
+                    .windows => config.b.dependency("raylib", .{
+                        .target = config.target,
+                        .optimize = config.optimize,
+                        .platform = .win32,
+                    }),
+                    else => config.b.dependency("raylib", .{
+                        .target = config.target,
+                        .optimize = config.optimize,
+                        .platform = .memory,
+                    }),
+                };
+            } else {
+                break :blk config.b.dependency("raylib", .{
+                    .target = config.target,
+                    .optimize = config.optimize,
+                });
+            }
+        };
         const raylib_artifact = raylib_dep.artifact("raylib");
         mod_display.linkLibrary(raylib_artifact);
 
@@ -142,10 +171,16 @@ const Modules = struct {
         }
 
         for (CppIncludeDirs.core) |inc| {
-            mod_game.addSystemIncludePath(config.b.path(inc));
+            mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
         }
         for (CppIncludeDirs.display) |inc| {
-            mod_game.addSystemIncludePath(config.b.path(inc));
+            mod_game.addIncludePath(config.b.path(inc));
+        }
+        for (CppIncludeDirs.common) |inc| {
+            mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
+            mod_display.addIncludePath(config.b.path(inc));
         }
 
         return .{ .core = mod_core, .display = mod_display, .game = mod_game };
@@ -185,28 +220,50 @@ const Modules = struct {
     };
 };
 
+const BuildOptions = struct {
+    create_compiledb: bool,
+    draw_hitboxes: bool,
+
+    fn init(b: *std.Build) BuildOptions {
+        return .{
+            .create_compiledb = b.option(
+                bool,
+                "compiledb",
+                "Generate the compilation database",
+            ) orelse false,
+            .draw_hitboxes = b.option(
+                bool,
+                "drawhit",
+                "Draw hitboxes around physics entities",
+            ) orelse false,
+        };
+    }
+};
+
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-
-    const create_compiledb = b.option(
-        bool,
-        "compiledb",
-        "Generate the compilation database",
-    ) orelse false;
+    const options: BuildOptions = .init(b);
 
     const mods: Modules = try .init(.{
         .b = b,
         .target = target,
         .optimize = optimize,
-        .create_compiledb = create_compiledb,
+        .create_compiledb = options.create_compiledb,
     });
 
-    if (optimize == .Debug) {
-        inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+    inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+        if (optimize == .Debug) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_DEBUG", "");
         }
+        if (optimize == .Debug or optimize == .ReleaseSafe) {
+            const mod: *std.Build.Module = @field(mods, field_name);
+            mod.addCMacro("ARIGATO_ASSERT", "");
+        }
+    }
+    if (options.draw_hitboxes) {
+        mods.game.addCMacro("ARIGATO_DRAW_HITBOXES", "");
     }
 
     const compilations: Modules.Compilations = .init(.{
@@ -277,7 +334,7 @@ pub fn build(b: *std.Build) !void {
     compiledb_run.addFileArg(b.path(""));
     compiledb_run.step.dependOn(&compilations.game.step);
     compiledb_step.dependOn(&compiledb_run.step);
-    if (create_compiledb) {
+    if (options.create_compiledb) {
         b.getInstallStep().dependOn(compiledb_step);
     }
 }

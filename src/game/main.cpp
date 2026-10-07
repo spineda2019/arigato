@@ -9,7 +9,6 @@
 #include <array>
 #include <format>
 //
-#include <Character.hpp>
 #include <Game.hpp>
 #include <Level.hpp>
 #include <Sprite.hpp>
@@ -30,7 +29,6 @@ namespace {
 using Window = display::Window;
 //
 using Level = core::Level;
-using Character = core::Character;
 
 namespace screen_layouts {
 using LevelScreen = arigato::ScreenStrata<{.col_count = 32, .row_count = 18}>;

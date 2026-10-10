@@ -28,10 +28,7 @@ class Level final {
         bool served;
     };
     static_assert(std::is_trivially_destructible_v<Action>);
-    static_assert(std::is_nothrow_destructible_v<Action>);
     static_assert(std::is_trivially_constructible_v<Action>);
-    static_assert(std::is_trivially_constructible_v<Action, bool>);
-    static_assert(std::is_nothrow_constructible_v<Action, bool>);
     static_assert(std::is_trivially_copy_constructible_v<Action>);
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
@@ -42,18 +39,14 @@ class Level final {
         id::DecorId decorum;
     };
     static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
-    static_assert(std::is_nothrow_destructible_v<PlacedDecorum>);
     static_assert(std::is_trivially_constructible_v<PlacedDecorum>);
-    static_assert(std::is_nothrow_constructible_v<PlacedDecorum>);
 
     struct PlacedCat final {
         Rectangle rect;
         id::CatId cat;
     };
     static_assert(std::is_trivially_destructible_v<PlacedCat>);
-    static_assert(std::is_nothrow_destructible_v<PlacedCat>);
     static_assert(std::is_trivially_constructible_v<PlacedCat>);
-    static_assert(std::is_nothrow_constructible_v<PlacedCat>);
 
     /// TODO(SEP)
     struct PlacedCustomers final {};

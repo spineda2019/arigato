@@ -6,21 +6,75 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "include/ECS.hpp"
-
+#include <cstddef>
 #include <limits>
+#include <span>
 #include <utility>
-
-#include "arigato/physics.hpp"
-#include "components/PhysicsComponent.hpp"
+#include <vector>
+//
+#include <arigato/input.hpp>
+#include <arigato/physics.hpp>
+//
+#include "include/ECS.hpp"
+#include "include/components/PhysicsComponent.hpp"
 #include "include/entities/Id.hpp"
+#include "include/systems/InputSystem.hpp"
+#include "include/systems/PhysicsSystem.hpp"
 #include "include/zig.hpp"
 
 namespace arigato::core {
 
-void ECS::Update() {}
+void ECS::Update(input::Input input, float dt) noexcept {
+    // First get the physics intent from translating user input
+    arigato::component::PhysicsIntentComponent* const player_intent{
+        this->GetComponent<component::PhysicsIntentComponent>(player_id_)};
+    zig::zig_assert(player_intent != nullptr);
+    player_intent->intent = system::input::ToIntent(input);
+
+    // Get the pre-committed "as-if" physics locations as if collision was not
+    // enforced
+    system::physics::Move(component_masks_, physics_intent_components_,
+                          physics_speed_components_, physics_body_components_,
+                          dt);
+
+    // Clamp the actual body physics and "commit" them
+    const auto body_bit{std::to_underlying(BitSetIndex::PhysicsBodyComponent)};
+    const auto speed_bit{
+        std::to_underlying(BitSetIndex::PhysicsSpeedComponent)};
+
+    std::vector<system::physics::Rectangle*> dynamic_bodies{};
+    std::vector<system::physics::Rectangle> static_bodies{};
+    for (std::size_t row{0}; row < component_masks_.size(); ++row) {
+        const BitMask& mask{component_masks_[row]};
+        if (!mask.test(body_bit)) {
+            continue;
+        }
+
+        if (mask.test(speed_bit)) {
+            dynamic_bodies.push_back(&physics_body_components_[row].position);
+        } else {
+            static_bodies.emplace_back(physics_body_components_[row].position);
+        }
+    }
+
+    system::physics::Collide(dynamic_bodies, static_bodies);
+}
+
+void ECS::Clear() noexcept {
+    interactable_components_.clear();
+    physics_body_components_.clear();
+    physics_speed_components_.clear();
+    physics_intent_components_.clear();
+    component_masks_.clear();
+    free_ids_.clear();
+    entity_count = 0;
+    player_id_ = 0;
+}
 
 void ECS::AppendEmptyEntity() {
+    zig::zig_assert(entity_count <
+                    std::numeric_limits<decltype(entity_count)>::max());
+
     interactable_components_.emplace_back();
     physics_body_components_.emplace_back();
     physics_speed_components_.emplace_back();
@@ -29,9 +83,6 @@ void ECS::AppendEmptyEntity() {
     alive.set(std::to_underlying(BitSetIndex::Alive));
     component_masks_.emplace_back(alive);
 
-    zig::zig_assert(entity_count <
-                    std::numeric_limits<decltype(entity_count)>::max());
-
     ++entity_count;
 }
 
@@ -39,7 +90,7 @@ arigato::entities::Id ECS::CreateEmptyEntity() {
     if (free_ids_.empty()) {
         this->AppendEmptyEntity();
         zig::zig_assert(entity_count > 0);
-        return entity_count - 1;
+        return static_cast<arigato::entities::Id>(entity_count - 1);
     } else {
         arigato::entities::Id id{free_ids_.back()};
         free_ids_.pop_back();
@@ -63,12 +114,21 @@ void ECS::DestroyEntity(arigato::entities::Id id) {
 
 arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
                                        float speed) {
-    player_id_ =
-        this->CreateEntity(component::PhysicsBodyComponent{.position{body}},
-                           component::PhysicsSpeedComponent{.speed = speed},
-                           component::PhysicsIntentComponent{});
+    return this->CreateEntity(component::PhysicsBodyComponent{.position{body}},
+                              component::PhysicsSpeedComponent{.speed = speed},
+                              component::PhysicsIntentComponent{});
+}
 
-    return player_id_;
+arigato::entities::Id ECS::SpawnStatic(types::Rectangle<float> body) {
+    return this->CreateEntity(component::PhysicsBodyComponent{.position{body}});
+}
+
+types::Rectangle<float> ECS::GetPlayerBody() const noexcept {
+    arigato::component::PhysicsBodyComponent const* const body{
+        this->GetComponent<component::PhysicsBodyComponent>(player_id_)};
+    zig::zig_assert(body != nullptr);
+
+    return body->position;
 }
 
 }  // namespace arigato::core

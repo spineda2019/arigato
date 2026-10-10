@@ -11,10 +11,11 @@ const builtin = @import("builtin");
 const CppFiles = struct {
     const core = [_][]const u8{
         "src/core/Game.cpp",
-        "src/core/Character.cpp",
         "src/core/Level.cpp",
         "src/core/Campaign.cpp",
-        "src/core/PhysicsManager.cpp",
+        "src/core/ECS.cpp",
+        "src/core/systems/InputSystem.cpp",
+        "src/core/systems/PhysicsSystem.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",

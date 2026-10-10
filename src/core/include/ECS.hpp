@@ -16,6 +16,9 @@
 #include <utility>
 #include <vector>
 //
+#include <arigato/input.hpp>
+#include <arigato/physics.hpp>
+//
 #include "components/Component.hpp"
 #include "components/InteractableComponent.hpp"
 #include "components/PhysicsComponent.hpp"
@@ -43,13 +46,20 @@ class ECS final {
  public:
     explicit ECS() = default;
 
-    void Update();
+    /// \brief Advance the simulation by one frame
+    void Update(input::Input, float dt) noexcept;
+
+    /// \brief Forget every entity and recycle all storage. Ids handed out
+    /// before this call are invalid afterwards.
+    void Clear() noexcept;
 
     template <component::Component C>
     inline void SetComponent(arigato::entities::Id id, C component) {
         auto& storage{this->StorageOf<C>()};
-        zig::zig_assert(storage.size() == entity_count);
-        zig::zig_assert(component_masks_.size() == entity_count);
+        zig::zig_assert(storage.size() ==
+                        static_cast<std::size_t>(entity_count));
+        zig::zig_assert(component_masks_.size() ==
+                        static_cast<std::size_t>(entity_count));
         zig::zig_assert(id < entity_count);
         zig::zig_assert(
             component_masks_[id].test(std::to_underlying(BitSetIndex::Alive)));
@@ -88,7 +98,12 @@ class ECS final {
     /// Double destructions should be memory-safe
     void DestroyEntity(arigato::entities::Id);
 
+    /// \brief Small helper to Spawn the playable character
     entities::Id SpawnPlayer(types::Rectangle<float> body, float speed);
+    /// \brief Small helper to spawn an immovable, collidable body
+    entities::Id SpawnStatic(types::Rectangle<float> body);
+    /// \brief The player's current body in game _logical units_
+    types::Rectangle<float> GetPlayerBody() const noexcept;
 
  private:
     /// \brief sugar-helper to enfore component concept on container elements

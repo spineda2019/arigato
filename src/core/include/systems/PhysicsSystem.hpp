@@ -9,10 +9,28 @@
 #ifndef SRC_CORE_INCLUDE_SYSTEMS_PHYSICSSYSTEM_HPP_
 #define SRC_CORE_INCLUDE_SYSTEMS_PHYSICSSYSTEM_HPP_
 
-#include <components/PhysicsComponent.hpp>
+#include <span>
+//
+#include <arigato/physics.hpp>
+//
+#include "ECS.hpp"
+#include "components/PhysicsComponent.hpp"
 
 namespace arigato::system::physics {
-// void Collide(std::span<component::PhysicsComponent>) noexcept;
+using Rectangle = types::Rectangle<float>;
+
+/// \brief Integrate movement intent into body positions
+///
+/// Only rows whose mask has the body, speed, and intent bits set are moved.
+void Move(std::span<const core::ECS::BitMask> masks,
+          std::span<const component::PhysicsIntentComponent> intents,
+          std::span<const component::PhysicsSpeedComponent> speeds,
+          std::span<component::PhysicsBodyComponent> bodies,
+          float dt) noexcept;
+
+/// \brief Prevent overlap of 2D rectangles.
+void Collide(std::span<Rectangle*> dynamic_bodies,
+             std::span<Rectangle> static_bodies) noexcept;
 }  // namespace arigato::system::physics
 
 #endif  // SRC_CORE_INCLUDE_SYSTEMS_PHYSICSSYSTEM_HPP_

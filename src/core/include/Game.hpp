@@ -21,9 +21,8 @@
 #include <arigato/physics.hpp>
 //
 #include "Campaign.hpp"
-#include "Character.hpp"
+#include "ECS.hpp"
 #include "Level.hpp"
-#include "PhysicsManager.hpp"
 
 namespace arigato::core {
 class Game final {
@@ -39,8 +38,6 @@ class Game final {
         struct Static final {
             std::span<Level::PlacedCat> cats;
             std::span<Level::PlacedDecorum> decor;
-
-            std::vector<types::Rectangle<int>> AllStatics() const;
         };
 
         static_assert(std::is_trivially_destructible_v<Static>);
@@ -53,41 +50,8 @@ class Game final {
         /// Represents all objects that can move (whether by the player or game
         /// AI)
         struct Dynamic final {
-            struct Movement final {
-                using Delta = types::Vec2D<float>;
-
-                Delta delta;
-            };
-
-            static_assert(std::is_trivially_destructible_v<Movement>);
-            static_assert(std::is_trivially_constructible_v<Movement>);
-            static_assert(
-                std::is_trivially_constructible_v<Movement, Movement::Delta>);
-            static_assert(std::is_trivially_copy_constructible_v<Movement>);
-            static_assert(std::is_trivially_copy_assignable_v<Movement>);
-
-            struct Action final {
-                enum class Direction : std::int8_t {
-                    Positive = 1,
-                    Zero = 0,
-                    Negative = -1,
-                };
-                Direction move_x;
-                Direction move_y;
-
-                Movement Translate(std::uint8_t speed, float dt) const noexcept;
-            };
-            static_assert(std::is_trivially_destructible_v<Action>);
-            static_assert(std::is_trivially_constructible_v<Action>);
-            static_assert(std::is_trivially_constructible_v<
-                          Action, Action::Direction, Action::Direction>);
-            static_assert(std::is_trivially_copy_constructible_v<Action>);
-            static_assert(std::is_trivially_copy_assignable_v<Action>);
-
-            Character::Rectangle character;
+            types::Rectangle<float> character;
             // TODO(SEP): hold span of customers
-
-            std::vector<types::Rectangle<float>*> AllDynamics();
         };
 
         static_assert(std::is_trivially_destructible_v<Dynamic>);
@@ -104,17 +68,6 @@ class Game final {
                                                     Entities::Dynamic>);
     static_assert(std::is_trivially_copy_constructible_v<Entities>);
     static_assert(std::is_trivially_copy_assignable_v<Entities>);
-
-    struct Action final {
-        Entities::Dynamic::Action character_action;
-        Level::Action level_action;
-    };
-    static_assert(std::is_trivially_destructible_v<Action>);
-    static_assert(std::is_trivially_constructible_v<Action>);
-    static_assert(std::is_trivially_constructible_v<
-                  Action, Entities::Dynamic::Action, Level::Action>);
-    static_assert(std::is_trivially_copy_constructible_v<Action>);
-    static_assert(std::is_trivially_copy_assignable_v<Action>);
 
  public:
     using Bounds = types::Bounds<int>;
@@ -151,15 +104,25 @@ class Game final {
     float GetCharacterWidth() const noexcept;
 
  private:
+    /// \brief (Re)create the level and respawn all ECS entities for it.
+    ///
+    /// The player's current body is preserved across rebuilds; on the very
+    /// first build the player starts at `initial_player_body`.
+    void RebuildLevel() noexcept;
+
+ private:
     Campaign campaign_{};
-    std::optional<Level> level_{};
-    PhysicsManager physics_manager_{};
-    Character character_{{.pos{}, .bounds{.width = 1, .height = 1}}};
+    Level level_;
+    ECS ecs_{};
     Bounds level_bounds_{};
     State state_{Game::State::Title};
 
  private:  // statics
-    static inline constexpr int dyn_body_speed{7};
+    static inline constexpr float dyn_body_speed{7.0f};
+    static inline constexpr types::Rectangle<float> initial_player_body{
+        .pos{.x = 0.0f, .y = 0.0f},
+        .bounds{.width = 2.0f, .height = 2.0f},
+    };
 };
 }  // namespace arigato::core
 

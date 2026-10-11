@@ -114,9 +114,12 @@ void ECS::DestroyEntity(arigato::entities::Id id) {
 
 arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
                                        float speed) {
-    return this->CreateEntity(component::PhysicsBodyComponent{.position{body}},
-                              component::PhysicsSpeedComponent{.speed = speed},
-                              component::PhysicsIntentComponent{});
+    player_id_ =
+        this->CreateEntity(component::PhysicsBodyComponent{.position{body}},
+                           component::PhysicsSpeedComponent{.speed = speed},
+                           component::PhysicsIntentComponent{});
+
+    return player_id_;
 }
 
 arigato::entities::Id ECS::SpawnStatic(types::Rectangle<float> body) {

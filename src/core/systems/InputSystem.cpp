@@ -15,7 +15,7 @@ physics::Intent ToIntent(arigato::input::Input input) noexcept {
     using MoveDirection = physics::Intent::MoveDirection;
     constexpr auto Dir = [](bool neg,
                             bool pos) static noexcept -> MoveDirection {
-        auto dir{MoveDirection::Zero};
+        MoveDirection dir{MoveDirection::Zero};
 
         if (neg && !pos) {
             dir = MoveDirection::Negative;

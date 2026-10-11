@@ -13,34 +13,22 @@
 namespace arigato::system::input {
 physics::Intent ToIntent(arigato::input::Input input) noexcept {
     using MoveDirection = physics::Intent::MoveDirection;
-
-    const auto x_direction{[](bool left, bool right) noexcept -> MoveDirection {
+    constexpr auto Dir = [](bool neg,
+                            bool pos) static noexcept -> MoveDirection {
         auto dir{MoveDirection::Zero};
 
-        if (left && !right) {
+        if (neg && !pos) {
             dir = MoveDirection::Negative;
-        } else if (right && !left) {
+        } else if (pos && !neg) {
             dir = MoveDirection::Positive;
         }
 
         return dir;
-    }(input.held.left, input.held.right)};
-
-    const auto y_direction{[](bool up, bool down) noexcept -> MoveDirection {
-        auto dir{MoveDirection::Zero};
-
-        if (up && !down) {
-            dir = MoveDirection::Negative;
-        } else if (down && !up) {
-            dir = MoveDirection::Positive;
-        }
-
-        return dir;
-    }(input.held.up, input.held.down)};
+    };
 
     return {
-        .move_x = x_direction,
-        .move_y = y_direction,
+        .move_x = Dir(input.held.left, input.held.right),
+        .move_y = Dir(input.held.up, input.held.down),
     };
 }
 }  // namespace arigato::system::input

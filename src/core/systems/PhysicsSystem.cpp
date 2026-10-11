@@ -18,6 +18,16 @@
 
 namespace arigato::system::physics {
 namespace {
+inline constexpr auto g_required_mask{[]() noexcept -> core::ECS::BitMask {
+    using Bit = core::ECS::BitSetIndex;
+
+    core::ECS::BitMask mask{};
+    mask.set(std::to_underlying(Bit::PhysicsBodyComponent));
+    mask.set(std::to_underlying(Bit::PhysicsSpeedComponent));
+    mask.set(std::to_underlying(Bit::PhysicsIntentComponent));
+    return mask;
+}()};
+
 constexpr Rectangle OverlapRectangle(Rectangle const& rect,
                                      Rectangle const& other) noexcept {
     //
@@ -50,18 +60,8 @@ void Move(std::span<const core::ECS::BitMask> masks,
           std::span<const component::PhysicsSpeedComponent> speeds,
           std::span<component::PhysicsBodyComponent> bodies,
           float dt) noexcept {
-    using BitSetIndex = core::ECS::BitSetIndex;
-
-    constexpr core::ECS::BitMask required{[]() noexcept {
-        core::ECS::BitMask mask{};
-        mask.set(std::to_underlying(BitSetIndex::PhysicsBodyComponent));
-        mask.set(std::to_underlying(BitSetIndex::PhysicsSpeedComponent));
-        mask.set(std::to_underlying(BitSetIndex::PhysicsIntentComponent));
-        return mask;
-    }()};
-
     for (std::size_t row{0}; row < masks.size(); ++row) {
-        if ((masks[row] & required) != required) {
+        if ((masks[row] & g_required_mask) != g_required_mask) {
             continue;
         }
 

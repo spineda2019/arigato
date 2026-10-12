@@ -25,7 +25,8 @@ enum class DecorId : Id_t {
     CafeBar,
 };
 
-enum class EntityId : Id_t {
+enum class SpriteId : Id_t {
+    Player,
     Kitters,
     CafeBar,
 };

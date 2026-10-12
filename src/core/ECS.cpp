@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <limits>
 #include <span>
+#include <tuple>
 #include <utility>
 #include <vector>
 //
@@ -33,9 +34,10 @@ void ECS::Update(input::Input input, float dt) noexcept {
 
     // Get the pre-committed "as-if" physics locations as if collision was not
     // enforced
-    system::physics::Move(component_masks_, physics_intent_components_,
-                          physics_speed_components_, physics_body_components_,
-                          dt);
+    system::physics::Move(
+        component_masks_, this->StorageOf<component::PhysicsIntentComponent>(),
+        this->StorageOf<component::PhysicsSpeedComponent>(),
+        this->StorageOf<component::PhysicsBodyComponent>(), dt);
 
     // Clamp the actual body physics and "commit" them
     const auto body_bit{std::to_underlying(BitSetIndex::PhysicsBodyComponent)};
@@ -50,10 +52,11 @@ void ECS::Update(input::Input input, float dt) noexcept {
             continue;
         }
 
+        auto& storage = this->StorageOf<component::PhysicsBodyComponent>();
         if (mask.test(speed_bit)) {
-            dynamic_bodies.push_back(&physics_body_components_[row].position);
+            dynamic_bodies.push_back(&storage[row].position);
         } else {
-            static_bodies.emplace_back(physics_body_components_[row].position);
+            static_bodies.emplace_back(storage[row].position);
         }
     }
 
@@ -61,10 +64,9 @@ void ECS::Update(input::Input input, float dt) noexcept {
 }
 
 void ECS::Clear() noexcept {
-    interactable_components_.clear();
-    physics_body_components_.clear();
-    physics_speed_components_.clear();
-    physics_intent_components_.clear();
+    std::apply(
+        [](auto&... component_vecs) noexcept { (component_vecs.clear(), ...); },
+        components_);
     component_masks_.clear();
     free_ids_.clear();
     entity_count = 0;
@@ -75,10 +77,9 @@ void ECS::AppendEmptyEntity() {
     zig::zig_assert(entity_count <
                     std::numeric_limits<decltype(entity_count)>::max());
 
-    interactable_components_.emplace_back();
-    physics_body_components_.emplace_back();
-    physics_speed_components_.emplace_back();
-    physics_intent_components_.emplace_back();
+    std::apply(
+        [](auto&... component_vecs) { (component_vecs.emplace_back(), ...); },
+        components_);
     ECS::BitMask alive{};
     alive.set(std::to_underlying(BitSetIndex::Alive));
     component_masks_.emplace_back(alive);

@@ -13,6 +13,7 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <tuple>
 #include <utility>
 #include <vector>
 //
@@ -110,11 +111,14 @@ class ECS final {
     template <component::Component C>
     using ComponentVec = std::vector<C>;
 
+    using AllComponents =
+        std::tuple<ComponentVec<component::InteractableComponent>,
+                   ComponentVec<component::PhysicsBodyComponent>,
+                   ComponentVec<component::PhysicsSpeedComponent>,
+                   ComponentVec<component::PhysicsIntentComponent>>;
+
  private:
-    ComponentVec<component::InteractableComponent> interactable_components_;
-    ComponentVec<component::PhysicsBodyComponent> physics_body_components_;
-    ComponentVec<component::PhysicsSpeedComponent> physics_speed_components_;
-    ComponentVec<component::PhysicsIntentComponent> physics_intent_components_;
+    AllComponents components_;
     /// \brief the bitmask indicating if the component index by id is in use by
     /// the entity of valud id.
     ///
@@ -152,19 +156,7 @@ class ECS final {
 
     template <component::Component C>
     inline auto& StorageOf(this auto& self) noexcept {
-        namespace c = arigato::component;
-
-        if constexpr (std::same_as<C, c::InteractableComponent>) {
-            return self.interactable_components_;
-        } else if constexpr (std::same_as<C, c::PhysicsBodyComponent>) {
-            return self.physics_body_components_;
-        } else if constexpr (std::same_as<C, c::PhysicsSpeedComponent>) {
-            return self.physics_speed_components_;
-        } else if constexpr (std::same_as<C, c::PhysicsIntentComponent>) {
-            return self.physics_intent_components_;
-        } else {
-            static_assert(false, "Unrecognized Component type");
-        }
+        return std::get<ComponentVec<C>>(self.components_);
     }
 };
 }  // namespace arigato::core

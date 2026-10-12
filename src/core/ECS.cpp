@@ -26,18 +26,20 @@
 namespace arigato::core {
 
 void ECS::Update(input::Input input, float dt) noexcept {
+    namespace comp = arigato::component;
+
     // First get the physics intent from translating user input
-    arigato::component::PhysicsIntentComponent* const player_intent{
-        this->GetComponent<component::PhysicsIntentComponent>(player_id_)};
+    comp::PhysicsIntentComponent* const player_intent{
+        this->GetComponent<comp::PhysicsIntentComponent>(player_id_)};
     zig::zig_assert(player_intent != nullptr);
     player_intent->intent = system::input::ToIntent(input);
 
     // Get the pre-committed "as-if" physics locations as if collision was not
     // enforced
-    system::physics::Move(
-        component_masks_, this->StorageOf<component::PhysicsIntentComponent>(),
-        this->StorageOf<component::PhysicsSpeedComponent>(),
-        this->StorageOf<component::PhysicsBodyComponent>(), dt);
+    system::physics::Move(component_masks_,
+                          this->StorageOf<comp::PhysicsIntentComponent>(),
+                          this->StorageOf<comp::PhysicsSpeedComponent>(),
+                          this->StorageOf<comp::PhysicsBodyComponent>(), dt);
 
     // Clamp the actual body physics and "commit" them
     const auto body_bit{std::to_underlying(BitSetIndex::PhysicsBodyComponent)};

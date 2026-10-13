@@ -129,7 +129,7 @@ bool Game::Save() const noexcept {
     (void)state_;
 }
 
-float Game::GetCharacterWidth() const noexcept {
+float Game::GetCharacterWidth() noexcept {
     return ecs_.GetPlayerBody().bounds.width;
 }
 

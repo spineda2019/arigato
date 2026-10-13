@@ -10,7 +10,6 @@
 #define SRC_CORE_INCLUDE_ECS_HPP_
 
 #include <bitset>
-#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <tuple>
@@ -25,7 +24,6 @@
 #include "components/PhysicsComponent.hpp"
 //
 #include "entities/Id.hpp"
-#include "zig.hpp"
 
 namespace arigato::core {
 class ECS final {
@@ -44,6 +42,9 @@ class ECS final {
 
     using BitMask = std::bitset<std::to_underlying(BitSetIndex::Count)>;
 
+    struct PrivateAccesor;
+    friend PrivateAccesor;
+
  public:
     explicit ECS() = default;
 
@@ -54,45 +55,9 @@ class ECS final {
     /// before this call are invalid afterwards.
     void Clear() noexcept;
 
-    template <component::Component C>
-    inline void SetComponent(arigato::entities::Id id, C component) {
-        auto& storage{this->StorageOf<C>()};
-        zig::zig_assert(storage.size() ==
-                        static_cast<std::size_t>(entity_count));
-        zig::zig_assert(component_masks_.size() ==
-                        static_cast<std::size_t>(entity_count));
-        zig::zig_assert(id < entity_count);
-        zig::zig_assert(
-            component_masks_[id].test(std::to_underlying(BitSetIndex::Alive)));
-
-        component_masks_[id].set(std::to_underlying(IndexOf<C>()));
-        storage[id] = component;
-    }
-    template <component::Component C>
-    inline bool HasComponent(entities::Id id) const noexcept {
-        return id < entity_count &&
-               component_masks_[id].test(std::to_underlying(IndexOf<C>()));
-    }
-    template <component::Component C>
-    inline auto* GetComponent(this auto& self, entities::Id id) noexcept {
-        auto* const data{self.template StorageOf<C>().data()};
-        return self.template HasComponent<C>(id) ? data + id : nullptr;
-    }
-    template <component::Component C>
-    inline void RemoveComponent(entities::Id id) noexcept {
-        if (id < entity_count) {
-            component_masks_[id].reset(std::to_underlying(IndexOf<C>()));
-        }
-    }
     /// \brief Create a new entity with no components
     arigato::entities::Id CreateEmptyEntity();
-    /// \brief Create a new entity with a known set of components
-    template <component::Component... Cs>
-    entities::Id CreateEntity(Cs... components) {
-        const entities::Id id{this->CreateEmptyEntity()};
-        (this->SetComponent(id, components), ...);
-        return id;
-    }
+
     /// \brief Unregister the entity from the ECS and recycle the ID for future
     /// entities
     ///
@@ -104,7 +69,7 @@ class ECS final {
     /// \brief Small helper to spawn an immovable, collidable body
     entities::Id SpawnStatic(types::Rectangle<float> body);
     /// \brief The player's current body in game _logical units_
-    types::Rectangle<float> GetPlayerBody() const noexcept;
+    types::Rectangle<float> GetPlayerBody() noexcept;
 
  private:
     /// \brief sugar-helper to enfore component concept on container elements
@@ -136,28 +101,6 @@ class ECS final {
     /// \brief Create a new entity at the tail end of the arrays with the alive
     /// bit set
     void AppendEmptyEntity();
-
-    template <component::Component C>
-    inline static consteval BitSetIndex IndexOf() noexcept {
-        namespace c = arigato::component;
-
-        if constexpr (std::same_as<C, c::InteractableComponent>) {
-            return BitSetIndex::InteractableComponent;
-        } else if constexpr (std::same_as<C, c::PhysicsBodyComponent>) {
-            return BitSetIndex::PhysicsBodyComponent;
-        } else if constexpr (std::same_as<C, c::PhysicsSpeedComponent>) {
-            return BitSetIndex::PhysicsSpeedComponent;
-        } else if constexpr (std::same_as<C, c::PhysicsIntentComponent>) {
-            return BitSetIndex::PhysicsIntentComponent;
-        } else {
-            static_assert(false, "Unrecognized Component type");
-        }
-    }
-
-    template <component::Component C>
-    inline auto& StorageOf(this auto& self) noexcept {
-        return std::get<ComponentVec<C>>(self.components_);
-    }
 };
 }  // namespace arigato::core
 

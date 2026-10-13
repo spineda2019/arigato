@@ -101,7 +101,7 @@ class Game final {
     [[nodiscard("Save operations may fail and must be reported")]]
     bool Save() const noexcept;
 
-    float GetCharacterWidth() const noexcept;
+    float GetCharacterWidth() noexcept;
 
  private:
     /// \brief (Re)create the level and respawn all ECS entities for it.

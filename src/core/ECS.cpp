@@ -8,6 +8,7 @@
 
 #include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <span>
 #include <tuple>
@@ -16,10 +17,15 @@
 #include <vector>
 //
 #include <arigato/input.hpp>
+#include <arigato/meta.hpp>
 #include <arigato/physics.hpp>
 //
+#include "arigato/id.hpp"
+#include "components/SpriteComponent.hpp"
 #include "include/ECS.hpp"
+#include "include/components/InteractableComponent.hpp"
 #include "include/components/PhysicsComponent.hpp"
+#include "include/components/SpriteComponent.hpp"
 #include "include/entities/Id.hpp"
 #include "include/systems/InputSystem.hpp"
 #include "include/systems/PhysicsSystem.hpp"
@@ -39,10 +45,17 @@ inline static consteval ECS::BitSetIndex IndexOf() noexcept {
         return ECS::BitSetIndex::PhysicsSpeedComponent;
     } else if constexpr (std::same_as<C, comp::PhysicsIntentComponent>) {
         return ECS::BitSetIndex::PhysicsIntentComponent;
+    } else if constexpr (std::same_as<C, comp::SpriteComponent>) {
+        return ECS::BitSetIndex::SpriteComponent;
     } else {
         static_assert(false, "Unrecognized Component type");
     }
 }
+
+static_assert(IndexOf<arigato::component::InteractableComponent>() ==
+              ECS::BitSetIndex::InteractableComponent);
+static_assert(IndexOf<arigato::component::PhysicsIntentComponent>() ==
+              ECS::BitSetIndex::PhysicsIntentComponent);
 }  // anonymous namespace
 
 /// \brief helper for `ECS` implementations to keep templates in the CPP file
@@ -201,16 +214,33 @@ void ECS::DestroyEntity(arigato::entities::Id id) {
 arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
                                        float speed) {
     player_id_ = ECS::PrivateAccesor::CreateEntity(
-        *this, component::PhysicsBodyComponent{.position{body}},
+        *this,  //
+        component::PhysicsBodyComponent{.position{body}},
         component::PhysicsSpeedComponent{.speed = speed},
-        component::PhysicsIntentComponent{});
+        component::PhysicsIntentComponent{},  //
+        component::SpriteComponent{.sprite_id = arigato::id::SpriteId::Player});
 
     return player_id_;
 }
 
-arigato::entities::Id ECS::SpawnStatic(types::Rectangle<float> body) {
+arigato::entities::Id ECS::SpawnStatic(types::Rectangle<float> body,
+                                       arigato::id::SpriteId id) {
     return ECS::PrivateAccesor::CreateEntity(
-        *this, component::PhysicsBodyComponent{.position{body}});
+        *this,                                             //
+        component::PhysicsBodyComponent{.position{body}},  //
+        component::SpriteComponent{.sprite_id = id});
+}
+
+arigato::entities::Id ECS::SpawnStatic(types::Bounds<float> bounds,
+                                       arigato::id::SpriteId id) {
+    return ECS::PrivateAccesor::CreateEntity(
+        *this,  //
+        component::PhysicsBodyComponent{
+            .position{level_system_.GenerateLevelRectangle({
+                .level{bounds},
+                .created_body{.width = 1.0f, .height = 1.0f},
+            })}},  //
+        component::SpriteComponent{.sprite_id = id});
 }
 
 types::Rectangle<float> ECS::GetPlayerBody() noexcept {
@@ -222,4 +252,34 @@ types::Rectangle<float> ECS::GetPlayerBody() noexcept {
     return body->position;
 }
 
+std::vector<ECS::Drawable> ECS::GetBodies() {
+    std::vector<ECS::Drawable> list{};
+
+    using SpriteComponent = arigato::component::SpriteComponent;
+    using BodyComponent = arigato::component::PhysicsBodyComponent;
+
+    const auto& sprite_components{
+        ECS::PrivateAccesor::StorageOf<SpriteComponent>(*this)};
+    const auto& physics_body_components{
+        ECS::PrivateAccesor::StorageOf<BodyComponent>(*this)};
+
+    zig::zig_assert(sprite_components.size() == physics_body_components.size());
+    zig::zig_assert(sprite_components.size() == component_masks_.size());
+
+    using SizeT = decltype(component_masks_)::size_type;
+    for (SizeT id{0}; id < component_masks_.size(); ++id) {
+        const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
+            *this, static_cast<std::uint16_t>(id))};
+        const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
+            *this, static_cast<std::uint16_t>(id))};
+        const bool alive{
+            component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
+
+        if (sprite && body && alive) {
+            list.emplace_back(body->position, sprite->sprite_id);
+        }
+    }
+
+    return list;
+}
 }  // namespace arigato::core

@@ -19,9 +19,12 @@
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
 //
+#include "arigato/id.hpp"
 #include "components/Component.hpp"
 #include "components/InteractableComponent.hpp"
 #include "components/PhysicsComponent.hpp"
+#include "components/SpriteComponent.hpp"
+#include "systems/LevelSystem.hpp"
 //
 #include "entities/Id.hpp"
 
@@ -33,6 +36,7 @@ class ECS final {
         PhysicsBodyComponent,
         PhysicsSpeedComponent,
         PhysicsIntentComponent,
+        SpriteComponent,
         /// \brief just used to check if an entity in our component arrays is in
         /// use
         Alive,
@@ -44,6 +48,15 @@ class ECS final {
 
     struct PrivateAccesor;
     friend PrivateAccesor;
+
+    // HACK(SEP) Retrofits into main. Explore passing some type of callabale for
+    // rendering into the Game update API
+    struct Drawable final {
+        types::Rectangle<float> rect;
+        arigato::id::SpriteId sprite_id;
+    };
+    static_assert(std::is_trivially_constructible_v<Drawable>);
+    static_assert(std::is_trivially_destructible_v<Drawable>);
 
  public:
     explicit ECS() = default;
@@ -67,9 +80,15 @@ class ECS final {
     /// \brief Small helper to Spawn the playable character
     entities::Id SpawnPlayer(types::Rectangle<float> body, float speed);
     /// \brief Small helper to spawn an immovable, collidable body
-    entities::Id SpawnStatic(types::Rectangle<float> body);
+    entities::Id SpawnStatic(types::Rectangle<float> body,
+                             arigato::id::SpriteId);
+    /// \brief Randomly generates the target position
+    entities::Id SpawnStatic(types::Bounds<float> bounds,
+                             arigato::id::SpriteId);
     /// \brief The player's current body in game _logical units_
     types::Rectangle<float> GetPlayerBody() noexcept;
+
+    std::vector<Drawable> GetBodies();
 
  private:
     /// \brief sugar-helper to enfore component concept on container elements
@@ -80,7 +99,8 @@ class ECS final {
         std::tuple<ComponentVec<component::InteractableComponent>,
                    ComponentVec<component::PhysicsBodyComponent>,
                    ComponentVec<component::PhysicsSpeedComponent>,
-                   ComponentVec<component::PhysicsIntentComponent>>;
+                   ComponentVec<component::PhysicsIntentComponent>,
+                   ComponentVec<component::SpriteComponent>>;
 
  private:
     AllComponents components_;
@@ -94,6 +114,7 @@ class ECS final {
     /// \brief candidate set for reusable ids that have been destroyed after
     /// newer IDs were created
     std::vector<arigato::entities::Id> free_ids_;
+    LevelSystem level_system_{};
     arigato::entities::Id entity_count{};
     arigato::entities::Id player_id_{};
 

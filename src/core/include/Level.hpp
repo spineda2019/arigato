@@ -12,14 +12,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <random>
-#include <span>
 #include <type_traits>
-#include <vector>
 //
 #include <arigato/id.hpp>
 #include <arigato/physics.hpp>
 //
-#include "Campaign.hpp"
 
 namespace arigato::core {
 class Level final {
@@ -33,46 +30,19 @@ class Level final {
     static_assert(std::is_trivially_move_constructible_v<Action>);
 
     using Rectangle = types::Rectangle<int>;
-
-    struct PlacedDecorum final {
-        Rectangle rect;
-        id::DecorId decorum;
-    };
-    static_assert(std::is_trivially_destructible_v<PlacedDecorum>);
-    static_assert(std::is_trivially_constructible_v<PlacedDecorum>);
-
-    struct PlacedCat final {
-        Rectangle rect;
-        id::CatId cat;
-    };
-    static_assert(std::is_trivially_destructible_v<PlacedCat>);
-    static_assert(std::is_trivially_constructible_v<PlacedCat>);
-
-    /// TODO(SEP)
-    struct PlacedCustomers final {};
-
     using Bounds = types::Bounds<int>;
 
  public:  // APIs
-    explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>, Bounds) noexcept;
-    explicit Level(std::span<const Campaign::Decorum>,
-                   std::span<const Campaign::Cat>, Bounds,
-                   std::uint8_t seed) noexcept;
+    explicit Level() noexcept;
 
     std::uint8_t GetCustomersLeft() const noexcept;
-    std::span<PlacedCat> GetPlacedCats() noexcept;
-    std::span<PlacedDecorum> GetPlacedDecor() noexcept;
 
     void Apply(Action) noexcept;
 
  private:  // helper ctors
-    explicit Level(std::mt19937 rng, std::span<const Campaign::Decorum> decor,
-                   std::span<const Campaign::Cat>, Bounds) noexcept;
+    explicit Level(std::mt19937 rng) noexcept;
 
  private:
-    std::vector<PlacedDecorum> placed_decor_{};
-    std::vector<PlacedCat> placed_cats_{};
     std::uint8_t customers_left_{};
 };
 }  // namespace arigato::core

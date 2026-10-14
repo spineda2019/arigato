@@ -12,12 +12,8 @@
 #include <cstdint>
 #include <limits>
 #include <random>
-#include <span>
-#include <vector>
 //
 #include <arigato/meta.hpp>
-
-#include "include/Campaign.hpp"
 
 namespace arigato::core {
 
@@ -27,57 +23,8 @@ inline constexpr std::uint8_t max_cust_count{32};
 static_assert(min_cust_count < max_cust_count);
 }  // anonymous namespace
 
-Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
-    : placed_decor_{
-          [](std::span<const Campaign::Decorum> decor_to_place) noexcept
-              -> std::vector<Level::PlacedDecorum> {
-              try {
-                  std::vector<Level::PlacedDecorum> placed{};
-                  placed.reserve(decor_to_place.size());
-
-                  for (Campaign::Decorum const& decorum : decor_to_place) {
-                      placed.emplace_back(decorum.pos, decorum.id);
-                  }
-
-                  return placed;
-              } catch (...) {
-                  return {};
-              }
-          }(decor)},
-      placed_cats_{[](std::span<const Campaign::Cat> cats_to_place,
-                      std::mt19937& rng, Level::Bounds level_bounds) noexcept
-                       -> std::vector<Level::PlacedCat> {
-          try {
-              std::vector<Level::PlacedCat> placed{};
-              placed.reserve(cats_to_place.size());
-
-              std::uniform_int_distribution<int> dist_x{0,
-                                                        level_bounds.width - 1};
-              std::uniform_int_distribution<int> dist_y{
-                  0, level_bounds.height - 1};
-
-              for (Campaign::Cat const& cat : cats_to_place) {
-                  placed.emplace_back(
-                      Level::Rectangle{
-                          .pos{
-                              .x = dist_x(rng),
-                              .y = dist_y(rng),
-                          },
-                          .bounds{
-                              .width = 1,
-                              .height = 1,
-                          },
-                      },
-                      cat.id);
-              }
-
-              return placed;
-          } catch (...) {
-              return {};
-          }
-      }(cats, twister, bounds)},
-      customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
+Level::Level(std::mt19937 twister) noexcept
+    : customers_left_{[](std::mt19937& rng) noexcept -> std::uint8_t {
           try {
               static_assert(min_cust_count >=
                             std::numeric_limits<std::uint8_t>::min());
@@ -91,25 +38,10 @@ Level::Level(std::mt19937 twister, std::span<const Campaign::Decorum> decor,
           }
       }(twister)} {}
 
-Level::Level(std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats, Level::Bounds bounds) noexcept
-    : Level(std::mt19937{std::random_device{}()}, decor, cats, bounds) {}
-
-Level::Level(std::span<const Campaign::Decorum> decor,
-             std::span<const Campaign::Cat> cats, Level::Bounds bounds,
-             std::uint8_t seed) noexcept
-    : Level(std::mt19937{seed}, decor, cats, bounds) {}
+Level::Level() noexcept : Level(std::mt19937{std::random_device{}()}) {}
 
 std::uint8_t Level::GetCustomersLeft() const noexcept {
     return customers_left_;
-}
-
-std::span<Level::PlacedCat> Level::GetPlacedCats() noexcept {
-    return {placed_cats_.begin(), placed_cats_.size()};
-}
-
-std::span<Level::PlacedDecorum> Level::GetPlacedDecor() noexcept {
-    return {placed_decor_.begin(), placed_decor_.size()};
 }
 
 void Level::Apply(Level::Action action) noexcept {

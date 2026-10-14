@@ -9,11 +9,13 @@
 #include <memory>
 #include <type_traits>
 //
-#include <arigato/input.hpp>
+#include <vector>
 //
-#include "arigato/physics.hpp"
 #include "include/Game.hpp"
 #include "include/Level.hpp"
+//
+#include <arigato/input.hpp>
+#include <arigato/physics.hpp>
 
 namespace arigato::core {
 namespace {
@@ -39,39 +41,26 @@ static_assert(NoThrowClamp<unsigned char>(2, 1, 3) == 2);
 static_assert(NoThrowClamp<unsigned char>(0, 1, 3) == 1);
 static_assert(NoThrowClamp<unsigned char>(4, 1, 3) == 3);
 
-}  // namespace
+}  // anonymous namespace
 
 Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
-      level_{campaign_.GetDecor(), campaign_.GetCats(), bounds},
+      level_{},
       ecs_{},
       level_bounds_{bounds},
       state_{Game::State::Title} {
-    for (Level::PlacedCat const& cat : level_.GetPlacedCats()) {
-        (void)ecs_.SpawnStatic(cat.rect.template Convert<float>());
+    for (auto decorum : campaign_.GetDecor()) {
+        (void)ecs_.SpawnStatic(decorum.rect, decorum.id);
     }
-    for (Level::PlacedDecorum const& decorum : level_.GetPlacedDecor()) {
-        (void)ecs_.SpawnStatic(decorum.rect.template Convert<float>());
+    for (auto cat : campaign_.GetCats()) {
+        (void)ecs_.SpawnStatic(bounds.template Convert<float>(), cat.id);
     }
+
     (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
 }
 
-Game::Entities::Static Game::GetStatics() noexcept {
-    return {
-        .cats{level_.GetPlacedCats()},
-        .decor{level_.GetPlacedDecor()},
-    };
-}
-
-Game::Entities::Dynamic Game::GetDynamics() noexcept {
-    return {.character{ecs_.GetPlayerBody()}};
-}
-
-Game::Entities Game::GetPositions() noexcept {
-    return {
-        .statics{this->GetStatics()},
-        .dynamics{this->GetDynamics()},
-    };
+std::vector<ECS::Drawable> Game::GetPositions() noexcept {
+    return ecs_.GetBodies();
 }
 
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
@@ -84,17 +73,16 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 void Game::RebuildLevel() noexcept {
     // Begins a new object lifetime
     std::destroy_at(&level_);
-    std::construct_at(&level_, campaign_.GetDecor(), campaign_.GetCats(),
-                      level_bounds_);
+    std::construct_at(&level_);
 
     // Static bodies are registered cats-first, then decor, so that collision
     // clamping happens in the same order as before.
     ecs_.Clear();
-    for (Level::PlacedCat const& cat : level_.GetPlacedCats()) {
-        (void)ecs_.SpawnStatic(cat.rect.template Convert<float>());
+    for (auto decorum : campaign_.GetDecor()) {
+        (void)ecs_.SpawnStatic(decorum.rect, decorum.id);
     }
-    for (Level::PlacedDecorum const& decorum : level_.GetPlacedDecor()) {
-        (void)ecs_.SpawnStatic(decorum.rect.template Convert<float>());
+    for (auto cat : campaign_.GetCats()) {
+        (void)ecs_.SpawnStatic(level_bounds_.template Convert<float>(), cat.id);
     }
     (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
 }

@@ -13,10 +13,6 @@
 #include <cstdint>
 #include <vector>
 //
-#include <optional>
-#include <span>
-#include <type_traits>
-//
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
 //
@@ -33,50 +29,12 @@ class Game final {
         BetweenLevels,
     };
 
-    struct Entities final {
-        /// Represents all objects that can't move
-        struct Static final {
-            std::span<Level::PlacedCat> cats;
-            std::span<Level::PlacedDecorum> decor;
-        };
-
-        static_assert(std::is_trivially_destructible_v<Static>);
-        static_assert(std::is_trivially_constructible_v<
-                      Static, std::span<Level::PlacedCat>,
-                      std::span<Level::PlacedDecorum>>);
-        static_assert(std::is_trivially_copy_constructible_v<Static>);
-        static_assert(std::is_trivially_copy_assignable_v<Static>);
-
-        /// Represents all objects that can move (whether by the player or game
-        /// AI)
-        struct Dynamic final {
-            types::Rectangle<float> character;
-            // TODO(SEP): hold span of customers
-        };
-
-        static_assert(std::is_trivially_destructible_v<Dynamic>);
-        static_assert(std::is_trivially_constructible_v<Dynamic>);
-        static_assert(std::is_trivially_copy_constructible_v<Dynamic>);
-        static_assert(std::is_trivially_copy_assignable_v<Dynamic>);
-
-        Static statics;
-        Dynamic dynamics;
-    };
-
-    static_assert(std::is_trivially_destructible_v<Entities>);
-    static_assert(std::is_trivially_constructible_v<Entities, Entities::Static,
-                                                    Entities::Dynamic>);
-    static_assert(std::is_trivially_copy_constructible_v<Entities>);
-    static_assert(std::is_trivially_copy_assignable_v<Entities>);
-
  public:
     using Bounds = types::Bounds<int>;
     explicit Game(Bounds) noexcept;
 
     /// Returns the player's position in the world in _game units_, not pixels.
-    Entities GetPositions() noexcept;
-    Entities::Static GetStatics() noexcept;
-    Entities::Dynamic GetDynamics() noexcept;
+    std::vector<ECS::Drawable> GetPositions() noexcept;
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 

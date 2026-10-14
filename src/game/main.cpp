@@ -18,6 +18,7 @@
 #include <zig.hpp>
 //
 #include "Arigato.hpp"
+#include "ECS.hpp"
 #include "arigato/id.hpp"
 #include "arigato/physics.hpp"
 #include "assets.hpp"
@@ -43,7 +44,6 @@ static_assert(std::is_trivially_constructible_v<TitleScreen, int, int>);
 void ProgressLevel(Arigato& arigato) noexcept {
     // Input+Sim
     arigato.game.Update(arigato.window.GetInput(), arigato.window.DeltaTime());
-    const core::Game::Entities pos{arigato.game.GetPositions()};
 
     // Render
 
@@ -58,44 +58,51 @@ void ProgressLevel(Arigato& arigato) noexcept {
     struct SpriteDrawInfo final {
         assets::SpriteInfo sprite_info;
         types::Rectangle<float> bounds;
-        bool known;
     };
 
-    for (const auto cat : pos.statics.cats) {
-        const SpriteDrawInfo info{[](decltype(cat) const* body,
-                                     decltype(screen_layout) layout) noexcept
-                                      -> SpriteDrawInfo {
-            // TODO(SEP): Generalize this switch to avoid redundant code
-            switch (body->cat) {
-                case id::CatId::Kitters:
-                case id::CatId::Unknown:
-                    return {
-                        .sprite_info{
-                            .sub_area{assets::cats::white::right_1.sub_area},
-                            .asset_path =
-                                assets::cats::white::right_1.asset_path,
+    for (const core::ECS::Drawable drawable : arigato.game.GetPositions()) {
+        const SpriteDrawInfo info{
+            [](core::ECS::Drawable const* body,
+               decltype(screen_layout) layout) noexcept -> SpriteDrawInfo {
+                SpriteDrawInfo info{
+                    .sprite_info{},
+                    .bounds{
+                        .pos{
+                            .x = static_cast<float>(body->rect.pos.x *
+                                                    layout.CellWidth()),
+                            .y = static_cast<float>(body->rect.pos.y *
+                                                    layout.CellHeight()),
                         },
                         .bounds{
-                            .pos{
-                                .x = static_cast<float>(body->rect.pos.x *
-                                                        layout.CellWidth()),
-                                .y = static_cast<float>(body->rect.pos.y *
-                                                        layout.CellHeight()),
-                            },
-                            .bounds{
-                                .width =
-                                    static_cast<float>(body->rect.bounds.width *
-                                                       layout.CellWidth()),
-                                .height = static_cast<float>(
-                                    body->rect.bounds.height *
-                                    layout.CellHeight()),
-                            },
+                            .width = static_cast<float>(
+                                body->rect.bounds.width * layout.CellWidth()),
+                            .height = static_cast<float>(
+                                body->rect.bounds.height * layout.CellHeight()),
                         },
-                        .known = true,
-                    };
-                    break;
-            }
-        }(&cat, screen_layout)};
+                    },
+                };
+                switch (body->sprite_id) {
+                    case arigato::id::SpriteId::Kitters:
+                        info.sprite_info.sub_area =
+                            assets::cats::white::right_1.sub_area;
+                        info.sprite_info.asset_path =
+                            assets::cats::white::right_1.asset_path;
+                        break;
+                    case arigato::id::SpriteId::CafeBar:
+                        info.sprite_info.sub_area = assets::cafe_bar.sub_area;
+                        info.sprite_info.asset_path =
+                            assets::cafe_bar.asset_path;
+                        break;
+                    case arigato::id::SpriteId::Player:
+                        info.sprite_info.sub_area =
+                            assets::player_right.sub_area;
+                        info.sprite_info.asset_path =
+                            assets::player_right.asset_path;
+                        break;
+                }
+
+                return info;
+            }(&drawable, screen_layout)};
 
         frame.DrawSpriteRegion(
             arigato.sprite_manager.Get(info.sprite_info.asset_path),
@@ -105,74 +112,7 @@ void ProgressLevel(Arigato& arigato) noexcept {
         }
     }
 
-    for (const auto decorum : pos.statics.decor) {
-        const SpriteDrawInfo info{
-            [](decltype(decorum) const* body,
-               decltype(screen_layout) layout) noexcept -> SpriteDrawInfo {
-                // TODO(SEP): Generalize this switch to avoid redundant code
-                switch (body->decorum) {
-                    case id::DecorId::CafeBar:
-                        return {
-                            .sprite_info{
-                                .sub_area{assets::cafe_bar.sub_area},
-                                .asset_path = assets::cafe_bar.asset_path,
-                            },
-                            .bounds{
-                                .pos{
-                                    .x = static_cast<float>(body->rect.pos.x *
-                                                            layout.CellWidth()),
-                                    .y = static_cast<float>(
-                                        body->rect.pos.y * layout.CellHeight()),
-                                },
-                                .bounds{
-                                    .width = static_cast<float>(
-                                        body->rect.bounds.width *
-                                        layout.CellWidth()),
-                                    .height = static_cast<float>(
-                                        body->rect.bounds.height *
-                                        layout.CellHeight()),
-                                },
-                            },
-                            .known = true,
-                        };
-                        break;
-                    case id::DecorId::Unknown:
-                        return {.sprite_info{}, .bounds{}, .known = false};
-                }
-            }(&decorum, screen_layout)};
-
-        if (info.known) [[likely]] {
-            frame.DrawSpriteRegion(
-                arigato.sprite_manager.Get(info.sprite_info.asset_path),
-                info.sprite_info.sub_area, info.bounds);
-            if constexpr (draw_hotboxes) {
-                frame.DrawHitbox(info.bounds, {.red = 255, .green{}, .blue{}});
-            }
-        }
-    }
-
-    const float character_width{arigato.game.GetCharacterWidth()};
-    const display::Sprite::Area player_region{
-        .pos{
-            .x = pos.dynamics.character.pos.x * screen_layout.CellWidth(),
-            .y = pos.dynamics.character.pos.y * screen_layout.CellHeight(),
-        },
-        .bounds{
-            .width =
-                static_cast<float>(screen_layout.CellWidth()) * character_width,
-            .height = static_cast<float>(screen_layout.CellHeight()) *
-                      character_width,
-        },
-    };
-    frame.DrawFullSprite(
-        arigato.sprite_manager.Get(assets::player_right.asset_path),
-        player_region);
-
-    if constexpr (draw_hotboxes) {
-        frame.DrawHitbox(player_region, {.red = 255, .green{}, .blue{}});
-    }
-
-    if constexpr (debug_build) {
+    if constexpr (report_framerate) {
         const int real_fps{arigato.window.GetFPS()};
         const auto fmt{std::format("FPS: {}", real_fps)};
         const auto fps_rect{

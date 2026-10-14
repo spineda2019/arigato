@@ -73,6 +73,20 @@ static_assert(!OneOf_v<int, int const&>);
 static_assert(OneOf_v<int, int, float>);
 static_assert(OneOf_v<int, bool, float, std::uint64_t, int>);
 static_assert(OneOf_v<int, bool, float, int, std::uint64_t>);
+
+template <class... Ts>
+struct TypeList final {
+    static_assert(false, "Unspecialized TypeList");
+};
+
+template <class Head, class... Tail>
+struct TypeList<Head, Tail...> final {};
+
+template <class T>
+struct TypeList<T> final {
+    using type = T;
+};
+
 }  // namespace arigato::meta
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_META_HPP_

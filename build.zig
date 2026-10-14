@@ -16,6 +16,7 @@ const CppFiles = struct {
         "src/core/ECS.cpp",
         "src/core/systems/InputSystem.cpp",
         "src/core/systems/PhysicsSystem.cpp",
+        "src/core/systems/LevelSystem.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
@@ -224,6 +225,7 @@ const Modules = struct {
 const BuildOptions = struct {
     create_compiledb: bool,
     draw_hitboxes: bool,
+    report_framerate: bool,
 
     fn init(b: *std.Build) BuildOptions {
         return .{
@@ -236,6 +238,11 @@ const BuildOptions = struct {
                 bool,
                 "drawhit",
                 "Draw hitboxes around physics entities",
+            ) orelse false,
+            .report_framerate = b.option(
+                bool,
+                "drawframerate",
+                "Draw the realtime framerate to the screen",
             ) orelse false,
         };
     }
@@ -265,6 +272,9 @@ pub fn build(b: *std.Build) !void {
     }
     if (options.draw_hitboxes) {
         mods.game.addCMacro("ARIGATO_DRAW_HITBOXES", "");
+    }
+    if (options.report_framerate) {
+        mods.game.addCMacro("ARIGATO_REPORT_FRAMERATE", "");
     }
 
     const compilations: Modules.Compilations = .init(.{

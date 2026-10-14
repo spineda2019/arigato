@@ -25,6 +25,14 @@ inline constexpr bool draw_hotboxes{
     false
 #endif
 };
+
+inline constexpr bool report_framerate{
+#ifdef ARIGATO_REPORT_FRAMERATE
+    true
+#else
+    false
+#endif
+};
 }  // namespace arigato
 
 #endif  // SRC_GAME_BUILD_FLAGS_HPP_

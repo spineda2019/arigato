@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 //
@@ -27,6 +28,7 @@
 #include "systems/LevelSystem.hpp"
 //
 #include "entities/Id.hpp"
+#include "zig.hpp"
 
 namespace arigato::core {
 class ECS final {
@@ -44,6 +46,7 @@ class ECS final {
         Count,
     };
 
+ public:
     using BitMask = std::bitset<std::to_underlying(BitSetIndex::Count)>;
 
     struct PrivateAccesor;
@@ -57,6 +60,145 @@ class ECS final {
     };
     static_assert(std::is_trivially_constructible_v<Drawable>);
     static_assert(std::is_trivially_destructible_v<Drawable>);
+
+    /// \brief exposes iterable capabilities (e.g. range-for loops) for entities
+    /// in the ECS
+    template <BitSetIndex... Ts>
+    class EntityIterable final {
+        static_assert((... &&
+                       (Ts != BitSetIndex::Alive && Ts != BitSetIndex::Count)),
+                      "EntityIterable must not include Alive or Count, which "
+                      "are meta-data");
+        static_assert(
+            sizeof...(Ts) > 0,
+            "Entities in the iterable must have at least 1 component");
+
+        template <BitSetIndex... BitSet>
+        struct IsEntityAt final {
+            static_assert(false, "Unrecognized set of components (entity)");
+            static inline constexpr bool Call(std::size_t,
+                                              ECS const*) noexcept {
+                return false;
+            }
+        };
+
+        template <>
+        struct IsEntityAt<BitSetIndex::SpriteComponent,
+                          BitSetIndex::PhysicsBodyComponent>
+            final {
+            static inline constexpr bool Call(std::size_t entity_id,
+                                              ECS* ecs) noexcept {
+                return ecs->IsDrawableAt(entity_id);
+            }
+        };
+
+        /// \brief Helper concrete base for specializations of the Iterator type
+        ///
+        /// In this custom iterator of the encapsulating `EntityIterable`
+        /// container, `operator==` and `operator++` are always the same. It is
+        /// just `operator*` that differs (and that differentiation will be
+        /// decided at compile time with template partialization on the types
+        /// passed in to the encapsulating `EntityIterable`)
+        struct IteratorBase {
+            /// \brief the index into the ECS component collections that refers
+            /// to the current Entity in the iterable
+            std::size_t index;
+            /// \brief the ecs who owns the component collections
+            ECS* ecs;
+
+            constexpr bool operator==(IteratorBase const& rhs) const noexcept {
+                return (this->index == rhs.index) && (this->ecs == rhs.ecs);
+            }
+
+            /// \brief increment the iterator to refer to the next valid
+            /// component, or refer to the end of the container (whichever comes
+            /// first)
+            ///
+            /// This uses deducing-this to prevent weird reference-slicing since
+            /// this is a simple helper base class. When called on a derived
+            /// real Iterator (see below for some impls), `self` will resolve
+            /// to the correct derived type at compile time
+            constexpr auto& operator++(this auto& self) noexcept {
+                do {
+                    self.index += 1;
+                } while (self.index < self.ecs->component_masks_.size() &&
+                         !IsEntityAt<Ts...>::Call(self.index, self.ecs));
+                return self;
+            }
+        };
+        static_assert(std::is_trivially_constructible_v<IteratorBase>);
+        static_assert(std::is_trivially_destructible_v<IteratorBase>);
+
+        /// \brief the final iterator. Usable Iterators will be specialized on
+        /// `BitSet`
+        ///
+        /// The specialization on `BitSet` represents that actual entity that is
+        /// being requested to iterate through. For example,
+        /// `Iterator<BitSetIndex::SpriteComponent,
+        /// BitSetIndex::PhysicsBodyComponent>` represents an Iterator for
+        /// "Drawable" entites in the ECS
+        template <BitSetIndex... BitSet>
+        struct Iterator final {
+            static_assert(false, "Unrecognized set of components (entity)");
+        };
+
+     public:
+        template <>
+        struct Iterator<BitSetIndex::SpriteComponent,
+                        BitSetIndex::PhysicsBodyComponent>
+            final : public IteratorBase {
+            constexpr Iterator(std::size_t idx, ECS* ptr)
+                : IteratorBase{idx, ptr} {}
+
+            /// \brief return the drawable refered to by the current iterator
+            ///
+            /// NOTE: We return by value here, mostly because its cheap to do
+            /// so and simpler. If a caller ever needs references (which they
+            /// shouldn't, internal mutation should be handled by the ECS),
+            /// you'll need to do two things:
+            /// * Think really _really_ hard if a caller really should be
+            /// getting a reference, which may be opening the door to semantic
+            /// ownership issues
+            /// * If you answer 'yes' to number one, somehow store/cache the
+            /// current
+            ///   drawable as a member, compute it if needed, then return it by
+            ///   reference
+            Drawable operator*() noexcept {
+                return this->ecs->GetDrawableAt(this->index);
+            }
+        };
+
+        using Iter = Iterator<Ts...>;
+
+     public:
+        constexpr explicit EntityIterable(ECS* owner) noexcept : ecs_{owner} {}
+
+        constexpr Iter begin() const {
+            for (std::size_t entity_id{0};
+                 entity_id < ecs_->component_masks_.size();  //
+                 ++entity_id) {
+                // find the first valid entity comprised of the requested
+                // components
+                if (IsEntityAt<Ts...>::Call(entity_id, ecs_)) {
+                    return {entity_id, ecs_};
+                }
+            }
+
+            // If no entities of the requested type was found, container is
+            // empty
+            return this->end();
+        }
+        constexpr Iter end() const {
+            return {ecs_->component_masks_.size(), ecs_};
+        }
+
+     private:
+        ECS* ecs_;
+    };
+    using DrawableIterable = EntityIterable<BitSetIndex::SpriteComponent,
+                                            BitSetIndex::PhysicsBodyComponent>;
+    static_assert(std::is_trivially_destructible_v<DrawableIterable>);
+    static_assert(std::is_trivially_destructible_v<DrawableIterable::Iter>);
 
  public:
     explicit ECS() = default;
@@ -88,7 +230,10 @@ class ECS final {
     /// \brief The player's current body in game _logical units_
     types::Rectangle<float> GetPlayerBody() noexcept;
 
-    std::vector<Drawable> GetBodies();
+    bool IsDrawableAt(std::size_t) noexcept;
+    Drawable GetDrawableAt(std::size_t) noexcept;
+    DrawableIterable GetDrawables() noexcept(
+        std::is_nothrow_constructible_v<DrawableIterable, ECS*>);
 
  private:
     /// \brief sugar-helper to enfore component concept on container elements

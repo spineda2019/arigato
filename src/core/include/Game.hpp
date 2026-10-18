@@ -11,7 +11,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <vector>
 //
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
@@ -33,8 +32,7 @@ class Game final {
     using Bounds = types::Bounds<int>;
     explicit Game(Bounds) noexcept;
 
-    /// Returns the player's position in the world in _game units_, not pixels.
-    std::vector<ECS::Drawable> GetPositions() noexcept;
+    ECS::DrawableIterable GetDrawables();
     std::size_t GetCurrentDay() const noexcept;
     std::uint8_t GetCustomersLeft() const noexcept;
 

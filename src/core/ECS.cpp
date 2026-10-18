@@ -252,34 +252,45 @@ types::Rectangle<float> ECS::GetPlayerBody() noexcept {
     return body->position;
 }
 
-std::vector<ECS::Drawable> ECS::GetBodies() {
-    std::vector<ECS::Drawable> list{};
+bool ECS::IsDrawableAt(std::size_t id) noexcept {
+    if (id >= component_masks_.size()) [[unlikely]] {
+        return false;
+    }
 
     using SpriteComponent = arigato::component::SpriteComponent;
     using BodyComponent = arigato::component::PhysicsBodyComponent;
 
-    const auto& sprite_components{
-        ECS::PrivateAccesor::StorageOf<SpriteComponent>(*this)};
-    const auto& physics_body_components{
-        ECS::PrivateAccesor::StorageOf<BodyComponent>(*this)};
+    const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
+        *this, static_cast<std::uint16_t>(id))};
+    const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
+        *this, static_cast<std::uint16_t>(id))};
+    const bool alive{
+        component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
 
-    zig::zig_assert(sprite_components.size() == physics_body_components.size());
-    zig::zig_assert(sprite_components.size() == component_masks_.size());
+    return sprite && body && alive;
+}
 
-    using SizeT = decltype(component_masks_)::size_type;
-    for (SizeT id{0}; id < component_masks_.size(); ++id) {
-        const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
-            *this, static_cast<std::uint16_t>(id))};
-        const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
-            *this, static_cast<std::uint16_t>(id))};
-        const bool alive{
-            component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
+ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
+    using SpriteComponent = arigato::component::SpriteComponent;
+    using BodyComponent = arigato::component::PhysicsBodyComponent;
 
-        if (sprite && body && alive) {
-            list.emplace_back(body->position, sprite->sprite_id);
-        }
-    }
+    const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
+        *this, static_cast<std::uint16_t>(id))};
+    const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
+        *this, static_cast<std::uint16_t>(id))};
+    const bool alive{
+        component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
 
-    return list;
+    zig::zig_assert(sprite && body && alive);
+
+    return {
+        .rect{body->position},
+        .sprite_id = sprite->sprite_id,
+    };
+}
+
+ECS::DrawableIterable ECS::GetDrawables() noexcept(
+    std::is_nothrow_constructible_v<ECS::DrawableIterable, ECS*>) {
+    return ECS::DrawableIterable{this};
 }
 }  // namespace arigato::core

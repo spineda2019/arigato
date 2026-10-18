@@ -60,7 +60,7 @@ void ProgressLevel(Arigato& arigato) noexcept {
         types::Rectangle<float> bounds;
     };
 
-    for (const core::ECS::Drawable drawable : arigato.game.GetPositions()) {
+    for (const core::ECS::Drawable drawable : arigato.game.GetDrawables()) {
         const SpriteDrawInfo info{
             [](core::ECS::Drawable const* body,
                decltype(screen_layout) layout) noexcept -> SpriteDrawInfo {

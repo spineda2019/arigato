@@ -9,7 +9,6 @@
 #include <memory>
 #include <type_traits>
 //
-#include <vector>
 //
 #include "include/Game.hpp"
 #include "include/Level.hpp"
@@ -57,10 +56,6 @@ Game::Game(Game::Bounds bounds) noexcept
     }
 
     (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
-}
-
-std::vector<ECS::Drawable> Game::GetPositions() noexcept {
-    return ecs_.GetBodies();
 }
 
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
@@ -120,5 +115,7 @@ bool Game::Save() const noexcept {
 float Game::GetCharacterWidth() noexcept {
     return ecs_.GetPlayerBody().bounds.width;
 }
+
+ECS::DrawableIterable Game::GetDrawables() { return ecs_.GetDrawables(); }
 
 }  // namespace arigato::core

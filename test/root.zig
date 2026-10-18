@@ -6,4 +6,11 @@
 //! License, v. 2.0. If a copy of the MPL was not distributed with this
 //! file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-test "stub" {}
+const std = @import("std");
+
+const TestFn = *const fn () callconv(.c) bool;
+
+test "ECS.Iterator" {
+    const testEntityIterator = @extern(TestFn, .{ .name = "TestEntityIterator" });
+    try std.testing.expect(testEntityIterator());
+}

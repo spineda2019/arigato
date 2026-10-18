@@ -25,6 +25,9 @@ const CppFiles = struct {
     const game = [_][]const u8{
         "src/game/main.cpp",
     };
+    const tst = [_][]const u8{
+        "test/root.cpp",
+    };
 };
 
 const CppIncludeDirs = struct {
@@ -319,6 +322,23 @@ pub fn build(b: *std.Build) !void {
             .sanitize_c = .full,
         }),
     });
+    for (CppFiles.tst) |file| {
+        mod_tests.root_module.addCSourceFile(.{
+            .file = b.path(file),
+            .language = .cpp,
+            .flags = try allFlags(.{
+                .allocator = b.allocator,
+                .for_file = file,
+                .compiledb = options.create_compiledb,
+            }),
+        });
+    }
+    for (CppIncludeDirs.core) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
+    for (CppIncludeDirs.common) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
     mod_tests.root_module.linkLibrary(compilations.core);
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);

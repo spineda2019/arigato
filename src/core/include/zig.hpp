@@ -10,13 +10,14 @@
 #define SRC_CORE_INCLUDE_ZIG_HPP_
 
 #include <utility>
+
 namespace arigato::core::zig {
 namespace detail {
 extern "C" {
-void zig_debug_assert(bool cond) noexcept;
+[[noreturn]] void zig_assert_fail() noexcept;
 }
 
-inline static constexpr bool asserts_enabled{
+inline constexpr bool asserts_enabled{
 #ifdef ARIGATO_ASSERT
     true
 #else
@@ -24,40 +25,42 @@ inline static constexpr bool asserts_enabled{
 #endif
 };
 
-template <bool Assert>
-inline constexpr void RunAssert(bool&&) noexcept {
-    static_assert(false, "Unknown specialization");
-}
-
-template <>
-inline constexpr void RunAssert<true>(bool&& cond) noexcept {
-    // This should cause materialization of the expression.
-    zig_debug_assert(cond);
-}
-
-template <>
-inline constexpr void RunAssert<false>(bool&&) noexcept {
-    // This should cause AVOID materialization of the expression, as its
-    // an rvalue (ideally a prvalue, a move is a code-smell here) that is
-    // never used.
-}
 }  // namespace detail
 
-/// \brief Invoke the zig assertion function
+/// \brief Invoke the zig assertion function and potentially encourage
+/// optimization
 ///
 /// Assertions in zig are different in C++, and can take affect even in release
 /// builds. In non-safety builds (e.g. ReleaseFast and ReleaseSmall), asserts
 /// can even be used as optimization heuristics by the compiler. However, that
-/// behavior from C++ is plain UB, so this should only hold affect in Debug and
-/// ReleaseSafe builds.
+/// behavior from C++ isn't quite as powerful from zig, as that requires
+/// crossing the compilation unit boundary, whereas zig compiles all zig files
+/// in a single compilation unit.
 ///
-/// As of C++17, PR values only need to be materialized when they are needed
-/// (mostly for copy elision). To encourage the `cond` argument to be a no-op in
-/// builds without asserts, we enforce r-value expressions. Since this are not
-/// used in non-assert builds, ideally the compiler will completely elide its
-/// evaluation.
-inline constexpr void zig_assert(bool&& cond) noexcept {
-    detail::RunAssert<detail::asserts_enabled>(std::forward<bool&&>(cond));
+/// Instead, this conducts a hybrid approach:
+/// * In constant evaluation, this assertion simply reaches std::unreachable,
+///   failing the compilation and (hopefully) providing an understandable
+///   diagnostic
+/// * In Runtime evaluation _only_ when assertions are enabled, zig's assertion
+///   is first called. This gives us sensible panics and stacktraces when we
+///   fail the assertion (rather than hard-UB). Then, if-and-only-if the
+///   assertion passes, the std::unreachable correctly allows the compiler
+///   _in the compilation unit of the caller_ to use the assertion for
+///   optimization. This is not allowed when assertions are turned off, as that
+///   can allow UB with no chance of panics.
+inline constexpr void zig_assert(bool cond) noexcept {
+    if consteval {
+        if (!cond) {
+            std::unreachable();
+        }
+    } else {
+        if constexpr (detail::asserts_enabled) {
+            if (!cond) [[unlikely]] {
+                detail::zig_assert_fail();
+                std::unreachable();
+            }
+        }
+    }
 }
 
 }  // namespace arigato::core::zig

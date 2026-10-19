@@ -35,8 +35,7 @@ inline constexpr bool TestEntityIterator() noexcept {
 
     constexpr auto iter_and_count = [](ECS& live_ecs) noexcept -> std::uint8_t {
         std::uint8_t body_count{0};
-        for (const ECS::Drawable drawable : live_ecs.GetDrawables()) {
-            (void)drawable;
+        for (const ECS::Drawable _ : live_ecs.GetDrawables()) {
             ++body_count;
         }
         return body_count;

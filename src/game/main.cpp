@@ -43,6 +43,9 @@ using Window = display::Window;
 using Level = core::Level;
 
 struct Arigato final {
+    /// \brief backend-agnostic object representing the rendered game window
+    ///
+    /// Must be initialized first
     display::Window window;
     core::Game game;
     display::SpriteManager sprite_manager;
@@ -249,7 +252,7 @@ int main() noexcept {
     };
     arigato::Arigato arigato{
         .window{800, 450, 60, "Arigato!"},
-        .game{{
+        .game{arigato::core::Game::Bounds{
             .width =
                 arigato::screen_layouts::LevelScreen::layout_info.col_count,
             .height =

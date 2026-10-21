@@ -59,9 +59,10 @@ void Move(std::span<const core::ECS::BitMask> masks,
           std::span<const component::PhysicsIntentComponent> intents,
           std::span<const component::PhysicsSpeedComponent> speeds,
           std::span<component::PhysicsBodyComponent> bodies,
+          std::span<component::PhysicsFaceableComponent> faceables,
           float dt) noexcept {
     for (std::size_t row{0}; row < masks.size(); ++row) {
-        if ((masks[row] & g_required_mask) != g_required_mask) {
+        if ((masks[row] & g_required_mask).none()) {
             continue;
         }
 
@@ -71,6 +72,11 @@ void Move(std::span<const core::ECS::BitMask> masks,
             IntentToDistance(intent.move_x, speed, dt);
         bodies[row].position.pos.y +=
             IntentToDistance(intent.move_y, speed, dt);
+        if (const core::ECS::BitMask bit{std::to_underlying(
+                core::ECS::BitSetIndex::PhysicsFaceableComponent)};
+            (masks[row] & bit).any()) {
+            faceables[row].direction = intent.move_x;
+        }
     }
 }
 

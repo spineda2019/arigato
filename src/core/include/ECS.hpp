@@ -28,7 +28,6 @@
 #include "systems/LevelSystem.hpp"
 //
 #include "entities/Id.hpp"
-#include "zig.hpp"
 
 namespace arigato::core {
 class ECS final {
@@ -39,6 +38,7 @@ class ECS final {
         PhysicsSpeedComponent,
         PhysicsIntentComponent,
         SpriteComponent,
+        PhysicsFaceableComponent,
         /// \brief just used to check if an entity in our component arrays is in
         /// use
         Alive,
@@ -245,6 +245,7 @@ class ECS final {
                    ComponentVec<component::PhysicsBodyComponent>,
                    ComponentVec<component::PhysicsSpeedComponent>,
                    ComponentVec<component::PhysicsIntentComponent>,
+                   ComponentVec<component::PhysicsFaceableComponent>,
                    ComponentVec<component::SpriteComponent>>;
 
  private:

@@ -1,0 +1,11 @@
+// raddbg 0.9.30 project file
+
+target:
+{
+  executable: "zig-out/bin/arigato"
+  working_directory: "zig-out/bin"
+  enabled: 1
+}
+name: debug_game
+tab_width: 4
+theme: None

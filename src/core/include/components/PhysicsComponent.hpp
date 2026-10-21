@@ -29,6 +29,12 @@ struct PhysicsIntentComponent final {
     arigato::physics::Intent intent;
 };
 static_assert(Component<PhysicsIntentComponent>);
+
+/// \brief Represents the ability for a physics object to face a direction.
+struct PhysicsFaceableComponent final {
+    arigato::physics::Intent::MoveDirection direction;
+};
+static_assert(Component<PhysicsFaceableComponent>);
 }  // namespace arigato::component
 
 #endif  // SRC_CORE_INCLUDE_COMPONENTS_PHYSICSCOMPONENT_HPP_

@@ -33,23 +33,58 @@
 
 namespace arigato::core {
 namespace {
-template <component::Component C>
-inline static consteval ECS::BitSetIndex IndexOf() noexcept {
-    namespace comp = arigato::component;
 
-    if constexpr (std::same_as<C, comp::InteractableComponent>) {
-        return ECS::BitSetIndex::InteractableComponent;
-    } else if constexpr (std::same_as<C, comp::PhysicsBodyComponent>) {
-        return ECS::BitSetIndex::PhysicsBodyComponent;
-    } else if constexpr (std::same_as<C, comp::PhysicsSpeedComponent>) {
-        return ECS::BitSetIndex::PhysicsSpeedComponent;
-    } else if constexpr (std::same_as<C, comp::PhysicsIntentComponent>) {
-        return ECS::BitSetIndex::PhysicsIntentComponent;
-    } else if constexpr (std::same_as<C, comp::SpriteComponent>) {
-        return ECS::BitSetIndex::SpriteComponent;
-    } else {
-        static_assert(false, "Unrecognized Component type");
-    }
+// ****************************** Bit Helpers ******************************* //
+
+/// \brief How we're going to map component types to their bit indices until we
+/// get some more reflection capabilities.
+template <class ComponentT>
+struct ComponentTypeToBitSetIndex final {
+    static_assert(false, "Unknown component type");
+    inline static constexpr ECS::BitSetIndex value{};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::InteractableComponent>
+    final {
+    inline static constexpr auto value{ECS::BitSetIndex::InteractableComponent};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::PhysicsBodyComponent>
+    final {
+    inline static constexpr auto value{ECS::BitSetIndex::PhysicsBodyComponent};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::PhysicsSpeedComponent>
+    final {
+    inline static constexpr auto value{ECS::BitSetIndex::PhysicsSpeedComponent};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::PhysicsIntentComponent>
+    final {
+    inline static constexpr auto value{
+        ECS::BitSetIndex::PhysicsIntentComponent};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::SpriteComponent> final {
+    inline static constexpr auto value{ECS::BitSetIndex::SpriteComponent};
+};
+
+template <>
+struct ComponentTypeToBitSetIndex<arigato::component::PhysicsFaceableComponent>
+    final {
+    inline static constexpr auto value{
+        ECS::BitSetIndex::PhysicsFaceableComponent};
+};
+// **************************** End Bit Helpers ***************************** //
+
+template <component::Component C>
+inline consteval ECS::BitSetIndex IndexOf() noexcept {
+    return ComponentTypeToBitSetIndex<C>::value;
 }
 
 static_assert(IndexOf<arigato::component::InteractableComponent>() ==
@@ -133,7 +168,9 @@ void ECS::Update(input::Input input, float dt) noexcept {
         component_masks_,
         ECS::PrivateAccesor::StorageOf<comp::PhysicsIntentComponent>(*this),
         ECS::PrivateAccesor::StorageOf<comp::PhysicsSpeedComponent>(*this),
-        ECS::PrivateAccesor::StorageOf<comp::PhysicsBodyComponent>(*this), dt);
+        ECS::PrivateAccesor::StorageOf<comp::PhysicsBodyComponent>(*this),
+        ECS::PrivateAccesor::StorageOf<comp::PhysicsFaceableComponent>(*this),
+        dt);
 
     // Clamp the actual body physics and "commit" them
     const auto body_bit{std::to_underlying(BitSetIndex::PhysicsBodyComponent)};
@@ -218,7 +255,8 @@ arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
         component::PhysicsBodyComponent{.position{body}},
         component::PhysicsSpeedComponent{.speed = speed},
         component::PhysicsIntentComponent{},  //
-        component::SpriteComponent{.sprite_id = arigato::id::SpriteId::Player});
+        component::SpriteComponent{.sprite_id = arigato::id::SpriteId::Player},
+        component::PhysicsFaceableComponent{});
 
     return player_id_;
 }
@@ -276,12 +314,19 @@ ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
 
     const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
         *this, static_cast<std::uint16_t>(id))};
-    const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
+    auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
         *this, static_cast<std::uint16_t>(id))};
     const bool alive{
         component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
 
     zig::zig_assert(sprite && body && alive);
+
+    using FaceableComponent = arigato::component::PhysicsFaceableComponent;
+    if (const auto* face{ECS::PrivateAccesor::GetComponent<FaceableComponent>(
+            *this, static_cast<std::uint16_t>(id))};
+        face && face->direction != decltype(face->direction)::Zero) {
+        // TODO(SEP): Somehow add support for flipping the sprite
+    }
 
     return {
         .rect{body->position},

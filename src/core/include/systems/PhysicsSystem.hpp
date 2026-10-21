@@ -26,6 +26,7 @@ void Move(std::span<const core::ECS::BitMask> masks,
           std::span<const component::PhysicsIntentComponent> intents,
           std::span<const component::PhysicsSpeedComponent> speeds,
           std::span<component::PhysicsBodyComponent> bodies,
+          std::span<component::PhysicsFaceableComponent> faceables,
           float dt) noexcept;
 
 /// \brief Prevent overlap of 2D rectangles.

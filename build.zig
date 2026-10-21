@@ -264,11 +264,11 @@ pub fn build(b: *std.Build) !void {
     });
 
     inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
-        if (optimize == .Debug) {
+        if (optimize == .debug) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_DEBUG", "");
         }
-        if (optimize == .Debug or optimize == .ReleaseSafe) {
+        if (optimize == .debug or optimize == .safe) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_ASSERT", "");
         }
@@ -304,9 +304,7 @@ pub fn build(b: *std.Build) !void {
     const run_cmd = b.addRunArtifact(compilations.game);
     run_step.dependOn(&run_cmd.step);
     run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
+    run_cmd.addPassthruArgs();
 
     // Creates an executable that will run `test` blocks from the executable's
     // root module. Note that test executables only test one module at a time,

@@ -176,9 +176,11 @@ const Modules = struct {
             });
         }
         const mod_mem = config.b.createModule(.{
-            .root_source_file = config.b.path("src/game/mem/root.zig"),
+            .root_source_file = config.b.path("src/mem/root.zig"),
             .target = config.target,
             .optimize = config.optimize,
+            .link_libc = true,
+            .link_libcpp = true,
         });
 
         for (CppIncludeDirs.core) |inc| {
@@ -345,31 +347,29 @@ pub fn build(b: *std.Build) !void {
     if (options.report_framerate) {
         mods.game.addCMacro("ARIGATO_REPORT_FRAMERATE", "");
     }
-
-    const compilations: Modules.Compilations = .init(.{
-        .b = b,
-        .modules = &mods,
-    });
-    compilations.game.lto = switch (optimize) {
-        .Debug => .none,
-        else => switch (target.result.os.tag) {
-            .windows, .macos => .none,
-            else => .full,
-        },
+    const mem_options = b.addOptions();
+    const strat_name = "allocation_strategy";
+    const pool_name = "arena_size";
+    const Strategy = enum {
+        smp,
+        arena,
     };
-
     switch (options.allocator_info) {
-        .default => {}, // leave the implementation's memory allocation alone
+        .default => {
+            mem_options.addOption(
+                Strategy,
+                strat_name,
+                .smp,
+            );
+            mem_options.addOption(
+                u32,
+                pool_name,
+                0,
+            );
+        }, // leave the implementation's memory allocation alone
         .custom => |strategy| {
             mods.game.addCMacro("ARIGATO_CUSTOM_ALLOCATOR", "");
-            const mem_options = b.addOptions();
             // zig 0.17.0 can't yet directly add tagged unions as build options
-            const Strategy = enum {
-                smp,
-                arena,
-            };
-            const strat_name = "allocation_strategy";
-            const pool_name = "arena_size";
             switch (strategy) {
                 .smp => {
                     mem_options.addOption(
@@ -397,9 +397,36 @@ pub fn build(b: *std.Build) !void {
                 },
             }
 
-            mods.mem.addOptions("mem_options", mem_options);
-            mods.game.linkLibrary(compilations.mem);
+            mods.mem.addCSourceFile(.{
+                .file = b.path("src/mem/custom_new.cpp"),
+                .flags = try allFlags(.{
+                    .allocator = b.allocator,
+                    .for_file = "src/mem/custom_new.cpp",
+                    .compiledb = options.create_compiledb,
+                }),
+                .language = .cpp,
+            });
         },
+    }
+    mods.mem.addOptions("mem_options", mem_options);
+
+    const compilations: Modules.Compilations = .init(.{
+        .b = b,
+        .modules = &mods,
+    });
+    compilations.game.lto = switch (optimize) {
+        .Debug => .none,
+        else => switch (target.result.os.tag) {
+            .windows, .macos => .none,
+            else => .full,
+        },
+    };
+    inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+        const mod: *std.Build.Module = @field(mods, field_name);
+        if (mod != mods.mem) {
+            mod.addIncludePath(b.path("src/mem/"));
+            mod.linkLibrary(compilations.mem);
+        }
     }
 
     b.installArtifact(compilations.game);

@@ -86,7 +86,7 @@ const Modules = struct {
     core: *std.Build.Module,
     display: *std.Build.Module,
     game: *std.Build.Module,
-    game_zcu: *std.Build.Module,
+    mem: *std.Build.Module,
 
     fn init(config: struct {
         b: *std.Build,
@@ -175,7 +175,7 @@ const Modules = struct {
                 }),
             });
         }
-        const mod_game_zcu = config.b.createModule(.{
+        const mod_mem = config.b.createModule(.{
             .root_source_file = config.b.path("src/game/mem/root.zig"),
             .target = config.target,
             .optimize = config.optimize,
@@ -198,7 +198,7 @@ const Modules = struct {
             .core = mod_core,
             .display = mod_display,
             .game = mod_game,
-            .game_zcu = mod_game_zcu,
+            .mem = mod_mem,
         };
     }
 
@@ -206,6 +206,7 @@ const Modules = struct {
         core: *std.Build.Step.Compile,
         display: *std.Build.Step.Compile,
         game: *std.Build.Step.Compile,
+        mem: *std.Build.Step.Compile,
 
         pub fn init(config: struct {
             b: *std.Build,
@@ -226,12 +227,23 @@ const Modules = struct {
             config.modules.game.linkLibrary(lib_core);
             config.modules.game.linkLibrary(lib_display);
 
+            const mem = config.b.addLibrary(.{
+                .linkage = .static,
+                .name = "mem",
+                .root_module = config.modules.mem,
+            });
+
             const game = config.b.addExecutable(.{
                 .name = "arigato",
                 .root_module = config.modules.game,
             });
 
-            return .{ .core = lib_core, .display = lib_display, .game = game };
+            return .{
+                .core = lib_core,
+                .display = lib_display,
+                .game = game,
+                .mem = mem,
+            };
         }
     };
 };
@@ -333,6 +345,19 @@ pub fn build(b: *std.Build) !void {
     if (options.report_framerate) {
         mods.game.addCMacro("ARIGATO_REPORT_FRAMERATE", "");
     }
+
+    const compilations: Modules.Compilations = .init(.{
+        .b = b,
+        .modules = &mods,
+    });
+    compilations.game.lto = switch (optimize) {
+        .Debug => .none,
+        else => switch (target.result.os.tag) {
+            .windows, .macos => .none,
+            else => .full,
+        },
+    };
+
     switch (options.allocator_info) {
         .default => {}, // leave the implementation's memory allocation alone
         .custom => |strategy| {
@@ -372,27 +397,10 @@ pub fn build(b: *std.Build) !void {
                 },
             }
 
-            mods.game_zcu.addOptions("mem_options", mem_options);
-            const game_zcu = b.addLibrary(.{
-                .linkage = .static,
-                .name = "arigato_zcu",
-                .root_module = mods.game_zcu,
-            });
-            mods.game.linkLibrary(game_zcu);
+            mods.mem.addOptions("mem_options", mem_options);
+            mods.game.linkLibrary(compilations.mem);
         },
     }
-
-    const compilations: Modules.Compilations = .init(.{
-        .b = b,
-        .modules = &mods,
-    });
-    compilations.game.lto = switch (optimize) {
-        .Debug => .none,
-        else => switch (target.result.os.tag) {
-            .windows, .macos => .none,
-            else => .full,
-        },
-    };
 
     b.installArtifact(compilations.game);
     b.installDirectory(.{

@@ -17,13 +17,9 @@ using Align = std::underlying_type_t<std::align_val_t>;
 static_assert(std::same_as<std::size_t, Align>);
 extern "C" {
 unsigned char* zig_new(std::size_t) noexcept;
-unsigned char* zig_new_array(std::size_t) noexcept;
 unsigned char* zig_new_aligned(std::size_t, Align) noexcept;
-unsigned char* zig_new_array_aligned(std::size_t, Align) noexcept;
 
 void zig_delete(void* ptr) noexcept;
-void zig_delete_array(void* ptr) noexcept;
 void zig_delete_aligned(void*, Align) noexcept;
-void zig_delete_array_aligned(void*, Align) noexcept;
 }
 #endif  // SRC_MEM_CUSTOM_NEW_HPP_

@@ -18,7 +18,7 @@ void* operator new(std::size_t amnt, std::nothrow_t const&) noexcept {
     return zig_new(amnt);
 }
 void* operator new[](std::size_t amnt, std::nothrow_t const&) noexcept {
-    return zig_new_array(amnt);
+    return zig_new(amnt);
 }
 void* operator new(std::size_t amnt, std::align_val_t al,
                    std::nothrow_t const&) noexcept {
@@ -26,7 +26,7 @@ void* operator new(std::size_t amnt, std::align_val_t al,
 }
 void* operator new[](std::size_t amnt, std::align_val_t al,
                      std::nothrow_t const&) noexcept {
-    return zig_new_array_aligned(amnt, std::to_underlying(al));
+    return zig_new_aligned(amnt, std::to_underlying(al));
 }
 void* operator new(std::size_t amnt) {
     if (void* const ptr{::operator new(amnt, std::nothrow_t{})}; ptr)
@@ -68,7 +68,7 @@ void operator delete(void* ptr) noexcept {
 }
 void operator delete[](void* ptr) noexcept {
     if (ptr) {
-        zig_delete_array(ptr);
+        zig_delete(ptr);
     }
 }
 void operator delete(void* ptr, std::align_val_t al) noexcept {
@@ -78,6 +78,6 @@ void operator delete(void* ptr, std::align_val_t al) noexcept {
 }
 void operator delete[](void* ptr, std::align_val_t al) noexcept {
     if (ptr) {
-        zig_delete_array_aligned(ptr, std::to_underlying(al));
+        zig_delete_aligned(ptr, std::to_underlying(al));
     }
 }

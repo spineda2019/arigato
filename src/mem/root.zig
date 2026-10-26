@@ -31,19 +31,8 @@ export fn zig_new(amount: usize) ?[*]u8 {
     ptr_map.put(mem.ptr, mem.len) catch @panic("OOM");
     return mem.ptr;
 }
-/// unsigned char* zig_new_array(std::size_t) noexcept;
-export fn zig_new_array(amount: usize) ?*u8 {
-    _ = amount;
-    return null;
-}
 /// unsigned char* zig_new_aligned(std::size_t, Align) noexcept;
 export fn zig_new_aligned(amount: usize, alignment: usize) ?*u8 {
-    _ = amount;
-    _ = alignment;
-    return null;
-}
-/// unsigned char* zig_new_array_aligned(std::size_t, Align) noexcept;
-export fn zig_new_array_aligned(amount: usize, alignment: usize) ?*u8 {
     _ = amount;
     _ = alignment;
     return null;
@@ -59,17 +48,8 @@ export fn zig_delete(ptr: [*]u8) void {
         unreachable;
     }
 }
-/// void zig_delete_array(void* ptr) noexcept;
-export fn zig_delete_array(ptr: *u8) void {
-    _ = ptr;
-}
 /// void zig_delete_aligned(void*, Align) noexcept;
 export fn zig_delete_aligned(ptr: *u8, alignment: usize) void {
-    _ = ptr;
-    _ = alignment;
-}
-/// void zig_delete_array_aligned(void*, Align) noexcept;
-export fn zig_delete_array_aligned(ptr: *u8, alignment: usize) void {
     _ = ptr;
     _ = alignment;
 }

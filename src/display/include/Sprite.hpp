@@ -10,6 +10,9 @@
 #ifndef SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 #define SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 
+#include <__new/global_new_delete.h>
+
+#include <cstddef>
 #include <memory>
 #include <type_traits>
 //

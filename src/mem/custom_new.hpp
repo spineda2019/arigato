@@ -10,6 +10,7 @@
 #define SRC_MEM_CUSTOM_NEW_HPP_
 
 #include <concepts>
+#include <cstddef>
 #include <new>
 #include <type_traits>
 
@@ -21,5 +22,8 @@ unsigned char* zig_new_aligned(std::size_t, Align) noexcept;
 
 void zig_delete(void* ptr) noexcept;
 void zig_delete_aligned(void*, Align) noexcept;
+
+unsigned char* zig_arena_new(std::size_t) noexcept;
+unsigned char* zig_arena_new_aligned(std::size_t, Align) noexcept;
 }
 #endif  // SRC_MEM_CUSTOM_NEW_HPP_

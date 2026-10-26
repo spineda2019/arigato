@@ -8,10 +8,12 @@
 
 #include <raylib.h>
 //
+#include <cstddef>
 #include <memory>
 #include <utility>
 //
 #include <arigato/input.hpp>
+#include <custom_new.hpp>
 //
 #include "include/Sprite.hpp"
 #include "include/Window.hpp"
@@ -35,16 +37,44 @@ constexpr bool cap_fps{
 }  // namespace
 
 namespace arigato::display {
+/// \brief internal impl that passes through to raylib API
+///
+/// This sprite's lifetime is tied to the lifetime of the sprite data on the
+/// GPU. For now, once data is sent to the GPU, we aren't going to worry about
+/// de-initing that until program-close. Thus, this type is a pretty good
+/// candidate for zig's arena allocator.
 struct Sprite::Impl {
     Texture2D texture_;
 
     explicit Impl(Texture2D texture) noexcept : texture_{std::move(texture)} {}
 
-    ~Impl() noexcept { UnloadTexture(texture_); }
+    ~Impl() noexcept { ::UnloadTexture(texture_); }
     Impl(Impl const&) = delete;
     Impl& operator=(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl&&) = delete;
+
+    static inline void* operator new(std::size_t amount) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new[](std::size_t amount) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new(std::size_t amount, std::align_val_t) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new[](std::size_t amount, std::align_val_t) {
+        return Impl::alloc(amount);
+    }
+
+ private:
+    static inline void* alloc(std::size_t amount) {
+        if (void* ptr{zig_arena_new(amount)}; ptr) [[likely]] {
+            return ptr;
+        } else {
+            throw std::bad_alloc{};
+        }
+    }
 };
 
 Sprite::Sprite(const char* path, Sprite::Bounds area) noexcept

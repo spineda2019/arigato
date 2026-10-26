@@ -4,6 +4,7 @@ const allocation_strategy = switch (mem_options.allocation_strategy) {
     .smp => @import("alloc_strategy/smp.zig"),
     .arena => @import("alloc_strategy/buffer_first.zig"),
 };
+const arena = @import("alloc_strategy/arena.zig");
 
 var ptr_map: std.HashMap(
     [*]u8,
@@ -19,10 +20,8 @@ var ptr_map: std.HashMap(
     80,
 ) = .init(std.heap.smp_allocator);
 
-/// unsigned char* zig_new(std::size_t) noexcept;
-export fn zig_new(amount: usize) ?[*]u8 {
-    const alloc: *std.mem.Allocator = allocation_strategy.getAllocator();
-    const mem: []u8 = alloc.alignedAlloc(
+fn new(allocator: *std.mem.Allocator, amount: usize) ?[*]u8 {
+    const mem: []u8 = allocator.alignedAlloc(
         u8,
         .@"16",
         amount,
@@ -31,11 +30,22 @@ export fn zig_new(amount: usize) ?[*]u8 {
     ptr_map.put(mem.ptr, mem.len) catch @panic("OOM");
     return mem.ptr;
 }
+
+/// unsigned char* zig_new(std::size_t) noexcept;
+export fn zig_new(amount: usize) ?[*]u8 {
+    const alloc: *std.mem.Allocator = allocation_strategy.getAllocator();
+    return new(alloc, amount);
+}
 /// unsigned char* zig_new_aligned(std::size_t, Align) noexcept;
 export fn zig_new_aligned(amount: usize, alignment: usize) ?*u8 {
     _ = amount;
     _ = alignment;
     return null;
+}
+
+export fn zig_arena_new(amount: usize) ?[*]u8 {
+    const alloc: *std.mem.Allocator = arena.getArena();
+    return new(alloc, amount);
 }
 
 /// void zig_delete(void* ptr) noexcept;

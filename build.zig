@@ -86,6 +86,7 @@ const Modules = struct {
     core: *std.Build.Module,
     display: *std.Build.Module,
     game: *std.Build.Module,
+    game_zcu: *std.Build.Module,
 
     fn init(config: struct {
         b: *std.Build,
@@ -174,6 +175,11 @@ const Modules = struct {
                 }),
             });
         }
+        const mod_game_zcu = config.b.createModule(.{
+            .root_source_file = config.b.path("src/game/mem/root.zig"),
+            .target = config.target,
+            .optimize = config.optimize,
+        });
 
         for (CppIncludeDirs.core) |inc| {
             mod_game.addIncludePath(config.b.path(inc));
@@ -188,7 +194,12 @@ const Modules = struct {
             mod_display.addIncludePath(config.b.path(inc));
         }
 
-        return .{ .core = mod_core, .display = mod_display, .game = mod_game };
+        return .{
+            .core = mod_core,
+            .display = mod_display,
+            .game = mod_game,
+            .game_zcu = mod_game_zcu,
+        };
     }
 
     const Compilations = struct {
@@ -225,10 +236,21 @@ const Modules = struct {
     };
 };
 
+const AllocatorInfo = union(enum) {
+    default,
+    custom: union(enum) {
+        /// Pretty much use default zig allocators
+        smp,
+        /// Use an arena allocator with a specified size in MB
+        arena: u32,
+    },
+};
+
 const BuildOptions = struct {
     create_compiledb: bool,
     draw_hitboxes: bool,
     report_framerate: bool,
+    allocator_info: AllocatorInfo,
 
     fn init(b: *std.Build) BuildOptions {
         return .{
@@ -247,6 +269,38 @@ const BuildOptions = struct {
                 "drawframerate",
                 "Draw the realtime framerate to the screen",
             ) orelse false,
+            .allocator_info = info: {
+                const custom_alloc = b.option(
+                    bool,
+                    "custom_alloc",
+                    "Use a zig implemented allocator rather than the default",
+                ) orelse false;
+
+                if (!custom_alloc) {
+                    break :info .default;
+                } else {
+                    const strategy = b.option(
+                        enum { smp, arena },
+                        "custom_alloc_choice",
+                        "Choose a custom allocator strategy",
+                    ) orelse .smp;
+
+                    switch (strategy) {
+                        .smp => {
+                            break :info .{ .custom = .smp };
+                        },
+                        .arena => {
+                            const arena_size = b.option(
+                                u32,
+                                "arena_size",
+                                "Arena size in MB",
+                            ) orelse 256;
+
+                            break :info .{ .custom = .{ .arena = arena_size } };
+                        },
+                    }
+                }
+            },
         };
     }
 };
@@ -278,6 +332,54 @@ pub fn build(b: *std.Build) !void {
     }
     if (options.report_framerate) {
         mods.game.addCMacro("ARIGATO_REPORT_FRAMERATE", "");
+    }
+    switch (options.allocator_info) {
+        .default => {}, // leave the implementation's memory allocation alone
+        .custom => |strategy| {
+            mods.game.addCMacro("ARIGATO_CUSTOM_ALLOCATOR", "");
+            const mem_options = b.addOptions();
+            // zig 0.17.0 can't yet directly add tagged unions as build options
+            const Strategy = enum {
+                smp,
+                arena,
+            };
+            const strat_name = "allocation_strategy";
+            const pool_name = "arena_size";
+            switch (strategy) {
+                .smp => {
+                    mem_options.addOption(
+                        Strategy,
+                        strat_name,
+                        .smp,
+                    );
+                    mem_options.addOption(
+                        u32,
+                        pool_name,
+                        0,
+                    );
+                },
+                .arena => |arena_size| {
+                    mem_options.addOption(
+                        Strategy,
+                        strat_name,
+                        .arena,
+                    );
+                    mem_options.addOption(
+                        u32,
+                        pool_name,
+                        arena_size,
+                    );
+                },
+            }
+
+            mods.game_zcu.addOptions("mem_options", mem_options);
+            const game_zcu = b.addLibrary(.{
+                .linkage = .static,
+                .name = "arigato_zcu",
+                .root_module = mods.game_zcu,
+            });
+            mods.game.linkLibrary(game_zcu);
+        },
     }
 
     const compilations: Modules.Compilations = .init(.{

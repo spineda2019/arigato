@@ -33,6 +33,7 @@ inline constexpr bool report_framerate{
     false
 #endif
 };
+
 }  // namespace arigato
 
 #endif  // SRC_GAME_BUILD_FLAGS_HPP_

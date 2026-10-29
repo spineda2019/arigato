@@ -10,6 +10,7 @@
 #define SRC_CORE_INCLUDE_COMPONENTS_PHYSICSCOMPONENT_HPP_
 
 #include <arigato/physics.hpp>
+#include <cstdint>
 //
 #include "Component.hpp"
 
@@ -33,6 +34,7 @@ static_assert(Component<PhysicsIntentComponent>);
 /// \brief Represents the ability for a physics object to face a direction.
 struct PhysicsFaceableComponent final {
     arigato::physics::Intent::MoveDirection direction;
+    arigato::physics::Intent::MoveDirection last_direction;
 };
 static_assert(Component<PhysicsFaceableComponent>);
 }  // namespace arigato::component

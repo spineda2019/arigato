@@ -17,6 +17,7 @@
 #include <Window.hpp>
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
+#include <utility>
 #include <zig.hpp>
 //
 #include "ECS.hpp"
@@ -130,28 +131,29 @@ struct Arigato final {
 
         for (const core::ECS::Drawable drawable : arigato.game.GetDrawables()) {
             const SpriteDrawInfo info{
-                [](core::ECS::Drawable const* body,
+                [](core::ECS::Drawable const& body,
                    decltype(screen_layout) layout) noexcept -> SpriteDrawInfo {
                     SpriteDrawInfo info{
                         .sprite_info{},
                         .bounds{
                             .pos{
-                                .x = static_cast<float>(body->rect.pos.x *
+                                .x = static_cast<float>(body.rect.pos.x *
                                                         layout.CellWidth()),
-                                .y = static_cast<float>(body->rect.pos.y *
+                                .y = static_cast<float>(body.rect.pos.y *
                                                         layout.CellHeight()),
                             },
                             .bounds{
-                                .width =
-                                    static_cast<float>(body->rect.bounds.width *
-                                                       layout.CellWidth()),
-                                .height = static_cast<float>(
-                                    body->rect.bounds.height *
-                                    layout.CellHeight()),
+                                .width = static_cast<float>(
+                                    body.rect.bounds.width *
+                                    layout.CellWidth() *
+                                    std::to_underlying(body.faced_direction)),
+                                .height =
+                                    static_cast<float>(body.rect.bounds.height *
+                                                       layout.CellHeight()),
                             },
                         },
                     };
-                    switch (body->sprite_id) {
+                    switch (body.sprite_id) {
                         case arigato::id::SpriteId::Kitters:
                             info.sprite_info.sub_area =
                                 assets::cats::white::right_1.sub_area;
@@ -172,8 +174,10 @@ struct Arigato final {
                             break;
                     }
 
+                    info.sprite_info.sub_area.bounds.width *=
+                        std::to_underlying(body.faced_direction);
                     return info;
-                }(&drawable, screen_layout)};
+                }(drawable, screen_layout)};
 
             frame.DrawSpriteRegion(
                 arigato.sprite_manager.Get(info.sprite_info.asset_path),

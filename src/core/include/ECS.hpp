@@ -57,6 +57,7 @@ class ECS final {
     struct Drawable final {
         types::Rectangle<float> rect;
         arigato::id::SpriteId sprite_id;
+        arigato::physics::Intent::MoveDirection faced_direction;
     };
     static_assert(std::is_trivially_constructible_v<Drawable>);
     static_assert(std::is_trivially_destructible_v<Drawable>);

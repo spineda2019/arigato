@@ -6,7 +6,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -256,7 +255,10 @@ arigato::entities::Id ECS::SpawnPlayer(types::Rectangle<float> body,
         component::PhysicsSpeedComponent{.speed = speed},
         component::PhysicsIntentComponent{},  //
         component::SpriteComponent{.sprite_id = arigato::id::SpriteId::Player},
-        component::PhysicsFaceableComponent{});
+        component::PhysicsFaceableComponent{
+            .direction = arigato::physics::Intent::MoveDirection::Positive,
+            .last_direction = arigato::physics::Intent::MoveDirection::Positive,
+        });
 
     return player_id_;
 }
@@ -311,6 +313,8 @@ bool ECS::IsDrawableAt(std::size_t id) noexcept {
 ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
     using SpriteComponent = arigato::component::SpriteComponent;
     using BodyComponent = arigato::component::PhysicsBodyComponent;
+    using FaceableComponent = arigato::component::PhysicsFaceableComponent;
+    using MoveDir = arigato::physics::Intent::MoveDirection;
 
     const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
         *this, static_cast<std::uint16_t>(id))};
@@ -321,16 +325,21 @@ ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
 
     zig::zig_assert(sprite && body && alive);
 
-    using FaceableComponent = arigato::component::PhysicsFaceableComponent;
-    if (const auto* face{ECS::PrivateAccesor::GetComponent<FaceableComponent>(
-            *this, static_cast<std::uint16_t>(id))};
-        face && face->direction != decltype(face->direction)::Zero) {
-        // TODO(SEP): Somehow add support for flipping the sprite
-    }
-
     return {
         .rect{body->position},
         .sprite_id = sprite->sprite_id,
+        .faced_direction = [](ECS& ecs, entities::Id id) noexcept -> MoveDir {
+            if (auto* face{ECS::PrivateAccesor::GetComponent<FaceableComponent>(
+                    ecs, id)};
+                face) {
+                if (face->direction != MoveDir::Zero) {
+                    face->last_direction = face->direction;
+                }
+                return face->last_direction;
+            } else {
+                return arigato::physics::Intent::MoveDirection::Positive;
+            }
+        }(*this, static_cast<std::uint16_t>(id)),
     };
 }
 

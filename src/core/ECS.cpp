@@ -292,34 +292,40 @@ types::Rectangle<float> ECS::GetPlayerBody() noexcept {
     return body->position;
 }
 
-bool ECS::IsDrawableAt(std::size_t id) noexcept {
-    if (id >= component_masks_.size()) [[unlikely]] {
+bool ECS::IsDrawableAt(std::size_t index) noexcept {
+    if (index >= component_masks_.size()) [[unlikely]] {
         return false;
     }
 
     using SpriteComponent = arigato::component::SpriteComponent;
     using BodyComponent = arigato::component::PhysicsBodyComponent;
 
-    const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
-        *this, static_cast<std::uint16_t>(id))};
-    const auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
-        *this, static_cast<std::uint16_t>(id))};
+    zig::zig_assert(index <= std::numeric_limits<std::uint16_t>::max());
+    const std::uint16_t id{static_cast<std::uint16_t>(index)};
+
+    const auto* sprite{
+        ECS::PrivateAccesor::GetComponent<SpriteComponent>(*this, id)};
+    const auto* body{
+        ECS::PrivateAccesor::GetComponent<BodyComponent>(*this, id)};
     const bool alive{
         component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
 
     return sprite && body && alive;
 }
 
-ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
+ECS::Drawable ECS::GetDrawableAt(std::size_t index) noexcept {
     using SpriteComponent = arigato::component::SpriteComponent;
     using BodyComponent = arigato::component::PhysicsBodyComponent;
     using FaceableComponent = arigato::component::PhysicsFaceableComponent;
     using MoveDir = arigato::physics::Intent::MoveDirection;
 
-    const auto* sprite{ECS::PrivateAccesor::GetComponent<SpriteComponent>(
-        *this, static_cast<std::uint16_t>(id))};
-    auto* body{ECS::PrivateAccesor::GetComponent<BodyComponent>(
-        *this, static_cast<std::uint16_t>(id))};
+    zig::zig_assert(index <= std::numeric_limits<std::uint16_t>::max());
+    const std::uint16_t id{static_cast<std::uint16_t>(index)};
+
+    const SpriteComponent* const sprite{
+        ECS::PrivateAccesor::GetComponent<SpriteComponent>(*this, id)};
+    BodyComponent* const body{
+        ECS::PrivateAccesor::GetComponent<BodyComponent>(*this, id)};
     const bool alive{
         component_masks_[id].test(std::to_underlying(BitSetIndex::Alive))};
 
@@ -329,17 +335,18 @@ ECS::Drawable ECS::GetDrawableAt(std::size_t id) noexcept {
         .rect{body->position},
         .sprite_id = sprite->sprite_id,
         .faced_direction = [](ECS& ecs, entities::Id id) noexcept -> MoveDir {
-            if (auto* face{ECS::PrivateAccesor::GetComponent<FaceableComponent>(
-                    ecs, id)};
+            if (FaceableComponent* face{
+                    ECS::PrivateAccesor::GetComponent<FaceableComponent>(ecs,
+                                                                         id)};
                 face) {
                 if (face->direction != MoveDir::Zero) {
                     face->last_direction = face->direction;
                 }
                 return face->last_direction;
             } else {
-                return arigato::physics::Intent::MoveDirection::Positive;
+                return MoveDir::Positive;
             }
-        }(*this, static_cast<std::uint16_t>(id)),
+        }(*this, id),
     };
 }
 

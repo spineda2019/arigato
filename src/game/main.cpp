@@ -9,20 +9,20 @@
 #include <array>
 #include <cstdlib>
 #include <format>
+#include <utility>
 //
+#include <ECS.hpp>
 #include <Game.hpp>
 #include <Level.hpp>
 #include <Sprite.hpp>
 #include <SpriteManager.hpp>
 #include <Window.hpp>
+#include <arigato/id.hpp>
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
-#include <utility>
+#include <arigato/physics.hpp>
 #include <zig.hpp>
 //
-#include "ECS.hpp"
-#include "arigato/id.hpp"
-#include "arigato/physics.hpp"
 #include "assets.hpp"
 #include "build_flags.hpp"
 #include "ui_components.hpp"
@@ -187,21 +187,11 @@ struct Arigato final {
             }
         }
 
-        if constexpr (report_framerate) {
-            const int real_fps{arigato.window.GetFPS()};
-            const auto fmt{std::format("FPS: {}", real_fps)};
-            const auto fps_rect{screen_layout.MakeRectangle<
-                {.col = 0, .row = 0},
-                {.left = 0, .top = 0, .right = 0, .down = 5}>()};
-            frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
-                           fps_rect.bounds.height,
-                           Window::BackgroundColor::LightGray);
-        }
         const auto day{arigato.game.GetCurrentDay()};
         const auto day_fmt{std::format("Day {}", day)};
         const auto day_rect{
             screen_layout
-                .MakeRectangle<{.col = 0, .row = 1},
+                .MakeRectangle<{.col = 0, .row = 0},
                                {.left = 0, .top = 0, .right = 0, .down = 5}>()};
         frame.DrawText(day_fmt.c_str(), day_rect.pos.x, day_rect.pos.y,
                        day_rect.bounds.height,
@@ -211,16 +201,28 @@ struct Arigato final {
         const auto cust_fmt{std::format("Customers left: {}", customers_left)};
         const auto cust_rect{
             screen_layout
-                .MakeRectangle<{.col = 0, .row = 2},
+                .MakeRectangle<{.col = 0, .row = 1},
                                {.left = 0, .top = 0, .right = 0, .down = 5}>()};
         frame.DrawText(cust_fmt.c_str(), cust_rect.pos.x, cust_rect.pos.y,
                        cust_rect.bounds.height,
                        Window::BackgroundColor::LightGray);
 
+        if constexpr (report_framerate) {
+            const int real_fps{arigato.window.GetFPS()};
+            const auto fmt{std::format("FPS: {}", real_fps)};
+            const auto fps_rect{screen_layout.MakeRectangle<
+                {.col = 0, .row = 2},
+                {.left = 0, .top = 0, .right = 0, .down = 5}>()};
+            frame.DrawText(fmt.c_str(), fps_rect.pos.x, fps_rect.pos.y,
+                           fps_rect.bounds.height,
+                           Window::BackgroundColor::LightGray);
+        }
+
         if (customers_left == 0) {
             arigato.game.FinishLevel();
         }
     }
+
     inline constexpr void LevelTransition(this auto& arigato) noexcept {
         constexpr Button next_level_button{
             .rectangle{

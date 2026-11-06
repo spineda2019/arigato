@@ -87,10 +87,6 @@ Sprite::Sprite(const char* path) noexcept
 
 Sprite::~Sprite() noexcept = default;
 
-Sprite::ReadonlyImplRef_t Sprite::ReadonlyImplRef() const noexcept {
-    return impl_;
-}
-
 float Sprite::GetHeight() const noexcept { return area_.height; }
 
 float Sprite::GetWidth() const noexcept { return area_.width; }
@@ -198,7 +194,7 @@ Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {
     ::DrawTexturePro(
-        s.ReadonlyImplRef()->texture_,
+        s.impl_->texture_,
         {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
         {.x = x, .y = y, .width = s.GetWidth(), .height = s.GetHeight()},
         abs_origin,
@@ -208,7 +204,7 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
 
 void Window::Frame::DrawFullSprite(Sprite const& sprite,
                                    Sprite::Area target) const noexcept {
-    ::DrawTexturePro(sprite.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(sprite.impl_->texture_,
                      {
                          .x = 0.0f,
                          .y = 0.0f,
@@ -228,7 +224,7 @@ void Window::Frame::DrawFullSprite(Sprite const& sprite,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
-    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(s.impl_->texture_,
                      {
                          .x = region.pos.x,
                          .y = region.pos.y,
@@ -248,7 +244,7 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
                                      Sprite::Area dest) const noexcept {
-    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(s.impl_->texture_,
                      {
                          .x = src.pos.x,
                          .y = src.pos.y,

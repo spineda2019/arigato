@@ -49,17 +49,14 @@ inline constexpr bool asserts_enabled{
 ///   optimization. This is not allowed when assertions are turned off, as that
 ///   can allow UB with no chance of panics.
 inline constexpr void zig_assert(bool cond) noexcept {
-    if consteval {
-        if (!cond) {
-            std::unreachable();
-        }
-    } else {
+    if (!cond) [[unlikely]] {
         if constexpr (detail::asserts_enabled) {
-            if (!cond) [[unlikely]] {
+            if !consteval {
                 detail::zig_assert_fail();
-                std::unreachable();
             }
         }
+
+        std::unreachable();
     }
 }
 

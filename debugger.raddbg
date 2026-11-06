@@ -4,7 +4,7 @@ target:
 {
   executable: "zig-out/bin/arigato"
   working_directory: "zig-out/bin"
-  enabled: 1
+  enabled: 0
 }
 name: debug_game
 tab_width: 4

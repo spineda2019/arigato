@@ -11,8 +11,10 @@
 #define SRC_COMMON_TYPES_ARIGATO_META_HPP_
 
 #include <cstdint>
+#include <memory>
 #include <new>
 #include <type_traits>
+#include <utility>
 namespace arigato::meta {
 /// \brief If condition for meta-functions
 ///
@@ -86,6 +88,14 @@ template <class T>
 struct TypeList<T> final {
     using type = T;
 };
+
+template <class T, class... ArgTs>
+inline constexpr T* RecycleLifetime(T* obj, ArgTs&&... args) noexcept(
+    std::is_nothrow_constructible_v<T, ArgTs...> &&
+    std::is_nothrow_destructible_v<T>) {
+    std::destroy_at(obj);
+    return std::construct_at(obj, std::forward<ArgTs>(args)...);
+}
 
 }  // namespace arigato::meta
 

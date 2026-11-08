@@ -14,6 +14,7 @@
 #include "include/Level.hpp"
 //
 #include <arigato/input.hpp>
+#include <arigato/meta.hpp>
 #include <arigato/physics.hpp>
 
 namespace arigato::core {
@@ -48,11 +49,17 @@ Game::Game(Game::Bounds bounds) noexcept
       ecs_{},
       level_bounds_{bounds},
       state_{Game::State::Title} {
+    this->SpawnRequiredEntities();
+}
+
+void Game::SpawnRequiredEntities() noexcept {
+    // Static bodies are registered cats-first, then decor, so that collision
+    // clamping happens in the same order as before.
     for (auto decorum : campaign_.GetDecor()) {
         (void)ecs_.SpawnStatic(decorum.rect, decorum.id);
     }
     for (auto cat : campaign_.GetCats()) {
-        (void)ecs_.SpawnStatic(bounds.template Convert<float>(), cat.id);
+        (void)ecs_.SpawnStatic(level_bounds_.template Convert<float>(), cat.id);
     }
 
     (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
@@ -67,25 +74,18 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 
 void Game::RebuildLevel() noexcept {
     // Begins a new object lifetime
-    std::destroy_at(&level_);
-    std::construct_at(&level_);
+    arigato::meta::RecycleLifetime(&level_);
 
-    // Static bodies are registered cats-first, then decor, so that collision
-    // clamping happens in the same order as before.
-    ecs_.Clear();
-    for (auto decorum : campaign_.GetDecor()) {
-        (void)ecs_.SpawnStatic(decorum.rect, decorum.id);
-    }
-    for (auto cat : campaign_.GetCats()) {
-        (void)ecs_.SpawnStatic(level_bounds_.template Convert<float>(), cat.id);
-    }
-    (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
+    ecs_.Clear();  // despawns all entities
+
+    this->SpawnRequiredEntities();
 }
 
 void Game::Update(input::Input intent, float dt) noexcept {
     // Input + movement + collision for every body in the level
     ecs_.Update(intent, dt);
     level_.Apply({.served = intent.pressed.space});
+    // TODO(SEP): update the campaign if needed (e.g. collectables)
 }
 
 void Game::NextLevel() noexcept {

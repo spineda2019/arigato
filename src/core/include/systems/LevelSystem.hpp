@@ -33,6 +33,8 @@ class LevelSystem final {
     Rect GenerateLevelRectangle(CreationBounds) noexcept;
 
  private:
+    /// This makes the object huge. Pimpl this if this becomes a problem for
+    /// some reason
     std::mt19937 rng_{};
 };
 }  // namespace arigato::core

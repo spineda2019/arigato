@@ -66,6 +66,8 @@ class Game final {
     /// first build the player starts at `initial_player_body`.
     void RebuildLevel() noexcept;
 
+    void SpawnRequiredEntities() noexcept;
+
  private:
     Campaign campaign_{};
     Level level_;

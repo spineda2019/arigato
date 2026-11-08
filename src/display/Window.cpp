@@ -54,6 +54,7 @@ struct Sprite::Impl {
     Impl(Impl&&) = delete;
     Impl& operator=(Impl&&) = delete;
 
+#ifdef ARIGATO_CUSTOM_ALLOCATOR
     static inline void* operator new(std::size_t amount) {
         return Impl::alloc(amount);
     }
@@ -66,6 +67,8 @@ struct Sprite::Impl {
     static inline void* operator new[](std::size_t amount, std::align_val_t) {
         return Impl::alloc(amount);
     }
+    // TODO(SEP): operator delete
+#endif
 
  private:
     static inline void* alloc(std::size_t amount) {
@@ -161,7 +164,12 @@ Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
     ::ClearBackground(ToRayColor(color));
 }
+
+namespace {
+constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
 constexpr unsigned char full_opaque{255};
+}  // anonymous namespace
+
 void Window::Frame::SetBackgroundRGB(Window::RGB rgb) const noexcept {
     ::ClearBackground(::Color{
         .r = rgb.red,
@@ -184,10 +192,6 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                    .a = full_opaque,
                });
 }
-
-namespace {
-constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
-}  // anonymous namespace
 
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
 

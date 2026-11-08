@@ -50,8 +50,8 @@ inline constexpr bool asserts_enabled{
 ///   can allow UB with no chance of panics.
 inline constexpr void zig_assert(bool cond) noexcept {
     if (!cond) [[unlikely]] {
-        if constexpr (detail::asserts_enabled) {
-            if !consteval {
+        if !consteval {
+            if constexpr (detail::asserts_enabled) {
                 detail::zig_assert_fail();
             }
         }

@@ -34,8 +34,7 @@
 namespace arigato::core {
 namespace {
 
-// **************************** End Bit Helpers ***************************** //
-
+/// \brief Given a component's type, calculate its bitset-index in the mask vec
 template <component::Component C>
 inline consteval ECS::BitSetIndex IndexOf() noexcept {
     using BitIndex = ECS::BitSetIndex;
@@ -179,7 +178,7 @@ void ECS::Update(input::Input input, float dt,
 
 void ECS::Clear() noexcept {
     std::apply(
-        [](auto&... component_vecs) noexcept { (component_vecs.clear(), ...); },
+        [](auto&... component_vecs) noexcept { (..., component_vecs.clear()); },
         components_);
     component_masks_.clear();
     free_ids_.clear();
@@ -192,7 +191,7 @@ void ECS::AppendEmptyEntity() {
                     std::numeric_limits<decltype(entity_count)>::max());
 
     std::apply(
-        [](auto&... component_vecs) { (component_vecs.emplace_back(), ...); },
+        [](auto&... component_vecs) { (..., component_vecs.emplace_back()); },
         components_);
     ECS::BitMask alive{};
     alive.set(std::to_underlying(BitSetIndex::Alive));

@@ -6,12 +6,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include <memory>
+#include <iostream>
 #include <type_traits>
+#include <variant>
+#include <vector>
 //
 //
 #include "include/Game.hpp"
 #include "include/Level.hpp"
+#include "systems/Event.hpp"
 //
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
@@ -45,6 +48,7 @@ static_assert(NoThrowClamp<unsigned char>(4, 1, 3) == 3);
 
 Game::Game(Game::Bounds bounds) noexcept
     : campaign_{},
+      events_{},
       level_{},
       ecs_{},
       level_bounds_{bounds},
@@ -74,7 +78,7 @@ std::uint8_t Game::GetCustomersLeft() const noexcept {
 
 void Game::RebuildLevel() noexcept {
     // Begins a new object lifetime
-    arigato::meta::RecycleLifetime(&level_);
+    (void)arigato::meta::RecycleLifetime(&level_);
 
     ecs_.Clear();  // despawns all entities
 
@@ -82,10 +86,25 @@ void Game::RebuildLevel() noexcept {
 }
 
 void Game::Update(input::Input intent, float dt) noexcept {
+    events_.clear();
+
     // Input + movement + collision for every body in the level
-    ecs_.Update(intent, dt);
+    ecs_.Update(intent, dt, events_);
+
+    constexpr auto visitor{arigato::meta::OverloadSet{
+        [](BodyCollision const& collision) {
+            std::cout << "Collision A id: " << collision.collisionA
+                      << "\nB id: " << collision.collisionB << "\n\n";
+        },
+    }};
+    for (const Event& ev : events_) {
+        std::visit(visitor, ev);
+    }
+
     level_.Apply({.served = intent.pressed.space});
-    // TODO(SEP): update the campaign if needed (e.g. collectables)
+    // TODO(SEP): update the campaign if needed (e.g. collectables, a shop
+    // aspect was added, etc)
+    // campaign_.UpdateEntities();
 }
 
 void Game::NextLevel() noexcept {
@@ -102,15 +121,12 @@ void Game::StartNewCampaign() noexcept {
 }
 
 void Game::LoadExistingCampaign() noexcept {
-    // TODO(SEP)
+    // TODO(SEP): Deserialize something from disk into an instance of a campaign
 }
 
 void Game::FinishLevel() noexcept { state_ = Game::State::BetweenLevels; }
 
-bool Game::Save() const noexcept {
-    return false;
-    (void)state_;
-}
+bool Game::Save() const noexcept { return false; }
 
 float Game::GetCharacterWidth() noexcept {
     return ecs_.GetPlayerBody().bounds.width;

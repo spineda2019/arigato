@@ -25,6 +25,7 @@
 #include "components/InteractableComponent.hpp"
 #include "components/PhysicsComponent.hpp"
 #include "components/SpriteComponent.hpp"
+#include "systems/Event.hpp"
 #include "systems/LevelSystem.hpp"
 //
 #include "entities/Id.hpp"
@@ -205,7 +206,7 @@ class ECS final {
     explicit ECS() = default;
 
     /// \brief Advance the simulation by one frame
-    void Update(input::Input, float dt) noexcept;
+    void Update(input::Input, float dt, std::vector<Event>&) noexcept;
 
     /// \brief Forget every entity and recycle all storage. Ids handed out
     /// before this call are invalid afterwards.

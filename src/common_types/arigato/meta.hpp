@@ -97,6 +97,11 @@ inline constexpr T* RecycleLifetime(T* obj, ArgTs&&... args) noexcept(
     return std::construct_at(obj, std::forward<ArgTs>(args)...);
 }
 
+template <class... Ts>
+struct OverloadSet : Ts... {
+    using Ts::operator()...;
+};
+
 }  // namespace arigato::meta
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_META_HPP_

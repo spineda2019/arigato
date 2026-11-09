@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 //
 #include <arigato/input.hpp>
 #include <arigato/physics.hpp>
@@ -18,6 +19,7 @@
 #include "Campaign.hpp"
 #include "ECS.hpp"
 #include "Level.hpp"
+#include "systems/Event.hpp"
 
 namespace arigato::core {
 class Game final {
@@ -38,7 +40,11 @@ class Game final {
 
     /// Here, the `Input` represents the _intent_. It is up to the game
     /// internally to validate the intent and update world state as appropriate
-    /// (e.g. collision)
+    /// (e.g. collision).
+    ///
+    /// In general, this member-function should just
+    ///     * Update the ECS for physics and other game entities
+    ///     * Query the ECS for certain properties to update the campaign
     void Update(input::Input, float dt) noexcept;
 
     void NextLevel() noexcept;
@@ -70,6 +76,7 @@ class Game final {
 
  private:
     Campaign campaign_{};
+    std::vector<Event> events_;
     Level level_;
     ECS ecs_{};
     Bounds level_bounds_{};

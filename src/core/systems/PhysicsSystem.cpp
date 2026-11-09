@@ -6,15 +6,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "systems/PhysicsSystem.hpp"
-
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <utility>
-
+#include <vector>
+//
 #include "ECS.hpp"
 #include "components/PhysicsComponent.hpp"
+#include "systems/Event.hpp"
+#include "systems/PhysicsSystem.hpp"
 
 namespace arigato::system::physics {
 namespace {
@@ -81,13 +83,11 @@ void Move(std::span<const core::ECS::BitMask> masks,
 }
 
 void Collide(std::span<Rectangle*> dynamic_bodies,
-             std::span<Rectangle> static_bodies) noexcept {
-    // Marks the next dynamic body we have _start at_ for checking the
-    // current body.
-    auto it{dynamic_bodies.begin()};
-
-    constexpr auto clamp_body = [](Rectangle* free_body,
-                                   Rectangle const& committed_body) noexcept {
+             std::span<Rectangle> static_bodies,
+             std::vector<core::Event>&) noexcept {
+    // TODO(SEP): add collision events to the vec
+    const auto clamp_body = [](Rectangle* free_body,
+                               Rectangle const& committed_body) noexcept {
         if (free_body->Overlaps(committed_body)) [[unlikely]] {
             const Rectangle overlap{
                 OverlapRectangle(*free_body, committed_body)};
@@ -109,7 +109,10 @@ void Collide(std::span<Rectangle*> dynamic_bodies,
         }
     };
 
-    for (Rectangle* to_clamp : dynamic_bodies) {
+    // Marks the next dynamic body we have _start at_ for checking the
+    // current body.
+    for (auto it{dynamic_bodies.begin()};
+         Rectangle* to_clamp : dynamic_bodies) {
         for (const Rectangle committed_body : static_bodies) {
             clamp_body(to_clamp, committed_body);
         }

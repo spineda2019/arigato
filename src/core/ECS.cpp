@@ -151,7 +151,8 @@ struct ECS::PrivateAccesor final {
 static_assert(std::is_trivially_constructible_v<ECS::PrivateAccesor>);
 static_assert(std::is_trivially_destructible_v<ECS::PrivateAccesor>);
 
-void ECS::Update(input::Input input, float dt) noexcept {
+void ECS::Update(input::Input input, float dt,
+                 std::vector<Event>& evs) noexcept {
     namespace comp = arigato::component;
 
     // First get the physics intent from translating user input
@@ -194,7 +195,7 @@ void ECS::Update(input::Input input, float dt) noexcept {
         }
     }
 
-    system::physics::Collide(dynamic_bodies, static_bodies);
+    system::physics::Collide(dynamic_bodies, static_bodies, evs);
 }
 
 void ECS::Clear() noexcept {

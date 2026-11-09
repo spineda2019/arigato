@@ -10,7 +10,6 @@
 #define SRC_CORE_INCLUDE_COMPONENTS_PHYSICSCOMPONENT_HPP_
 
 #include <arigato/physics.hpp>
-#include <cstdint>
 //
 #include "Component.hpp"
 

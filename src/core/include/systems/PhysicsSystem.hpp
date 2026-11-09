@@ -12,6 +12,7 @@
 #include <span>
 //
 #include <arigato/physics.hpp>
+#include <vector>
 //
 #include "ECS.hpp"
 #include "components/PhysicsComponent.hpp"
@@ -31,7 +32,8 @@ void Move(std::span<const core::ECS::BitMask> masks,
 
 /// \brief Prevent overlap of 2D rectangles.
 void Collide(std::span<Rectangle*> dynamic_bodies,
-             std::span<Rectangle> static_bodies) noexcept;
+             std::span<Rectangle> static_bodies,
+             std::vector<core::Event>& evs) noexcept;
 }  // namespace arigato::system::physics
 
 #endif  // SRC_CORE_INCLUDE_SYSTEMS_PHYSICSSYSTEM_HPP_

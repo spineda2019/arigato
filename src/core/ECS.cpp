@@ -13,6 +13,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 //
 #include <arigato/input.hpp>
@@ -33,57 +34,35 @@
 namespace arigato::core {
 namespace {
 
-// ****************************** Bit Helpers ******************************* //
-
-/// \brief How we're going to map component types to their bit indices until we
-/// get some more reflection capabilities.
-template <class ComponentT>
-struct ComponentTypeToBitSetIndex final {
-    static_assert(false, "Unknown component type");
-    inline static constexpr ECS::BitSetIndex value{};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::InteractableComponent>
-    final {
-    inline static constexpr auto value{ECS::BitSetIndex::InteractableComponent};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::PhysicsBodyComponent>
-    final {
-    inline static constexpr auto value{ECS::BitSetIndex::PhysicsBodyComponent};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::PhysicsSpeedComponent>
-    final {
-    inline static constexpr auto value{ECS::BitSetIndex::PhysicsSpeedComponent};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::PhysicsIntentComponent>
-    final {
-    inline static constexpr auto value{
-        ECS::BitSetIndex::PhysicsIntentComponent};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::SpriteComponent> final {
-    inline static constexpr auto value{ECS::BitSetIndex::SpriteComponent};
-};
-
-template <>
-struct ComponentTypeToBitSetIndex<arigato::component::PhysicsFaceableComponent>
-    final {
-    inline static constexpr auto value{
-        ECS::BitSetIndex::PhysicsFaceableComponent};
-};
 // **************************** End Bit Helpers ***************************** //
 
 template <component::Component C>
 inline consteval ECS::BitSetIndex IndexOf() noexcept {
-    return ComponentTypeToBitSetIndex<C>::value;
+    using BitIndex = ECS::BitSetIndex;
+    constexpr std::variant<C> visitee{};
+    constexpr auto visitor{arigato::meta::OverloadSet{
+        [](arigato::component::InteractableComponent) noexcept -> BitIndex {
+            return BitIndex::InteractableComponent;
+        },
+        [](arigato::component::PhysicsBodyComponent) noexcept -> BitIndex {
+            return BitIndex::PhysicsBodyComponent;
+        },
+        [](arigato::component::PhysicsSpeedComponent) noexcept -> BitIndex {
+            return BitIndex::PhysicsSpeedComponent;
+        },
+        [](arigato::component::PhysicsIntentComponent) noexcept -> BitIndex {
+            return BitIndex::PhysicsIntentComponent;
+        },
+        [](arigato::component::SpriteComponent) noexcept -> BitIndex {
+            return BitIndex::SpriteComponent;
+        },
+        [](arigato::component::PhysicsFaceableComponent) noexcept -> BitIndex {
+            return BitIndex::PhysicsFaceableComponent;
+        },
+    }};
+
+    // poor man's pattern-matching :-)
+    return std::visit(visitor, visitee);
 }
 
 static_assert(IndexOf<arigato::component::InteractableComponent>() ==

@@ -10,9 +10,9 @@ const builtin = @import("builtin");
 
 const CppFiles = struct {
     const core = [_][]const u8{
-        "src/core/Game.cpp",
-        "src/core/Level.cpp",
-        "src/core/Campaign.cpp",
+        "src/core/impl/Game.cpp",
+        "src/core/impl/Level.cpp",
+        "src/core/impl/Campaign.cpp",
         "src/core/ecs/ECS.cpp",
         "src/core/ecs/systems/InputSystem.cpp",
         "src/core/ecs/systems/PhysicsSystem.cpp",
@@ -33,7 +33,7 @@ const CppFiles = struct {
 const CppIncludeDirs = struct {
     const Core = struct {
         const public = [_][]const u8{
-            "src/core/include/",
+            "src/core/impl/include/",
             "src/core/ecs/include/",
         };
         const internal = [_][]const u8{};

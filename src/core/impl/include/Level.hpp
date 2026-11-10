@@ -33,6 +33,12 @@ class Level final {
     using Rectangle = types::Rectangle<int>;
     using Bounds = types::Bounds<int>;
 
+    enum struct Scene : std::uint8_t {
+        MainFloor,
+        Kitchen,
+        BakeryCase,
+    };
+
  public:  // APIs
     explicit Level() noexcept;
 

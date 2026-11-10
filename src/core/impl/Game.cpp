@@ -74,6 +74,10 @@ void Game::SpawnRequiredEntities() noexcept {
         ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
 }
 
+void Game::SetupScreenTransitions() noexcept {
+    // Setup screen transitions for different Level scenes
+}
+
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
 std::uint8_t Game::GetCustomersLeft() const noexcept {
     /// Yes this throws. Yes this would terminate the program. I am (currently)
@@ -88,6 +92,7 @@ void Game::RebuildLevel() noexcept {
     ecs_.Clear();  // despawns all entities
 
     this->SpawnRequiredEntities();
+    this->SetupScreenTransitions();
 }
 
 void Game::Update(input::Input intent, float dt) noexcept {

@@ -75,6 +75,8 @@ class Game final {
 
     void SpawnRequiredEntities() noexcept;
 
+    void SetupScreenTransitions() noexcept;
+
  private:
     struct Objects {
         arigato::entities::Id player;

@@ -23,6 +23,7 @@ class Level final {
  public:  // types
     struct Action final {
         bool served;
+        bool at_bar;
     };
     static_assert(std::is_trivially_destructible_v<Action>);
     static_assert(std::is_trivially_constructible_v<Action>);

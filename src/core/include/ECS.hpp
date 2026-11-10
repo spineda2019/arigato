@@ -222,15 +222,16 @@ class ECS final {
     void DestroyEntity(arigato::entities::Id);
 
     /// \brief Small helper to Spawn the playable character
-    entities::Id SpawnPlayer(types::Rectangle<float> body, float speed);
+    arigato::entities::Id SpawnPlayer(arigato::types::Rectangle<float> body,
+                                      float speed);
     /// \brief Small helper to spawn an immovable, collidable body
-    entities::Id SpawnStatic(types::Rectangle<float> body,
-                             arigato::id::SpriteId);
+    arigato::entities::Id SpawnStatic(arigato::types::Rectangle<float> body,
+                                      arigato::id::SpriteId);
     /// \brief Randomly generates the target position
-    entities::Id SpawnStatic(types::Bounds<float> bounds,
-                             arigato::id::SpriteId);
+    arigato::entities::Id SpawnStatic(arigato::types::Bounds<float> bounds,
+                                      arigato::id::SpriteId);
     /// \brief The player's current body in game _logical units_
-    types::Rectangle<float> GetPlayerBody() noexcept;
+    arigato::types::Rectangle<float> GetPlayerBody() noexcept;
 
     bool IsDrawableAt(std::size_t) noexcept;
     Drawable GetDrawableAt(std::size_t) noexcept;

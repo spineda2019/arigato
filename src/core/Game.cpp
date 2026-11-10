@@ -6,12 +6,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include <iostream>
 #include <type_traits>
 #include <variant>
 #include <vector>
 //
 //
+#include "arigato/id.hpp"
 #include "include/Game.hpp"
 #include "include/Level.hpp"
 #include "systems/Event.hpp"
@@ -60,10 +60,13 @@ Game::Game(Game::Bounds bounds) noexcept
 void Game::SpawnRequiredEntities() noexcept {
     // Static bodies are registered cats-first, then decor, so that collision
     // clamping happens in the same order as before.
-    for (auto decorum : campaign_.GetDecor()) {
-        (void)ecs_.SpawnStatic(decorum.rect, decorum.id);
+    for (const auto decorum : campaign_.GetDecor()) {
+        const auto entity_id = ecs_.SpawnStatic(decorum.rect, decorum.id);
+        if (decorum.id == arigato::id::SpriteId::CafeBar) {
+            objects_.cafe = entity_id;
+        }
     }
-    for (auto cat : campaign_.GetCats()) {
+    for (const auto cat : campaign_.GetCats()) {
         (void)ecs_.SpawnStatic(level_bounds_.template Convert<float>(), cat.id);
     }
 
@@ -93,17 +96,22 @@ void Game::Update(input::Input intent, float dt) noexcept {
     // Input + movement + collision for every body in the level
     ecs_.Update(intent, dt, events_);
 
-    constexpr auto visitor{arigato::meta::OverloadSet{
-        [](BodyCollision const& collision) {
-            std::cout << "Collision A id: " << collision.a
-                      << "\nB id: " << collision.b << "\n\n";
+    bool at_bar{false};
+    const auto visitor{arigato::meta::OverloadSet{
+        [this, &at_bar](BodyCollision const& collision) {
+            if ((collision.a == this->objects_.player &&
+                 collision.b == this->objects_.cafe) ||
+                (collision.b == this->objects_.player &&
+                 collision.a == this->objects_.cafe)) {
+                at_bar = true;
+            }
         },
     }};
     for (const Event& ev : events_) {
         std::visit(visitor, ev);
     }
 
-    level_.Apply({.served = intent.pressed.space});
+    level_.Apply({.served = intent.pressed.space, .at_bar = at_bar});
     // TODO(SEP): update the campaign if needed (e.g. collectables, a shop
     // aspect was added, etc)
     // campaign_.UpdateEntities();

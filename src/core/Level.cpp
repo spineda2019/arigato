@@ -45,7 +45,7 @@ std::uint8_t Level::GetCustomersLeft() const noexcept {
 }
 
 void Level::Apply(Level::Action action) noexcept {
-    if (action.served && customers_left_ > 0) {
+    if (action.at_bar && action.served && customers_left_ > 0) {
         --customers_left_;
     }
 }

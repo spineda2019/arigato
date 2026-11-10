@@ -78,6 +78,7 @@ class Game final {
  private:
     struct Objects {
         arigato::entities::Id player;
+        arigato::entities::Id cafe;
     };
 
  private:

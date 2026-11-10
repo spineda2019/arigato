@@ -19,7 +19,9 @@
 #include <arigato/input.hpp>
 #include <arigato/meta.hpp>
 #include <arigato/physics.hpp>
+#include <zig.hpp>
 //
+
 #include "arigato/id.hpp"
 #include "components/SpriteComponent.hpp"
 #include "include/ECS.hpp"
@@ -29,7 +31,6 @@
 #include "include/entities/Id.hpp"
 #include "include/systems/InputSystem.hpp"
 #include "include/systems/PhysicsSystem.hpp"
-#include "include/zig.hpp"
 
 namespace arigato::core {
 namespace {

@@ -13,10 +13,10 @@ const CppFiles = struct {
         "src/core/Game.cpp",
         "src/core/Level.cpp",
         "src/core/Campaign.cpp",
-        "src/core/ECS.cpp",
-        "src/core/systems/InputSystem.cpp",
-        "src/core/systems/PhysicsSystem.cpp",
-        "src/core/systems/LevelSystem.cpp",
+        "src/core/ecs/ECS.cpp",
+        "src/core/ecs/systems/InputSystem.cpp",
+        "src/core/ecs/systems/PhysicsSystem.cpp",
+        "src/core/ecs/systems/LevelSystem.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
@@ -31,8 +31,12 @@ const CppFiles = struct {
 };
 
 const CppIncludeDirs = struct {
-    const core = [_][]const u8{
-        "src/core/include/",
+    const Core = struct {
+        const public = [_][]const u8{
+            "src/core/include/",
+            "src/core/ecs/include/",
+        };
+        const internal = [_][]const u8{};
     };
     const display = [_][]const u8{
         "src/display/include/",
@@ -183,8 +187,11 @@ const Modules = struct {
             .link_libcpp = true,
         });
 
-        for (CppIncludeDirs.core) |inc| {
+        for (CppIncludeDirs.Core.public) |inc| {
             mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
+        }
+        for (CppIncludeDirs.Core.internal) |inc| {
             mod_core.addIncludePath(config.b.path(inc));
         }
         for (CppIncludeDirs.display) |inc| {
@@ -468,7 +475,10 @@ pub fn build(b: *std.Build) !void {
             }),
         });
     }
-    for (CppIncludeDirs.core) |file| {
+    for (CppIncludeDirs.Core.public) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
+    for (CppIncludeDirs.Core.internal) |file| {
         mod_tests.root_module.addIncludePath(b.path(file));
     }
     for (CppIncludeDirs.common) |file| {

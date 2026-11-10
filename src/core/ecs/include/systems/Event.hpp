@@ -6,8 +6,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#ifndef SRC_CORE_INCLUDE_SYSTEMS_EVENT_HPP_
-#define SRC_CORE_INCLUDE_SYSTEMS_EVENT_HPP_
+#ifndef SRC_CORE_ECS_INCLUDE_SYSTEMS_EVENT_HPP_
+#define SRC_CORE_ECS_INCLUDE_SYSTEMS_EVENT_HPP_
 
 #include <variant>
 
@@ -20,7 +20,13 @@ struct BodyCollision final {
     arigato::entities::Id b;
 };
 
+// TODO(SEP): Some type of interactable area overlap event
+struct InteractableAreaCollision final {
+    arigato::entities::Id a;
+    arigato::entities::Id b;
+};
+
 using Event = std::variant<BodyCollision>;
 }  // namespace arigato::core
 
-#endif  // SRC_CORE_INCLUDE_SYSTEMS_EVENT_HPP_
+#endif  // SRC_CORE_ECS_INCLUDE_SYSTEMS_EVENT_HPP_

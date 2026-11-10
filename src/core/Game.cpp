@@ -52,7 +52,8 @@ Game::Game(Game::Bounds bounds) noexcept
       level_{},
       ecs_{},
       level_bounds_{bounds},
-      state_{Game::State::Title} {
+      state_{Game::State::Title},
+      objects_{} {
     this->SpawnRequiredEntities();
 }
 
@@ -66,7 +67,8 @@ void Game::SpawnRequiredEntities() noexcept {
         (void)ecs_.SpawnStatic(level_bounds_.template Convert<float>(), cat.id);
     }
 
-    (void)ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
+    objects_.player =
+        ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
 }
 
 std::size_t Game::GetCurrentDay() const noexcept { return campaign_.GetDay(); }
@@ -93,8 +95,8 @@ void Game::Update(input::Input intent, float dt) noexcept {
 
     constexpr auto visitor{arigato::meta::OverloadSet{
         [](BodyCollision const& collision) {
-            std::cout << "Collision A id: " << collision.collisionA
-                      << "\nB id: " << collision.collisionB << "\n\n";
+            std::cout << "Collision A id: " << collision.a
+                      << "\nB id: " << collision.b << "\n\n";
         },
     }};
     for (const Event& ev : events_) {

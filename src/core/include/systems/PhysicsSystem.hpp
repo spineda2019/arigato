@@ -10,15 +10,19 @@
 #define SRC_CORE_INCLUDE_SYSTEMS_PHYSICSSYSTEM_HPP_
 
 #include <span>
+#include <vector>
 //
 #include <arigato/physics.hpp>
-#include <vector>
 //
 #include "ECS.hpp"
 #include "components/PhysicsComponent.hpp"
 
 namespace arigato::system::physics {
-using Rectangle = types::Rectangle<float>;
+using Rectangle = arigato::types::Rectangle<float>;
+struct Body final {
+    Rectangle* rect;
+    arigato::entities::Id id;
+};
 
 /// \brief Integrate movement intent into body positions
 ///
@@ -31,8 +35,7 @@ void Move(std::span<const core::ECS::BitMask> masks,
           float dt) noexcept;
 
 /// \brief Prevent overlap of 2D rectangles.
-void Collide(std::span<Rectangle*> dynamic_bodies,
-             std::span<Rectangle> static_bodies,
+void Collide(std::span<Body> dynamic_bodies, std::span<Body> static_bodies,
              std::vector<core::Event>& evs) noexcept;
 }  // namespace arigato::system::physics
 

@@ -16,8 +16,8 @@
 namespace arigato::core {
 
 struct BodyCollision final {
-    arigato::entities::Id collisionA;
-    arigato::entities::Id collisionB;
+    arigato::entities::Id a;
+    arigato::entities::Id b;
 };
 
 using Event = std::variant<BodyCollision>;

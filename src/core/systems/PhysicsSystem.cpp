@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <span>
 #include <utility>
 #include <vector>
@@ -17,6 +16,7 @@
 #include "components/PhysicsComponent.hpp"
 #include "systems/Event.hpp"
 #include "systems/PhysicsSystem.hpp"
+#include "zig.hpp"
 
 namespace arigato::system::physics {
 namespace {
@@ -82,28 +82,35 @@ void Move(std::span<const core::ECS::BitMask> masks,
     }
 }
 
-void Collide(std::span<Rectangle*> dynamic_bodies,
-             std::span<Rectangle> static_bodies,
-             std::vector<core::Event>&) noexcept {
+void Collide(std::span<Body> dynamic_bodies, std::span<Body> static_bodies,
+             std::vector<core::Event>& evs) noexcept {
     // TODO(SEP): add collision events to the vec
-    const auto clamp_body = [](Rectangle* free_body,
-                               Rectangle const& committed_body) noexcept {
-        if (free_body->Overlaps(committed_body)) [[unlikely]] {
+    constexpr auto clamp_body = [](Body& free_body, Body const& committed_body,
+                                   std::vector<core::Event>& events) noexcept {
+        arigato::core::zig::zig_assert((free_body.rect != nullptr) &&
+                                       (committed_body.rect != nullptr));
+        Rectangle& free_rect{*free_body.rect};
+        Rectangle const& committed_rect{*committed_body.rect};
+        if (free_rect.Overlaps(committed_rect)) [[unlikely]] {
+            events.emplace_back(arigato::core::BodyCollision{
+                .a = free_body.id,
+                .b = committed_body.id,
+            });
             const Rectangle overlap{
-                OverlapRectangle(*free_body, committed_body)};
+                OverlapRectangle(free_rect, committed_rect)};
             if (overlap.bounds.width < overlap.bounds.height) {
                 // clamp x-axis
-                if (free_body->pos.x <= committed_body.pos.x) {
-                    free_body->pos.x -= overlap.bounds.width;
+                if (free_rect.pos.x <= committed_rect.pos.x) {
+                    free_rect.pos.x -= overlap.bounds.width;
                 } else {
-                    free_body->pos.x += overlap.bounds.width;
+                    free_rect.pos.x += overlap.bounds.width;
                 }
             } else {
                 // clamp y-axis
-                if (free_body->pos.y <= committed_body.pos.y) {
-                    free_body->pos.y -= overlap.bounds.height;
+                if (free_rect.pos.y <= committed_rect.pos.y) {
+                    free_rect.pos.y -= overlap.bounds.height;
                 } else {
-                    free_body->pos.y += overlap.bounds.height;
+                    free_rect.pos.y += overlap.bounds.height;
                 }
             }
         }
@@ -111,14 +118,13 @@ void Collide(std::span<Rectangle*> dynamic_bodies,
 
     // Marks the next dynamic body we have _start at_ for checking the
     // current body.
-    for (auto it{dynamic_bodies.begin()};
-         Rectangle* to_clamp : dynamic_bodies) {
-        for (const Rectangle committed_body : static_bodies) {
-            clamp_body(to_clamp, committed_body);
+    for (auto it{dynamic_bodies.begin()}; Body& to_clamp : dynamic_bodies) {
+        for (const Body& committed_body : static_bodies) {
+            clamp_body(to_clamp, committed_body, evs);
         }
-        for (const Rectangle* committed_body :
+        for (const Body& committed_body :
              decltype(dynamic_bodies){dynamic_bodies.begin(), it}) {
-            clamp_body(to_clamp, *committed_body);
+            clamp_body(to_clamp, committed_body, evs);
         }
 
         ++it;

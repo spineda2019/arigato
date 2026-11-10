@@ -19,6 +19,7 @@
 #include "Campaign.hpp"
 #include "ECS.hpp"
 #include "Level.hpp"
+#include "entities/Id.hpp"
 #include "systems/Event.hpp"
 
 namespace arigato::core {
@@ -75,12 +76,18 @@ class Game final {
     void SpawnRequiredEntities() noexcept;
 
  private:
+    struct Objects {
+        arigato::entities::Id player;
+    };
+
+ private:
     Campaign campaign_{};
     std::vector<Event> events_;
     Level level_;
     ECS ecs_{};
     Bounds level_bounds_{};
     State state_{Game::State::Title};
+    Objects objects_;
 
  private:  // statics
     static inline constexpr float dyn_body_speed{7.0f};

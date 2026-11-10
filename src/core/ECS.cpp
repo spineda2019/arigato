@@ -155,8 +155,8 @@ void ECS::Update(input::Input input, float dt,
     const auto speed_bit{
         std::to_underlying(BitSetIndex::PhysicsSpeedComponent)};
 
-    std::vector<system::physics::Rectangle*> dynamic_bodies{};
-    std::vector<system::physics::Rectangle> static_bodies{};
+    std::vector<arigato::system::physics::Body> dynamic_bodies{};
+    std::vector<arigato::system::physics::Body> static_bodies{};
     for (std::size_t row{0}; row < component_masks_.size(); ++row) {
         const BitMask& mask{component_masks_[row]};
         if (!mask.test(body_bit)) {
@@ -167,9 +167,9 @@ void ECS::Update(input::Input input, float dt,
             ECS::PrivateAccesor::StorageOf<component::PhysicsBodyComponent>(
                 *this);
         if (mask.test(speed_bit)) {
-            dynamic_bodies.push_back(&storage[row].position);
+            dynamic_bodies.emplace_back(&storage[row].position, row);
         } else {
-            static_bodies.emplace_back(storage[row].position);
+            static_bodies.emplace_back(&storage[row].position, row);
         }
     }
 

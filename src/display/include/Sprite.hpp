@@ -10,6 +10,9 @@
 #ifndef SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 #define SRC_DISPLAY_INCLUDE_SPRITE_HPP_
 
+#include <__new/global_new_delete.h>
+
+#include <cstddef>
 #include <memory>
 #include <type_traits>
 //
@@ -30,8 +33,6 @@ class Sprite final {
  public:
     explicit Sprite(const char* path) noexcept;
     explicit Sprite(const char* path, Bounds) noexcept;
-    using ReadonlyImplRef_t = std::unique_ptr<Impl> const&;
-    ReadonlyImplRef_t ReadonlyImplRef() const noexcept;
     float GetWidth() const noexcept;
     float GetHeight() const noexcept;
 
@@ -44,6 +45,8 @@ class Sprite final {
     Sprite& operator=(Sprite&&) = default;
 
  private:
+    // Is this a hack?
+    friend class Window;
     std::unique_ptr<Impl> impl_{};
     Bounds area_{};
 };

@@ -21,16 +21,17 @@ namespace arigato::core {
 /// Representation of the currently running game-state. Theoretically should be
 /// easily (or at least tractably) serializable for saving
 class Campaign final {
- public:  // Types
-          /// \brief Represents a cat currently owned by the player
-          ///
-          /// Can be randomly placed within a level
+    // Types
+ public:
+    /// \brief Represents a cat currently owned by the player
+    ///
+    /// Can be randomly placed within a level
     struct Cat final {
-        id::CatId id;
+        arigato::id::SpriteId id;
     };
     static_assert(std::is_trivially_destructible_v<Cat>);
     static_assert(std::is_trivially_constructible_v<Cat>);
-    static_assert(std::is_trivially_constructible_v<Cat, id::CatId>);
+    static_assert(std::is_trivially_constructible_v<Cat, id::SpriteId>);
 
     /// \brief Represents a decorum currently owned by the player
     ///
@@ -38,17 +39,17 @@ class Campaign final {
     /// is customizable by the player, and is thus part of this type for
     /// persistence.
     struct Decorum final {
-        using Position = types::Rectangle<int>;
-
-        Position pos;
-        id::DecorId id;
+        /// \brief where in the room the decorum is
+        ///
+        /// This is stored as part of the type, and is not randomly generated
+        /// (like with `Cat`) As this is chosen by the user.
+        types::Rectangle<float> rect;
+        arigato::id::SpriteId id;
     };
 
     static_assert(std::is_trivially_destructible_v<Decorum>);
     static_assert(std::is_trivially_constructible_v<Decorum>);
     static_assert(std::is_trivially_copy_constructible_v<Decorum>);
-    static_assert(std::is_trivially_constructible_v<Decorum, Decorum::Position,
-                                                    id::DecorId>);
 
  public:  // APIs
     std::size_t GetDay() const noexcept;
@@ -56,27 +57,14 @@ class Campaign final {
     std::span<const Cat> GetCats() const noexcept;
     void NextDay() noexcept;
 
-    void AddCats(std::span<id::CatId>);
-    void AddDecor(std::span<id::DecorId>);
-
-    void AddCat(id::CatId);
-    void AddDecorum(id::DecorId);
-
  private:
-    inline static constexpr Cat kitters{.id = id::CatId::Kitters};
+    inline static constexpr Cat kitters{.id = id::SpriteId::Kitters};
     inline static constexpr Decorum cafe_bar{
-        .pos{
-            .pos{
-                .x = 13,
-                .y = 7,
-            },
-            .bounds{
-                .width = 8,
-                .height = 4,
-            },
+        .rect{
+            .pos{.x = 13, .y = 7},
+            .bounds{.width = 8, .height = 4},
         },
-        .id = id::DecorId::CafeBar,
-    };
+        .id = id::SpriteId::CafeBar};
 
  private:
     std::size_t day_{1};

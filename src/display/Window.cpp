@@ -8,10 +8,12 @@
 
 #include <raylib.h>
 //
+#include <cstddef>
 #include <memory>
 #include <utility>
 //
 #include <arigato/input.hpp>
+#include <custom_new.hpp>
 //
 #include "include/Sprite.hpp"
 #include "include/Window.hpp"
@@ -35,16 +37,47 @@ constexpr bool cap_fps{
 }  // namespace
 
 namespace arigato::display {
+/// \brief internal impl that passes through to raylib API
+///
+/// This sprite's lifetime is tied to the lifetime of the sprite data on the
+/// GPU. For now, once data is sent to the GPU, we aren't going to worry about
+/// de-initing that until program-close. Thus, this type is a pretty good
+/// candidate for zig's arena allocator.
 struct Sprite::Impl {
     Texture2D texture_;
 
     explicit Impl(Texture2D texture) noexcept : texture_{std::move(texture)} {}
 
-    ~Impl() noexcept { UnloadTexture(texture_); }
+    ~Impl() noexcept { ::UnloadTexture(texture_); }
     Impl(Impl const&) = delete;
     Impl& operator=(Impl const&) = delete;
     Impl(Impl&&) = delete;
     Impl& operator=(Impl&&) = delete;
+
+#ifdef ARIGATO_CUSTOM_ALLOCATOR
+    static inline void* operator new(std::size_t amount) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new[](std::size_t amount) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new(std::size_t amount, std::align_val_t) {
+        return Impl::alloc(amount);
+    }
+    static inline void* operator new[](std::size_t amount, std::align_val_t) {
+        return Impl::alloc(amount);
+    }
+    // TODO(SEP): operator delete
+#endif
+
+ private:
+    static inline void* alloc(std::size_t amount) {
+        if (void* ptr{zig_arena_new(amount)}; ptr) [[likely]] {
+            return ptr;
+        } else {
+            throw std::bad_alloc{};
+        }
+    }
 };
 
 Sprite::Sprite(const char* path, Sprite::Bounds area) noexcept
@@ -56,10 +89,6 @@ Sprite::Sprite(const char* path) noexcept
             .height = static_cast<float>(impl_->texture_.height)} {}
 
 Sprite::~Sprite() noexcept = default;
-
-Sprite::ReadonlyImplRef_t Sprite::ReadonlyImplRef() const noexcept {
-    return impl_;
-}
 
 float Sprite::GetHeight() const noexcept { return area_.height; }
 
@@ -135,7 +164,12 @@ Window::Frame::~Frame() noexcept { ::EndDrawing(); };
 void Window::Frame::SetBackground(BackgroundColor color) const noexcept {
     ::ClearBackground(ToRayColor(color));
 }
+
+namespace {
+constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
 constexpr unsigned char full_opaque{255};
+}  // anonymous namespace
+
 void Window::Frame::SetBackgroundRGB(Window::RGB rgb) const noexcept {
     ::ClearBackground(::Color{
         .r = rgb.red,
@@ -159,16 +193,12 @@ void Window::Frame::DrawText(const char* text, int x, int y, int size,
                });
 }
 
-namespace {
-constexpr ::Vector2 abs_origin{.x = 0.0f, .y = 0.0f};
-}  // anonymous namespace
-
 Window::Frame Window::MakeFrame() const noexcept { return Window::Frame{}; }
 
 void Window::Frame::DrawFullSprite(Sprite const& s, float x,
                                    float y) const noexcept {
     ::DrawTexturePro(
-        s.ReadonlyImplRef()->texture_,
+        s.impl_->texture_,
         {.x = 0.0f, .y = 0.0f, .width = s.GetWidth(), .height = s.GetHeight()},
         {.x = x, .y = y, .width = s.GetWidth(), .height = s.GetHeight()},
         abs_origin,
@@ -178,7 +208,7 @@ void Window::Frame::DrawFullSprite(Sprite const& s, float x,
 
 void Window::Frame::DrawFullSprite(Sprite const& sprite,
                                    Sprite::Area target) const noexcept {
-    ::DrawTexturePro(sprite.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(sprite.impl_->texture_,
                      {
                          .x = 0.0f,
                          .y = 0.0f,
@@ -198,7 +228,7 @@ void Window::Frame::DrawFullSprite(Sprite const& sprite,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
                                      float x, float y) const noexcept {
-    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(s.impl_->texture_,
                      {
                          .x = region.pos.x,
                          .y = region.pos.y,
@@ -218,7 +248,7 @@ void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area region,
 
 void Window::Frame::DrawSpriteRegion(Sprite const& s, Sprite::Area src,
                                      Sprite::Area dest) const noexcept {
-    ::DrawTexturePro(s.ReadonlyImplRef()->texture_,
+    ::DrawTexturePro(s.impl_->texture_,
                      {
                          .x = src.pos.x,
                          .y = src.pos.y,

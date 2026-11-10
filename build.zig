@@ -10,11 +10,13 @@ const builtin = @import("builtin");
 
 const CppFiles = struct {
     const core = [_][]const u8{
-        "src/core/Game.cpp",
-        "src/core/Character.cpp",
-        "src/core/Level.cpp",
-        "src/core/Campaign.cpp",
-        "src/core/PhysicsManager.cpp",
+        "src/core/impl/Game.cpp",
+        "src/core/impl/Level.cpp",
+        "src/core/impl/Campaign.cpp",
+        "src/core/ecs/ECS.cpp",
+        "src/core/ecs/systems/InputSystem.cpp",
+        "src/core/ecs/systems/PhysicsSystem.cpp",
+        "src/core/ecs/systems/LevelSystem.cpp",
     };
     const display = [_][]const u8{
         "src/display/Window.cpp",
@@ -23,11 +25,18 @@ const CppFiles = struct {
     const game = [_][]const u8{
         "src/game/main.cpp",
     };
+    const tst = [_][]const u8{
+        "test/root.cpp",
+    };
 };
 
 const CppIncludeDirs = struct {
-    const core = [_][]const u8{
-        "src/core/include/",
+    const Core = struct {
+        const public = [_][]const u8{
+            "src/core/impl/include/",
+            "src/core/ecs/include/",
+        };
+        const internal = [_][]const u8{};
     };
     const display = [_][]const u8{
         "src/display/include/",
@@ -81,6 +90,7 @@ const Modules = struct {
     core: *std.Build.Module,
     display: *std.Build.Module,
     game: *std.Build.Module,
+    mem: *std.Build.Module,
 
     fn init(config: struct {
         b: *std.Build,
@@ -169,9 +179,19 @@ const Modules = struct {
                 }),
             });
         }
+        const mod_mem = config.b.createModule(.{
+            .root_source_file = config.b.path("src/mem/root.zig"),
+            .target = config.target,
+            .optimize = config.optimize,
+            .link_libc = true,
+            .link_libcpp = true,
+        });
 
-        for (CppIncludeDirs.core) |inc| {
+        for (CppIncludeDirs.Core.public) |inc| {
             mod_game.addIncludePath(config.b.path(inc));
+            mod_core.addIncludePath(config.b.path(inc));
+        }
+        for (CppIncludeDirs.Core.internal) |inc| {
             mod_core.addIncludePath(config.b.path(inc));
         }
         for (CppIncludeDirs.display) |inc| {
@@ -183,13 +203,19 @@ const Modules = struct {
             mod_display.addIncludePath(config.b.path(inc));
         }
 
-        return .{ .core = mod_core, .display = mod_display, .game = mod_game };
+        return .{
+            .core = mod_core,
+            .display = mod_display,
+            .game = mod_game,
+            .mem = mod_mem,
+        };
     }
 
     const Compilations = struct {
         core: *std.Build.Step.Compile,
         display: *std.Build.Step.Compile,
         game: *std.Build.Step.Compile,
+        mem: *std.Build.Step.Compile,
 
         pub fn init(config: struct {
             b: *std.Build,
@@ -210,19 +236,42 @@ const Modules = struct {
             config.modules.game.linkLibrary(lib_core);
             config.modules.game.linkLibrary(lib_display);
 
+            const mem = config.b.addLibrary(.{
+                .linkage = .static,
+                .name = "mem",
+                .root_module = config.modules.mem,
+            });
+
             const game = config.b.addExecutable(.{
                 .name = "arigato",
                 .root_module = config.modules.game,
             });
 
-            return .{ .core = lib_core, .display = lib_display, .game = game };
+            return .{
+                .core = lib_core,
+                .display = lib_display,
+                .game = game,
+                .mem = mem,
+            };
         }
     };
+};
+
+const AllocatorInfo = union(enum) {
+    default,
+    custom: union(enum) {
+        /// Pretty much use default zig allocators
+        smp,
+        /// Use an arena allocator with a specified size in MB
+        arena: u32,
+    },
 };
 
 const BuildOptions = struct {
     create_compiledb: bool,
     draw_hitboxes: bool,
+    report_framerate: bool,
+    allocator_info: AllocatorInfo,
 
     fn init(b: *std.Build) BuildOptions {
         return .{
@@ -236,6 +285,43 @@ const BuildOptions = struct {
                 "drawhit",
                 "Draw hitboxes around physics entities",
             ) orelse false,
+            .report_framerate = b.option(
+                bool,
+                "drawframerate",
+                "Draw the realtime framerate to the screen",
+            ) orelse false,
+            .allocator_info = info: {
+                const custom_alloc = b.option(
+                    bool,
+                    "custom_alloc",
+                    "Use a zig implemented allocator rather than the default",
+                ) orelse false;
+
+                if (!custom_alloc) {
+                    break :info .default;
+                } else {
+                    const strategy = b.option(
+                        enum { smp, arena },
+                        "custom_alloc_choice",
+                        "Choose a custom allocator strategy",
+                    ) orelse .smp;
+
+                    switch (strategy) {
+                        .smp => {
+                            break :info .{ .custom = .smp };
+                        },
+                        .arena => {
+                            const arena_size = b.option(
+                                u32,
+                                "arena_size",
+                                "Arena size in MB",
+                            ) orelse 256;
+
+                            break :info .{ .custom = .{ .arena = arena_size } };
+                        },
+                    }
+                }
+            },
         };
     }
 };
@@ -253,11 +339,11 @@ pub fn build(b: *std.Build) !void {
     });
 
     inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
-        if (optimize == .Debug) {
+        if (optimize == .debug) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_DEBUG", "");
         }
-        if (optimize == .Debug or optimize == .ReleaseSafe) {
+        if (optimize == .debug or optimize == .safe) {
             const mod: *std.Build.Module = @field(mods, field_name);
             mod.addCMacro("ARIGATO_ASSERT", "");
         }
@@ -265,6 +351,71 @@ pub fn build(b: *std.Build) !void {
     if (options.draw_hitboxes) {
         mods.game.addCMacro("ARIGATO_DRAW_HITBOXES", "");
     }
+    if (options.report_framerate) {
+        mods.game.addCMacro("ARIGATO_REPORT_FRAMERATE", "");
+    }
+    const mem_options = b.addOptions();
+    const strat_name = "allocation_strategy";
+    const pool_name = "arena_size";
+    const Strategy = enum {
+        smp,
+        arena,
+    };
+    switch (options.allocator_info) {
+        .default => {
+            mem_options.addOption(
+                Strategy,
+                strat_name,
+                .smp,
+            );
+            mem_options.addOption(
+                u32,
+                pool_name,
+                0,
+            );
+        }, // leave the implementation's memory allocation alone
+        .custom => |strategy| {
+            mods.game.addCMacro("ARIGATO_CUSTOM_ALLOCATOR", "");
+            // zig 0.17.0 can't yet directly add tagged unions as build options
+            switch (strategy) {
+                .smp => {
+                    mem_options.addOption(
+                        Strategy,
+                        strat_name,
+                        .smp,
+                    );
+                    mem_options.addOption(
+                        u32,
+                        pool_name,
+                        0,
+                    );
+                },
+                .arena => |arena_size| {
+                    mem_options.addOption(
+                        Strategy,
+                        strat_name,
+                        .arena,
+                    );
+                    mem_options.addOption(
+                        u32,
+                        pool_name,
+                        arena_size,
+                    );
+                },
+            }
+
+            mods.mem.addCSourceFile(.{
+                .file = b.path("src/mem/custom_new.cpp"),
+                .flags = try allFlags(.{
+                    .allocator = b.allocator,
+                    .for_file = "src/mem/custom_new.cpp",
+                    .compiledb = options.create_compiledb,
+                }),
+                .language = .cpp,
+            });
+        },
+    }
+    mods.mem.addOptions("mem_options", mem_options);
 
     const compilations: Modules.Compilations = .init(.{
         .b = b,
@@ -277,6 +428,13 @@ pub fn build(b: *std.Build) !void {
             else => .full,
         },
     };
+    inline for (comptime std.meta.fieldNames(Modules)) |field_name| {
+        const mod: *std.Build.Module = @field(mods, field_name);
+        if (mod != mods.mem) {
+            mod.addIncludePath(b.path("src/mem/"));
+            mod.linkLibrary(compilations.mem);
+        }
+    }
 
     b.installArtifact(compilations.game);
     b.installDirectory(.{
@@ -290,9 +448,7 @@ pub fn build(b: *std.Build) !void {
     const run_cmd = b.addRunArtifact(compilations.game);
     run_step.dependOn(&run_cmd.step);
     run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
+    run_cmd.addPassthruArgs();
 
     // Creates an executable that will run `test` blocks from the executable's
     // root module. Note that test executables only test one module at a time,
@@ -308,6 +464,26 @@ pub fn build(b: *std.Build) !void {
             .sanitize_c = .full,
         }),
     });
+    for (CppFiles.tst) |file| {
+        mod_tests.root_module.addCSourceFile(.{
+            .file = b.path(file),
+            .language = .cpp,
+            .flags = try allFlags(.{
+                .allocator = b.allocator,
+                .for_file = file,
+                .compiledb = options.create_compiledb,
+            }),
+        });
+    }
+    for (CppIncludeDirs.Core.public) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
+    for (CppIncludeDirs.Core.internal) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
+    for (CppIncludeDirs.common) |file| {
+        mod_tests.root_module.addIncludePath(b.path(file));
+    }
     mod_tests.root_module.linkLibrary(compilations.core);
     // A run step that will run the test executable.
     const run_mod_tests = b.addRunArtifact(mod_tests);

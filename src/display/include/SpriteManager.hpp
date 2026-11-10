@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "./Sprite.hpp"
+#include "Sprite.hpp"
 
 namespace arigato::display {
 class SpriteManager final {

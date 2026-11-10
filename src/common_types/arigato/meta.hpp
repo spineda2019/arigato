@@ -11,8 +11,10 @@
 #define SRC_COMMON_TYPES_ARIGATO_META_HPP_
 
 #include <cstdint>
+#include <memory>
 #include <new>
 #include <type_traits>
+#include <utility>
 namespace arigato::meta {
 /// \brief If condition for meta-functions
 ///
@@ -73,6 +75,33 @@ static_assert(!OneOf_v<int, int const&>);
 static_assert(OneOf_v<int, int, float>);
 static_assert(OneOf_v<int, bool, float, std::uint64_t, int>);
 static_assert(OneOf_v<int, bool, float, int, std::uint64_t>);
+
+template <class... Ts>
+struct TypeList final {
+    static_assert(false, "Unspecialized TypeList");
+};
+
+template <class Head, class... Tail>
+struct TypeList<Head, Tail...> final {};
+
+template <class T>
+struct TypeList<T> final {
+    using type = T;
+};
+
+template <class T, class... ArgTs>
+inline constexpr T* RecycleLifetime(T* obj, ArgTs&&... args) noexcept(
+    std::is_nothrow_constructible_v<T, ArgTs...> &&
+    std::is_nothrow_destructible_v<T>) {
+    std::destroy_at(obj);
+    return std::construct_at(obj, std::forward<ArgTs>(args)...);
+}
+
+template <class... Ts>
+struct OverloadSet : Ts... {
+    using Ts::operator()...;
+};
+
 }  // namespace arigato::meta
 
 #endif  // SRC_COMMON_TYPES_ARIGATO_META_HPP_

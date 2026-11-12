@@ -72,6 +72,8 @@ void Game::SpawnRequiredEntities() noexcept {
 
     objects_.player =
         ecs_.SpawnPlayer(Game::initial_player_body, Game::dyn_body_speed);
+
+    this->SetupScreenTransitions();
 }
 
 void Game::SetupScreenTransitions() noexcept {
@@ -92,7 +94,6 @@ void Game::RebuildLevel() noexcept {
     ecs_.Clear();  // despawns all entities
 
     this->SpawnRequiredEntities();
-    this->SetupScreenTransitions();
 }
 
 void Game::Update(input::Input intent, float dt) noexcept {
@@ -103,7 +104,7 @@ void Game::Update(input::Input intent, float dt) noexcept {
 
     bool at_bar{false};
     const auto visitor{arigato::meta::OverloadSet{
-        [this, &at_bar](BodyCollision const& collision) {
+        [this, &at_bar](BodyCollision const& collision) noexcept {
             if ((collision.a == this->objects_.player &&
                  collision.b == this->objects_.cafe) ||
                 (collision.b == this->objects_.player &&
@@ -111,6 +112,7 @@ void Game::Update(input::Input intent, float dt) noexcept {
                 at_bar = true;
             }
         },
+        [](InteractableAreaCollision) noexcept {},
     }};
     for (const Event& ev : events_) {
         std::visit(visitor, ev);

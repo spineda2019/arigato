@@ -26,7 +26,7 @@ struct InteractableAreaCollision final {
     arigato::entities::Id b;
 };
 
-using Event = std::variant<BodyCollision>;
+using Event = std::variant<BodyCollision, InteractableAreaCollision>;
 }  // namespace arigato::core
 
 #endif  // SRC_CORE_ECS_INCLUDE_SYSTEMS_EVENT_HPP_

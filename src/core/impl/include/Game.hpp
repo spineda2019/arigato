@@ -29,6 +29,7 @@ class Game final {
         Title,
         Playing,
         BetweenLevels,
+        DebugMode,
     };
 
  public:
@@ -65,6 +66,8 @@ class Game final {
     bool Save() const noexcept;
 
     float GetCharacterWidth() noexcept;
+
+    void EnterDebugMode() noexcept;
 
  private:
     /// \brief (Re)create the level and respawn all ECS entities for it.

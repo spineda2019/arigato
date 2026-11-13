@@ -149,6 +149,8 @@ float Game::GetCharacterWidth() noexcept {
     return ecs_.GetPlayerBody().bounds.width;
 }
 
+void Game::EnterDebugMode() noexcept { state_ = Game::State::DebugMode; }
+
 ECS::DrawableIterable Game::GetDrawables() { return ecs_.GetDrawables(); }
 
 }  // namespace arigato::core

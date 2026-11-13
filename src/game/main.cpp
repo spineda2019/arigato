@@ -101,6 +101,20 @@ struct Arigato final {
         frame.DrawText("Arigato!", title_rect.pos.x, title_rect.pos.y,
                        title_rect.bounds.height,
                        Window::RGB{.red = 41, .green = 71, .blue = 62});
+        // maybe gate this with a custom flag to allow in release builds?
+        if constexpr (debug_build) {
+            const Button debug_mode_button{
+                screen_layout.MakeButton<{.col = 0, .row = 6}, padding, span>(
+                    "Debug")};
+            frame.DrawRectangle(debug_mode_button.label,
+                                debug_mode_button.rectangle,
+                                Window::BackgroundColor::LightGray);
+            if (debug_mode_button.Clicked(mouse)) {
+                // TODO(SEP): Some type of debug screen
+                arigato.game.EnterDebugMode();
+                return;
+            }
+        }
 
         if (new_game_button.Clicked(mouse)) {
             arigato.game.StartNewCampaign();
@@ -244,6 +258,18 @@ struct Arigato final {
             arigato.game.NextLevel();
         }
     }
+
+    inline constexpr void DebugMode(this auto& arigato) noexcept {
+        const arigato::display::Window::Frame frame{arigato.window.MakeFrame()};
+        constexpr arigato::display::Window::RGB background{
+            .red = 114,
+            .green = 165,
+            .blue = 82,
+        };
+        frame.SetBackgroundRGB(background);
+        frame.DrawText("Debug mode TBD...", 0, 0, 20,
+                       Window::BackgroundColor::LightGray);
+    }
 };
 
 }  // anonymous namespace
@@ -282,6 +308,9 @@ int main() noexcept {
                 break;
             case GameState::BetweenLevels:
                 arigato.LevelTransition();
+                break;
+            case GameState::DebugMode:
+                arigato.DebugMode();
                 break;
         }
     }
